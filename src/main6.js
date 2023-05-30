@@ -16,8 +16,32 @@ var config = {
     }
 };
 
+/*
+class Enemy extends Phaser.GameObjects.Rectangle {
+    health = 100;
+    constructor(scene, x = 100, y = 100, width = 50, height = 50, fillColor =  0x00ff00){
+        super(scene, x, y, width, height, fillColor);
+        scene.add.existing(this);
+        scene.physics.add.existing(this, true);
+     }
+}*/
+
+class Enemy extends Phaser.Physics.Arcade.Sprite {
+    constructor(scene, x = 0, y = 0, width = 100, height = 100, fillColor = 0x00ff00) {
+        super(scene, x, y, 'rectangleKey');
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
+        this.setSize(width, height);
+        this.setDisplaySize(width, height);
+        this.setTint(fillColor);
+    }
+}
+
+
+
 var game = new Phaser.Game(config);
 var enemy;
+var enemies;
 var bullets;
 var towers;
 var lastFired = 0;
@@ -26,15 +50,17 @@ var addTowerMode = false;
 const TOWER_RANGE = 200;
 var selectedTower = null;
 
-function preload() {}
+function preload() {
+    this.load.image('bullet', 'bullet.png');
+}
 
 
 function create() {
-    enemy = this.add.rectangle(100, 100, 50, 50, 0x00ff00);
-    this.physics.add.existing(enemy, true);
-    enemy.health = 100;
+    enemies = this.physics.add.group();
+    enemy = new Enemy(this);
     bullets = this.physics.add.group();
     towers = this.physics.add.group();
+    enemies.add(enemy);
 
     // Add input event listener for towers group
     towers.children.iterate(function(tower) {
@@ -47,7 +73,8 @@ function create() {
         }, this);
     }, this);
 
-    this.physics.add.overlap(bullets, enemy, function(bullet, enemy) {
+    //this.physics.world.enable([bullets, enemies]);
+    this.physics.add.overlap(enemies, bullets, function(enemy, bullet) {
         enemy.health -= 10;
         bullet.destroy();
     }, null, this);
@@ -96,7 +123,7 @@ function update(time, delta) {
                 var angle = Phaser.Math.Angle.Between(tower.x, tower.y, enemy.x, enemy.y);
                 tower.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the angle of the tower sprite
 
-                var bullet = bullets.create(tower.x, tower.y - tower.height / 2, 5, 20, 0xffffff);
+                var bullet = bullets.create(tower.x, tower.y - tower.height / 2, 'bullet');
                 bullet.rotation = angle; // Set the rotation of the bullet sprite
                 bullet.setVelocity(Math.cos(angle) * 400, Math.sin(angle) * 400);
             }
