@@ -17,13 +17,30 @@ var config = {
 };
 
 class Enemy extends Phaser.Physics.Arcade.Sprite {
-    health = 100;
     constructor(scene, x = 0, y = 100, width = 50, height = 50) {
         super(scene, x, y, 'enemy');
+        this.health = 100;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setSize(width, height);
         this.setDisplaySize(width, height);
+    }
+}
+
+class Tower extends Phaser.GameObjects.Rectangle {
+    constructor(scene, x, y, width = 50, height = 50) {
+        super(scene, x, y, width, height, 0xff0000);
+        scene.add.existing(this);
+        this.lastFired = 0;
+        this.rangeCircle = scene.add.circle(this.x, this.y, TOWER_RANGE, 0x0000ff, 0.2).setVisible(false);
+    }
+}
+
+class Bullet extends Phaser.Physics.Arcade.Sprite {
+    constructor(scene, x, y) {
+        super(scene, x, y, 'bullet');
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
     }
 }
 
@@ -44,9 +61,7 @@ function preload() {
     this.load.image('tower', 'bullet.png');
 }
 
-
 function create() {
-
     addTowerButton = this.add.text(10, 10, 'Add Tower: OFF', { font: '24px Arial', fill: '#ffffff' }).setInteractive();
     addTowerButton.on('pointerdown', function() {
         addTowerMode = !addTowerMode;
@@ -57,9 +72,8 @@ function create() {
     enemies = this.physics.add.group();
     enemies.add(enemy);
     bullets = this.physics.add.group();
-    towers = this.physics.add.group();
+    towers = this.add.group();
    
-
     // Add input event listener for towers group
     towers.children.iterate(function(tower) {
         tower.setInteractive();
@@ -75,11 +89,10 @@ function create() {
         enemy.health -= 10;
         bullet.destroy();
     }, null, this);
-
-
 }
 
 function update(time, delta) {
+    var that = this;
     if (enemy.health <= 0) {
         enemy.destroy();
         towers.getChildren().forEach(function(tower) {
@@ -88,9 +101,7 @@ function update(time, delta) {
     }
 
     if (addTowerMode && this.input.activePointer.isDown) {
-        var tower = this.add.rectangle(this.input.activePointer.worldX, this.input.activePointer.worldY, 50, 50, 0xff0000);
-        tower.lastFired = 0;
-        tower.rangeCircle = this.add.circle(tower.x, tower.y, TOWER_RANGE, 0x0000ff, 0.2).setVisible(false);
+        var tower = new Tower(this, this.input.activePointer.worldX, this.input.activePointer.worldY);
         towers.add(tower);
     }  
 
@@ -116,9 +127,12 @@ function update(time, delta) {
                 var angle = Phaser.Math.Angle.Between(tower.x, tower.y, enemy.x, enemy.y);
                 tower.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the angle of the tower sprite
 
-                var bullet = bullets.create(tower.x, tower.y - tower.height / 2, 'bullet');
-                bullet.rotation = angle; // Set the rotation of the bullet sprite
-                bullet.setVelocity(Math.cos(angle) * 400, Math.sin(angle) * 400);
+                var bullet = new Bullet(that, tower.x, tower.y - tower.height / 2);
+                bullets.add(bullet);
+                bullet.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the rotation of the bullet sprite
+                bullet.setVelocityX(Math.cos(angle) * 400);
+                bullet.setVelocityY(Math.sin(angle) * 400);
+                
             }
         });
 
@@ -137,3 +151,4 @@ function update(time, delta) {
         }
     });
 }
+
