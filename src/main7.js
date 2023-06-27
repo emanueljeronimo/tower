@@ -12,9 +12,13 @@ class GameObject extends Phaser.Physics.Arcade.Sprite {
 }
 
 class Enemy extends GameObject {
-    constructor(scene, list, x = 0, y = 100, width = 50, height = 50) {
+    constructor(scene, list, path, x = 0, y = 100, width = 50, height = 50) {
         super(scene, list, x, y, 'enemy', width, height);
         this.health = 100;
+        this.path = path;
+        this.currentPointIndex = 0;
+        this.speed = 100;
+        this.startMoving();
     }
 
     takeDamage(damage) {
@@ -24,25 +28,48 @@ class Enemy extends GameObject {
             this.list.remove(this, true, true);
         }
     }
+
+    startMoving() {
+        const targetPoint = this.path[this.currentPointIndex];
+        this.scene.tweens.add({
+            targets: this,
+            x: targetPoint.x,
+            y: targetPoint.y,
+            duration: Phaser.Math.Distance.Between(this.x, this.y, targetPoint.x, targetPoint.y) / this.speed * 1000,
+            onComplete: () => {
+                this.currentPointIndex++;
+                if (this.currentPointIndex < this.path.length) {
+                    this.startMoving();
+                }
+            }
+        });        
+    }
 }
+
 
 class Tower extends GameObject {
     target = null;
-    range = 200;
+    range = 500;
     bulletList = null;
     lastFired = 0;
+
     constructor(scene, list, bulletList, x, y, width = 50, height = 50) {
         super(scene, list, x, y, 'tower', width, height);
         this.bulletList = bulletList;
         this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
+        this.setInteractive();
+        this.on('pointerdown', this.toggleRange, this);
     }
 
     setTarget(target) {
         this.target = target;
     }
 
-    update(time) {
+    toggleRange() {
+        this.rangeCircle.setVisible(!this.rangeCircle.visible);
+    }
 
+    update(time) {
         if (this.target && this.target.health <= 0) {
             this.target = null;
         }
@@ -52,10 +79,13 @@ class Tower extends GameObject {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
                 this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the angle of the tower sprite
 
-                const bullet = new Bullet(this.scene, this.bulletList, this.x, this.y - this.height / 2);
-                bullet.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the rotation of the bullet sprite
-                bullet.setVelocityX(Math.cos(angle) * 400);
-                bullet.setVelocityY(Math.sin(angle) * 400);
+                const bullet = new Bullet(
+                    this.scene,
+                    this.bulletList,
+                    this.x,
+                    this.y - this.height / 2,
+                    angle // Pass the angle to the Bullet constructor
+                );
             }
             this.lastFired = time;
         }
@@ -64,13 +94,26 @@ class Tower extends GameObject {
 
 class Bullet extends GameObject {
     damage = 10;
-    constructor(scene, list, x, y, width = 50, height = 50) {
+    maxDistance = 500;
+
+    constructor(scene, list, x, y, angle, width = 50, height = 50) {
         super(scene, list, x, y, 'bullet', width, height);
+        this.startX = x;
+        this.startY = y;
+        this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the rotation of the bullet sprite
+        this.setVelocityX(Math.cos(angle) * 400);
+        this.setVelocityY(Math.sin(angle) * 400);
     }
-    getDamage() {
-        return this.damage;
+
+    update() {
+        const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
+        if (distance > this.maxDistance) {
+            this.destroy();
+            this.list.remove(this);
+        }
     }
 }
+
 
 var config = {
     type: Phaser.AUTO,
@@ -113,11 +156,16 @@ function create() {
     });
 
     enemies = this.physics.add.group();
-    enemy = new Enemy(this, enemies);
 
+    var path = [
+        { x: 0, y: 100 },
+        { x: 200, y: 150 },
+        { x: 300, y: 50 }
+    ];
+
+    enemy = new Enemy(this, enemies, path);
     bullets = this.physics.add.group();
     towers = this.physics.add.group();
-
 
     this.physics.add.overlap(enemies, bullets, function (enemy, bullet) {
         enemy.takeDamage(bullet.damage)
@@ -134,37 +182,14 @@ function update(time, delta) {
         tower.setTarget(enemy);
     }
 
-    // Handle tower clicks
-    if (this.input.activePointer.isDown) {
-        var clickedTowers = towers.getChildren().filter(function (tower) {
-            return Phaser.Geom.Rectangle.Contains(tower.getBounds(), this.input.activePointer.worldX, this.input.activePointer.worldY);
-        }, this);
-
-        if (clickedTowers.length > 0) {
-            clickedTowers[0].rangeCircle.setVisible(true);
-        } else {
-            towers.getChildren().forEach(function (tower) {
-                tower.rangeCircle.setVisible(false);
-            });
-        }
-    }
-
     if (enemy) {
         towers.getChildren().forEach(function (tower) {
             tower.update(time);
-        });      
-    }
+        });
 
-    // Move the enemy
-    if (enemy) {
-        enemy.x += 2;
+        bullets.getChildren().forEach(function (bullet) {
+            bullet.update();
+        });
     }
-
-    // Remove bullets that have gone out of bounds
-    bullets.getChildren().forEach(function (bullet) {
-        if (bullet.y < 0 || bullet.y > config.height) {
-            bullet.destroy();
-        }
-    });
 }
 
