@@ -42,7 +42,7 @@ class Enemy extends GameObject {
                     this.startMoving();
                 }
             }
-        });        
+        });
     }
 }
 
@@ -138,6 +138,7 @@ var enemy;
 var enemies;
 var bullets;
 var towers;
+var cells;
 var addTowerButton;
 var addTowerMode = false;
 
@@ -148,12 +149,6 @@ function preload() {
 }
 
 function create() {
-
-    addTowerButton = this.add.text(10, 10, 'Add Tower: OFF', { font: '24px Arial', fill: '#ffffff' }).setInteractive();
-    addTowerButton.on('pointerdown', function () {
-        addTowerMode = !addTowerMode;
-        addTowerButton.setText('Add Tower: ' + (addTowerMode ? 'ON' : 'OFF'));
-    });
 
     enemies = this.physics.add.group();
 
@@ -171,16 +166,44 @@ function create() {
         enemy.takeDamage(bullet.damage)
         bullet.destroy();
     }, null, this);
+
+
+    /*grid*/
+
+    // Create the grid
+    createGrid.call(this);
+
+    // Create a group to hold the towers
+    towers = this.add.group();
+
+    // Listen for pointer click on a cell
+    this.input.on('gameobjectdown', function (pointer, cell) {
+        if (cell.input.enabled) {
+            // Create a tower at the cell's position
+            let tower = new Tower(this, towers, bullets, cell.x, cell.y);
+            tower.setTarget(enemy);
+            tower.setOrigin(0.5);
+            towers.add(tower);
+
+            // Disable input on the cell to prevent placing multiple towers
+            cell.input.enabled = false;
+        }
+    }, this);
+
+    /*en grid*/
+
+
 }
 
 function update(time, delta) {
     var that = this;
 
+    /*
     if (addTowerMode && this.input.activePointer.isDown) {
         addTowerMode = false;
         let tower = new Tower(this, towers, bullets, this.input.activePointer.worldX, this.input.activePointer.worldY);
         tower.setTarget(enemy);
-    }
+    }*/
 
     if (enemy) {
         towers.getChildren().forEach(function (tower) {
@@ -191,5 +214,37 @@ function update(time, delta) {
             bullet.update();
         });
     }
+}
+
+function createGrid() {
+    const gridSize = { width: 10, height: 8 };
+    const cellSize = { width: 50, height: 50 };
+
+    const grid = this.add.image(0, 0, 'grid');
+    grid.setOrigin(0);
+
+    // Create a group to hold the grid cells
+    cells = this.add.group();
+
+    // Loop through each cell in the grid
+    for (let row = 0; row < gridSize.height; row++) {
+        for (let col = 0; col < gridSize.width; col++) {
+            const x = col * cellSize.width;
+            const y = row * cellSize.height;
+
+            // Create a cell sprite and add it to the cells group
+            const cell = this.add.sprite(x, y, null);
+            cell.setInteractive(new Phaser.Geom.Rectangle(0, 0, cellSize.width, cellSize.height), Phaser.Geom.Rectangle.Contains);
+            cells.add(cell);
+        }
+    }
+
+    // Set the position of the grid based on the cell size
+    const offsetX = (this.cameras.main.width - (gridSize.width * cellSize.width)) / 2;
+    const offsetY = (this.cameras.main.height - (gridSize.height * cellSize.height)) / 2;
+    cells.children.iterate(function (cell) {
+        cell.x += offsetX;
+        cell.y += offsetY;
+    });
 }
 
