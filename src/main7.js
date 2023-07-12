@@ -118,7 +118,7 @@ class Bullet extends GameObject {
 var config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 700,
     physics: {
         default: 'arcade',
         arcade: {
@@ -152,13 +152,30 @@ function create() {
 
     enemies = this.physics.add.group();
 
+    const size = 50;
+    const height = 15;
+    const width = 17;
+    var path = []
+    var xpath = (size/2)*3;
+    var ypath = height / 2 * size;
+    path.push({ x: 0, y: ypath });
+    path.push({ x: (size / 2), y: ypath });
+    for (var i = 3; i < width + 1; i++) {
+        path.push({ x: xpath, y: ypath });
+        xpath = (size * i) - (size / 2);
+    }
+
+
+    /*
     var path = [
         { x: 0, y: 100 },
         { x: 200, y: 150 },
         { x: 300, y: 50 }
-    ];
+    ];*/
 
-    enemy = new Enemy(this, enemies, path);
+
+
+    enemy = new Enemy(this, enemies, path, path[0].x, path[0].y);
     bullets = this.physics.add.group();
     towers = this.physics.add.group();
 
@@ -171,7 +188,7 @@ function create() {
     /*grid*/
 
     // Create the grid
-    createGrid.call(this);
+    createGrid.call(this, path);
 
     // Create a group to hold the towers
     towers = this.add.group();
@@ -196,14 +213,6 @@ function create() {
 }
 
 function update(time, delta) {
-    var that = this;
-
-    /*
-    if (addTowerMode && this.input.activePointer.isDown) {
-        addTowerMode = false;
-        let tower = new Tower(this, towers, bullets, this.input.activePointer.worldX, this.input.activePointer.worldY);
-        tower.setTarget(enemy);
-    }*/
 
     if (enemy) {
         towers.getChildren().forEach(function (tower) {
@@ -216,19 +225,22 @@ function update(time, delta) {
     }
 }
 
-function createGrid() {
-    const gridSize = { width: 10, height: 8 };
+function createGrid(path) {
+    const gridSize = { width: 17, height: 15 };
     const cellSize = { width: 50, height: 50 };
 
+
+    /* this could be good if I want a background
     const grid = this.add.image(0, 0, 'grid');
     grid.setOrigin(0);
+    */
 
     // Create a group to hold the grid cells
     cells = this.add.group();
 
     // Loop through each cell in the grid
-    for (let row = 0; row < gridSize.height; row++) {
-        for (let col = 0; col < gridSize.width; col++) {
+    for (let row = 1; row < gridSize.height; row++) {
+        for (let col = 1; col < gridSize.width; col++) {
             const x = col * cellSize.width;
             const y = row * cellSize.height;
 
@@ -245,6 +257,18 @@ function createGrid() {
     cells.children.iterate(function (cell) {
         cell.x += offsetX;
         cell.y += offsetY;
+    });
+
+    // Remove sprites that touch the specified points
+    path.forEach((point) => {
+        cells.children.each((cell) => {
+            // {type: 5, x: 34, y: 34, width: 32, height: 32}
+            let bounds = cell.getBounds();
+            if (point.x >= cell.x && point.x <= cell.x + cell.width && point.y >= cell.y && point.y <= cell.y + cell.height) {
+                cells.remove(cell);
+                cell.destroy();
+            }
+        });
     });
 }
 
