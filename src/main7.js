@@ -1,6 +1,6 @@
 class GameObject extends Phaser.Physics.Arcade.Sprite {
     list = null;
-    constructor(scene, list, x, y, texture, width = 50, height = 50) {
+    constructor(scene, list, x, y, texture, height, width) {
         super(scene, x, y, texture);
         this.list = list;
         list.add(this);
@@ -12,8 +12,8 @@ class GameObject extends Phaser.Physics.Arcade.Sprite {
 }
 
 class Enemy extends GameObject {
-    constructor(scene, list, path, x = 0, y = 100, width = 50, height = 50) {
-        super(scene, list, x, y, 'enemy', width, height);
+    constructor(scene, list, path, x = 0, y = 100, height, width) {
+        super(scene, list, x, y, 'enemy', height, width);
         this.health = 100;
         this.path = path;
         this.currentPointIndex = 0;
@@ -53,8 +53,8 @@ class Tower extends GameObject {
     bulletList = null;
     lastFired = 0;
 
-    constructor(scene, list, bulletList, x, y, width = 50, height = 50) {
-        super(scene, list, x, y, 'tower', width, height);
+    constructor(scene, list, bulletList, x, y, height, width) {
+        super(scene, list, x, y, 'tower', height, width);
         this.bulletList = bulletList;
         this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
         this.setInteractive();
@@ -79,12 +79,14 @@ class Tower extends GameObject {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
                 this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the angle of the tower sprite
 
-                const bullet = new Bullet(
+                new Bullet(
                     this.scene,
                     this.bulletList,
                     this.x,
                     this.y - this.height / 2,
-                    angle // Pass the angle to the Bullet constructor
+                    angle,
+                    config.unitSize,
+                    config.unitSize
                 );
             }
             this.lastFired = time;
@@ -96,8 +98,8 @@ class Bullet extends GameObject {
     damage = 10;
     maxDistance = 500;
 
-    constructor(scene, list, x, y, angle, width = 50, height = 50) {
-        super(scene, list, x, y, 'bullet', width, height);
+    constructor(scene, list, x, y, angle, height, width) {
+        super(scene, list, x, y, 'bullet', height, width);
         this.startX = x;
         this.startY = y;
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the rotation of the bullet sprite
@@ -111,6 +113,68 @@ class Bullet extends GameObject {
             this.destroy();
             this.list.remove(this);
         }
+    }
+}
+
+class MapGenerator {
+
+    static generateMap(game, unitSize, height, width) {
+
+        var path = []
+        var xpath = (unitSize / 2) * 3;
+        var ypath = height / 2 * unitSize;
+        path.push({ x: 0, y: ypath });
+        path.push({ x: (unitSize / 2), y: ypath });
+        for (var i = 3; i < width + 1; i++) {
+            path.push({ x: xpath, y: ypath });
+            xpath = (unitSize * i) - (unitSize / 2);
+        }
+
+
+        const gridSize = { width: 17, height: 15 };
+        const cellSize = { width: unitSize, height: unitSize };
+
+
+        /* this could be good if I want a background
+        const grid = this.add.image(0, 0, 'grid');
+        grid.setOrigin(0);
+        */
+
+        // Create a group to hold the grid cells
+        cells = game.add.group();
+
+        // Loop through each cell in the grid
+        for (let row = 1; row < gridSize.height; row++) {
+            for (let col = 1; col < gridSize.width; col++) {
+                const x = col * cellSize.width;
+                const y = row * cellSize.height;
+
+                // Create a cell sprite and add it to the cells group
+                const cell = game.add.sprite(x, y, null);
+                cell.setInteractive(new Phaser.Geom.Rectangle(0, 0, cellSize.width, cellSize.height), Phaser.Geom.Rectangle.Contains);
+                cells.add(cell);
+            }
+        }
+
+        // Set the position of the grid based on the cell size
+        const offsetX = (game.cameras.main.width - (gridSize.width * cellSize.width)) / 2;
+        const offsetY = (game.cameras.main.height - (gridSize.height * cellSize.height)) / 2;
+        cells.children.iterate(function (cell) {
+            cell.x += offsetX;
+            cell.y += offsetY;
+        });
+
+        // Remove sprites that touch the specified points
+        path.forEach((point) => {
+            cells.children.each((cell) => {
+                if (point.x >= cell.x && point.x <= cell.x + cell.width && point.y >= cell.y && point.y <= cell.y + cell.height) {
+                    cells.remove(cell);
+                    cell.destroy();
+                }
+            });
+        });
+
+        return path;
     }
 }
 
@@ -130,6 +194,11 @@ var config = {
         preload: preload,
         create: create,
         update: update
+    },
+    unitSize: 20,
+    grid: {
+        height: 15,
+        width: 17
     }
 };
 
@@ -150,32 +219,10 @@ function preload() {
 
 function create() {
 
+    let path = MapGenerator.generateMap(this, config.unitSize, config.grid.height, config.grid.width);
+
     enemies = this.physics.add.group();
-
-    const size = 50;
-    const height = 15;
-    const width = 17;
-    var path = []
-    var xpath = (size/2)*3;
-    var ypath = height / 2 * size;
-    path.push({ x: 0, y: ypath });
-    path.push({ x: (size / 2), y: ypath });
-    for (var i = 3; i < width + 1; i++) {
-        path.push({ x: xpath, y: ypath });
-        xpath = (size * i) - (size / 2);
-    }
-
-
-    /*
-    var path = [
-        { x: 0, y: 100 },
-        { x: 200, y: 150 },
-        { x: 300, y: 50 }
-    ];*/
-
-
-
-    enemy = new Enemy(this, enemies, path, path[0].x, path[0].y);
+    enemy = new Enemy(this, enemies, path, path[0].x, path[0].y, config.unitSize, config.unitSize);
     bullets = this.physics.add.group();
     towers = this.physics.add.group();
 
@@ -184,12 +231,6 @@ function create() {
         bullet.destroy();
     }, null, this);
 
-
-    /*grid*/
-
-    // Create the grid
-    createGrid.call(this, path);
-
     // Create a group to hold the towers
     towers = this.add.group();
 
@@ -197,7 +238,7 @@ function create() {
     this.input.on('gameobjectdown', function (pointer, cell) {
         if (cell.input.enabled) {
             // Create a tower at the cell's position
-            let tower = new Tower(this, towers, bullets, cell.x, cell.y);
+            let tower = new Tower(this, towers, bullets, cell.x, cell.y, config.unitSize, config.unitSize);
             tower.setTarget(enemy);
             tower.setOrigin(0.5);
             towers.add(tower);
@@ -224,51 +265,3 @@ function update(time, delta) {
         });
     }
 }
-
-function createGrid(path) {
-    const gridSize = { width: 17, height: 15 };
-    const cellSize = { width: 50, height: 50 };
-
-
-    /* this could be good if I want a background
-    const grid = this.add.image(0, 0, 'grid');
-    grid.setOrigin(0);
-    */
-
-    // Create a group to hold the grid cells
-    cells = this.add.group();
-
-    // Loop through each cell in the grid
-    for (let row = 1; row < gridSize.height; row++) {
-        for (let col = 1; col < gridSize.width; col++) {
-            const x = col * cellSize.width;
-            const y = row * cellSize.height;
-
-            // Create a cell sprite and add it to the cells group
-            const cell = this.add.sprite(x, y, null);
-            cell.setInteractive(new Phaser.Geom.Rectangle(0, 0, cellSize.width, cellSize.height), Phaser.Geom.Rectangle.Contains);
-            cells.add(cell);
-        }
-    }
-
-    // Set the position of the grid based on the cell size
-    const offsetX = (this.cameras.main.width - (gridSize.width * cellSize.width)) / 2;
-    const offsetY = (this.cameras.main.height - (gridSize.height * cellSize.height)) / 2;
-    cells.children.iterate(function (cell) {
-        cell.x += offsetX;
-        cell.y += offsetY;
-    });
-
-    // Remove sprites that touch the specified points
-    path.forEach((point) => {
-        cells.children.each((cell) => {
-            // {type: 5, x: 34, y: 34, width: 32, height: 32}
-            let bounds = cell.getBounds();
-            if (point.x >= cell.x && point.x <= cell.x + cell.width && point.y >= cell.y && point.y <= cell.y + cell.height) {
-                cells.remove(cell);
-                cell.destroy();
-            }
-        });
-    });
-}
-
