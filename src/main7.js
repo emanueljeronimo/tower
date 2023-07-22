@@ -120,16 +120,11 @@ class MapGenerator {
 
     static generateMap(game, unitSize, rows, cols) {
 
-        var path = []
-        /*var xpath = (unitSize / 2) * 3;
-        var ypath = rows / 2 * unitSize;
-        path.push({ x: 0, y: ypath });
-        path.push({ x: (unitSize / 2), y: ypath });
-        for (var i = 3; i < cols + 1; i++) {
-            path.push({ x: xpath, y: ypath });
-            xpath = (unitSize * i) - (unitSize / 2);
-        }*/
+        if (rows % 2 == 0) {
+            throw "rows should be odd";
+        }
 
+        var path = []
 
         const gridSize = { cols: cols, rows: rows };
 
@@ -163,21 +158,25 @@ class MapGenerator {
         let upF = ({ x, y }) => ({ x, y: y - unitSize });
         let downF = ({ x, y }) => ({ x, y: y + unitSize });
 
-       let pathConfigThree = {
-            LEFT: [leftF, upF, downF],
-            UP: [upF, leftF],
-            DOWN: [downF, leftF],
+        let pathConfigThree = {
+            LEFT: [{ direction: LEFT, funct: leftF }, { direction: UP, funct: upF }, { direction: DOWN, funct: downF }],
+            UP: [{ direction: UP, funct: upF }, { direction: LEFT, funct: leftF }],
+            DOWN: [{ direction: DOWN, funct: downF }, { direction: LEFT, funct: leftF }],
         }
 
-        while(path[path.length-1].x > cell0.x) {
-            let nextDirection = directions[Math.floor(Math.random() * directions.length)];
-            let arrF = pathConfigThree[nextDirection];
-            let {x,y} = arrF[Math.floor(Math.random() * arrF.length)]({x: path[path.length-1].x, y:path[path.length-1].y});
-            if(y > cell0.y && y < (cell0.y * rows)){
-                path.push({x, y});
+        let direction = directions[Math.floor(Math.random() * directions.length)];
+        while (path[path.length - 1].x > cell0.x) {
+            let arrF = pathConfigThree[direction];
+            let nextDirectionConfig = arrF[Math.floor(Math.random() * arrF.length)];
+            let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
+            if (y > cell0.y && y < (cell0.y * rows)) {
+                path.push({ x, y });
+                direction = nextDirectionConfig.direction;
             }
         }
-        
+
+
+
         // Remove sprites that touch the specified points
         path.forEach((point) => {
             cells.children.each((cell) => {
@@ -209,10 +208,10 @@ var config = {
         create: create,
         update: update
     },
-    unitSize: 20,
+    unitSize: 10,
     grid: {
-        rows: 15,
-        cols: 17
+        rows: 35,
+        cols: 35
     }
 };
 
