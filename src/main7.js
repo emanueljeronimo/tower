@@ -1,9 +1,9 @@
 class GameObject extends Phaser.Physics.Arcade.Sprite {
-    list = null;
-    constructor(scene, list, x, y, texture, height, width) {
+    group = null;
+    constructor(scene, group, x, y, texture, height, width) {
         super(scene, x, y, texture);
-        this.list = list;
-        list.add(this);
+        this.group = group;
+        group.add(this);
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setSize(width, height);
@@ -12,12 +12,15 @@ class GameObject extends Phaser.Physics.Arcade.Sprite {
 }
 
 class Enemy extends GameObject {
-    constructor(scene, list, path, x = 0, y = 100, height, width) {
-        super(scene, list, x, y, 'enemy', height, width);
+    constructor(scene, group, x = 0, y = 100, height, width) {
+        super(scene, group, x, y, 'enemy', height, width);
         this.health = 100;
-        this.path = path;
         this.currentPointIndex = 0;
         this.speed = 100;
+    }
+
+    setPath(path) {
+        this.path = path;
         this.startMoving();
     }
 
@@ -25,7 +28,7 @@ class Enemy extends GameObject {
         this.health -= damage;
         if (this.health <= 0) {
             this.destroy();
-            this.list.remove(this, true, true);
+            this.group.remove(this, true, true);
         }
     }
 
@@ -50,12 +53,12 @@ class Enemy extends GameObject {
 class Tower extends GameObject {
     target = null;
     range = 500;
-    bulletList = null;
+    bulletGroup = null;
     lastFired = 0;
 
-    constructor(scene, list, bulletList, x, y, height, width) {
-        super(scene, list, x, y, 'tower', height, width);
-        this.bulletList = bulletList;
+    constructor(scene, group, bulletGroup, x, y, height, width) {
+        super(scene, group, x, y, 'tower', height, width);
+        this.bulletGroup = bulletGroup;
         this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
         this.setInteractive();
         this.on('pointerdown', this.toggleRange, this);
@@ -77,11 +80,11 @@ class Tower extends GameObject {
         if (this.target && time > this.lastFired + 500) {
             if (Phaser.Math.Distance.Between(this.target.x, this.target.y, this.x, this.y) <= this.range) {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
-                this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the angle of the tower sprite
+                this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
 
                 new Bullet(
                     this.scene,
-                    this.bulletList,
+                    this.bulletGroup,
                     this.x,
                     this.y - this.height / 2,
                     angle,
@@ -98,8 +101,8 @@ class Bullet extends GameObject {
     damage = 10;
     maxDistance = 150;
 
-    constructor(scene, list, x, y, angle, height, width) {
-        super(scene, list, x, y, 'bullet', height, width);
+    constructor(scene, group, x, y, angle, height, width) {
+        super(scene, group, x, y, 'bullet', height, width);
         this.startX = x;
         this.startY = y;
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle); // Set the rotation of the bullet sprite
@@ -111,14 +114,40 @@ class Bullet extends GameObject {
         const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
         if (distance > this.maxDistance) {
             this.destroy();
-            this.list.remove(this);
+            this.group.remove(this);
         }
     }
 }
 
+class ButtonTower extends GameObject {
+    target = null;
+    tower = null;
+    groupTower = null;
+    groupBullets = null;
+
+    constructor(scene, group, groupTower, groupBullets, x, y, height, width) {
+        super(scene, group, x, y, 'button', height, width);
+        this.groupTower = groupTower;
+        this.groupBullets = groupBullets;
+        this.setInteractive();
+        this.on('pointerdown', this.createTower, this);
+    }
+
+    setTarget(target) {
+        this.target = target;
+    }
+
+    createTower() {
+        let tower = new Tower(this.scene, this.groupTower, this.groupBullets, this.x, this.y, this.height, this.width);
+        tower.setTarget(this.target);
+        tower.setOrigin(0.5);
+    }
+}
+
+
 class MapGenerator {
 
-    static generateMap(game, unitSize, rows, cols) {
+    static generateMap(game, scene, unitSize, rows, cols) {
 
         if (rows % 2 == 0) {
             throw "rows should be odd";
@@ -128,27 +157,21 @@ class MapGenerator {
 
         const gridSize = { cols: cols, rows: rows };
 
-        // Create a group to hold the grid cells
-        cells = game.add.group();
-
-        // Loop through each cell in the grid
+        // Loop through each buttonTower in the grid
         for (let row = 1; row < gridSize.rows; row++) {
             for (let col = 1; col < gridSize.cols; col++) {
                 const x = col * unitSize;
                 const y = row * unitSize;
 
-                // Create a cell sprite and add it to the cells group
-                const cell = game.add.sprite(x, y, null);
-                cell.setInteractive(new Phaser.Geom.Rectangle(0, 0, unitSize, unitSize), Phaser.Geom.Rectangle.Contains);
-                cell.setSize(unitSize, unitSize);
-                cell.setDisplaySize(unitSize, unitSize);
-                cells.add(cell);
+                let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.bullets, x, y, game.unitSize, game.unitSize);
+                buttonTower.setTarget(game.enemy);
+                game.buttonTowers.add(buttonTower);
             }
         }
 
-        let cell0 = cells.getChildren()[0];
+        let buttonTower0 = game.buttonTowers.getChildren()[0];
 
-        path.push({ x: (unitSize * (cols - 1)) + cell0.x + 1, y: (unitSize / 2 * (rows)) + cell0.y - (unitSize / 2) + 1 });
+        path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
         path.push({ x: path[0].x - unitSize, y: path[0].y });
 
         const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
@@ -165,24 +188,22 @@ class MapGenerator {
         }
 
         let direction = directions[Math.floor(Math.random() * directions.length)];
-        while (path[path.length - 1].x > cell0.x) {
+        while (path[path.length - 1].x > buttonTower0.x) {
             let arrF = pathConfigThree[direction];
             let nextDirectionConfig = arrF[Math.floor(Math.random() * arrF.length)];
             let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
-            if (y > cell0.y && y < (cell0.y * rows)) {
+            if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
                 path.push({ x, y });
                 direction = nextDirectionConfig.direction;
             }
         }
 
-
-
         // Remove sprites that touch the specified points
         path.forEach((point) => {
-            cells.children.each((cell) => {
-                if (point.x >= cell.x && point.x <= cell.x + cell.width && point.y >= cell.y && point.y <= cell.y + cell.height) {
-                    cells.remove(cell);
-                    cell.destroy();
+            game.buttonTowers.children.each((buttonTower) => {
+                if (point.x >= buttonTower.x && point.x <= buttonTower.x + buttonTower.width && point.y >= buttonTower.y && point.y <= buttonTower.y + buttonTower.height) {
+                    game.buttonTowers.remove(buttonTower);
+                    buttonTower.destroy();
                 }
             });
         });
@@ -208,21 +229,25 @@ var config = {
         create: create,
         update: update
     },
-    unitSize: 10,
-    grid: {
-        rows: 35,
-        cols: 35
-    }
+    unitSize: 20,
+
 };
 
 var game = new Phaser.Game(config);
-var enemy;
-var enemies;
-var bullets;
-var towers;
-var cells;
-var addTowerButton;
-var addTowerMode = false;
+
+game.unitSize = 20;
+game.grid = {
+    rows: 11,
+    cols: 18
+};
+
+game.enemy = null;
+game.enemies = null;
+game.bullets = null;
+game.towers = null;
+game.buttonTowers = null;
+game.addTowerButton = null;
+
 
 function preload() {
     this.load.image('bullet', 'bullet.png');
@@ -232,48 +257,30 @@ function preload() {
 
 function create() {
 
-    let path = MapGenerator.generateMap(this, config.unitSize, config.grid.rows, config.grid.cols);
+    game.enemies = this.physics.add.group();
+    game.enemy = new Enemy(this, game.enemies, 0, 0, game.unitSize, game.unitSize);
+    game.bullets = this.physics.add.group();
+    game.towers = this.add.group();
+    game.buttonTowers = this.add.group();
 
-    enemies = this.physics.add.group();
-    enemy = new Enemy(this, enemies, path, path[0].x, path[0].y, config.unitSize, config.unitSize);
-    bullets = this.physics.add.group();
-    towers = this.physics.add.group();
+    let path = MapGenerator.generateMap(game, this, game.unitSize, game.grid.rows, game.grid.cols);
+    game.enemy.setPath(path);
 
-    this.physics.add.overlap(enemies, bullets, function (enemy, bullet) {
+    this.physics.add.overlap(game.enemies, game.bullets, function (enemy, bullet) {
         enemy.takeDamage(bullet.damage)
         bullet.destroy();
     }, null, this);
-
-    // Create a group to hold the towers
-    towers = this.add.group();
-
-    // Listen for pointer click on a cell
-    this.input.on('gameobjectdown', function (pointer, cell) {
-        if (cell.input.enabled) {
-            // Create a tower at the cell's position
-            let tower = new Tower(this, towers, bullets, cell.x, cell.y, config.unitSize, config.unitSize);
-            tower.setTarget(enemy);
-            tower.setOrigin(0.5);
-            towers.add(tower);
-
-            // Disable input on the cell to prevent placing multiple towers
-            cell.input.enabled = false;
-        }
-    }, this);
-
-    /*en grid*/
-
 
 }
 
 function update(time, delta) {
 
-    if (enemy) {
-        towers.getChildren().forEach(function (tower) {
+    if (game.enemy) {
+        game.towers.getChildren().forEach(function (tower) {
             tower.update(time);
         });
 
-        bullets.getChildren().forEach(function (bullet) {
+        game.bullets.getChildren().forEach(function (bullet) {
             bullet.update();
         });
     }
