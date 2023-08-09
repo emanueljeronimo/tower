@@ -53,6 +53,7 @@ class Enemy extends GameObject {
 class Tower extends GameObject {
     target = null;
     range = 500;
+    attackVelocity = 300;
     bulletGroup = null;
     lastFired = 0;
 
@@ -77,7 +78,7 @@ class Tower extends GameObject {
             this.target = null;
         }
 
-        if (this.target && time > this.lastFired + 500) {
+        if (this.target && time > this.lastFired + this.attackVelocity) {
             if (Phaser.Math.Distance.Between(this.target.x, this.target.y, this.x, this.y) <= this.range) {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
                 this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
@@ -86,7 +87,7 @@ class Tower extends GameObject {
                     this.scene,
                     this.bulletGroup,
                     this.x,
-                    this.y - this.height / 2,
+                    this.y,
                     angle,
                     config.unitSize,
                     config.unitSize
@@ -124,11 +125,13 @@ class ButtonTower extends GameObject {
     tower = null;
     groupTower = null;
     groupBullets = null;
+    unitSize = null;
 
-    constructor(scene, group, groupTower, groupBullets, x, y, height, width) {
-        super(scene, group, x, y, 'button', height, width);
+    constructor(scene, group, groupTower, groupBullets, x, y, unitSize) {
+        super(scene, group, x, y, 'button', unitSize, unitSize);
         this.groupTower = groupTower;
         this.groupBullets = groupBullets;
+        this.unitSize = unitSize;
         this.setInteractive();
         this.on('pointerdown', this.createTower, this);
     }
@@ -138,7 +141,7 @@ class ButtonTower extends GameObject {
     }
 
     createTower() {
-        let tower = new Tower(this.scene, this.groupTower, this.groupBullets, this.x, this.y, this.height, this.width);
+        let tower = new Tower(this.scene, this.groupTower, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize);
         tower.setTarget(this.target);
         tower.setOrigin(0.5);
     }
@@ -163,7 +166,7 @@ class MapGenerator {
                 const x = col * unitSize;
                 const y = row * unitSize;
 
-                let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.bullets, x, y, game.unitSize, game.unitSize);
+                let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.bullets, x, y, game.unitSize);
                 buttonTower.setTarget(game.enemy);
                 game.buttonTowers.add(buttonTower);
             }
@@ -174,34 +177,58 @@ class MapGenerator {
         path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
         path.push({ x: path[0].x - unitSize, y: path[0].y });
 
+       
         const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
         const directions = [LEFT, UP, DOWN];
+        const notAllowedPaths = [`${DOWN}-${LEFT}-${UP}`, `${UP}-${LEFT}-${DOWN}`,
+        `${LEFT}-${DOWN}-${UP}`, `${LEFT}-${UP}-${DOWN}`,
+        `${UP}-${DOWN}-${LEFT}`, `${DOWN}-${UP}-${LEFT}`,
+        `${UP}-${DOWN}-${DOWN}`, `${UP}-${DOWN}-${UP}`,
+        `${DOWN}-${UP}-${DOWN}`, `${DOWN}-${UP}-${UP}`,
+        `${DOWN}-${DOWN}-${UP}`, `${DOWN}-${UP}-${UP}`,
+        `${UP}-${UP}-${DOWN}`, `${UP}-${DOWN}-${DOWN}`];
+
+
+        let steps = `${LEFT}-${LEFT}`;
+        let stepsAux = steps;
 
         let leftF = ({ x, y }) => ({ x: x - unitSize, y });
         let upF = ({ x, y }) => ({ x, y: y - unitSize });
         let downF = ({ x, y }) => ({ x, y: y + unitSize });
 
-        let pathConfigThree = {
-            LEFT: [{ direction: LEFT, funct: leftF }, { direction: UP, funct: upF }, { direction: DOWN, funct: downF }],
-            UP: [{ direction: UP, funct: upF }, { direction: LEFT, funct: leftF }],
-            DOWN: [{ direction: DOWN, funct: downF }, { direction: LEFT, funct: leftF }],
-        }
 
-        let direction = directions[Math.floor(Math.random() * directions.length)];
+        let pathConfigArr = [{ direction: LEFT, funct: leftF }, { direction: UP, funct: upF }, { direction: DOWN, funct: downF }];
         while (path[path.length - 1].x > buttonTower0.x) {
-            let arrF = pathConfigThree[direction];
+            let direction = directions[Math.floor(Math.random() * directions.length)]
+            let arrF = pathConfigArr.filter(path => path.direction == direction);
             let nextDirectionConfig = arrF[Math.floor(Math.random() * arrF.length)];
-            let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
-            if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
-                path.push({ x, y });
-                direction = nextDirectionConfig.direction;
+
+            stepsAux += `-${nextDirectionConfig.direction}`;
+            if (stepsAux.split('-').length > 2) {
+                let stepArr = stepsAux.split('-')
+                let last3Steps = stepArr.splice(-3).join('-');
+
+                if (notAllowedPaths.some(notAllowedPath => notAllowedPath == last3Steps)) {
+                    stepsAux = steps;
+                    continue;
+                }
+                else {
+                    let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
+                    if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
+                        path.push({ x, y });
+                        direction = nextDirectionConfig.direction;
+                        steps = stepsAux;
+                    }
+
+                }
             }
         }
+
 
         // Remove sprites that touch the specified points
         path.forEach((point) => {
             game.buttonTowers.children.each((buttonTower) => {
-                if (point.x >= buttonTower.x && point.x <= buttonTower.x + buttonTower.width && point.y >= buttonTower.y && point.y <= buttonTower.y + buttonTower.height) {
+                if (point.x >= buttonTower.x && point.x <= buttonTower.x + unitSize && point.y >= buttonTower.y && point.y <= buttonTower.y + unitSize) {
                     game.buttonTowers.remove(buttonTower);
                     buttonTower.destroy();
                 }
