@@ -54,12 +54,12 @@ class Tower extends GameObject {
     target = null;
     range = 500;
     attackVelocity = 300;
-    bulletGroup = null;
+    groupBullet = null;
     lastFired = 0;
 
-    constructor(scene, group, bulletGroup, x, y, height, width) {
+    constructor(scene, group, groupBullet, x, y, height, width) {
         super(scene, group, x, y, 'tower', height, width);
-        this.bulletGroup = bulletGroup;
+        this.groupBullet = groupBullet;
         this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
         this.setInteractive();
         this.on('pointerdown', this.toggleRange, this);
@@ -85,7 +85,7 @@ class Tower extends GameObject {
 
                 new Bullet(
                     this.scene,
-                    this.bulletGroup,
+                    this.groupBullet,
                     this.x,
                     this.y,
                     angle,
@@ -123,13 +123,13 @@ class Bullet extends GameObject {
 class ButtonTower extends GameObject {
     target = null;
     tower = null;
-    groupTower = null;
+    groupTowers = null;
     groupBullets = null;
     unitSize = null;
 
-    constructor(scene, group, groupTower, groupBullets, x, y, unitSize) {
+    constructor(scene, group, groupTowers, groupBullets, x, y, unitSize) {
         super(scene, group, x, y, 'button', unitSize, unitSize);
-        this.groupTower = groupTower;
+        this.groupTowers = groupTowers;
         this.groupBullets = groupBullets;
         this.unitSize = unitSize;
         this.setInteractive();
@@ -141,9 +141,33 @@ class ButtonTower extends GameObject {
     }
 
     createTower() {
-        let tower = new Tower(this.scene, this.groupTower, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize);
+        let tower = new Tower(this.scene, this.groupTowers, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize);
         tower.setTarget(this.target);
         tower.setOrigin(0.5);
+    }
+}
+
+class EnemyGenerator {
+    frequency = 500;
+    path = null;
+    groupEnemies = null;
+    counter = 0;
+    enemiesQuatity = 5;
+    scene = null;
+    lastEnemyCreated = 0;
+    constructor(scene, path, groupEnemies) {
+        this.scene = scene;
+        this.path = path;
+        this.groupEnemies = groupEnemies;
+    }
+
+    update(time) {
+        if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
+            let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, game.unitSize, game.unitSize);
+            enemy.setPath(this.path);
+            this.lastEnemyCreated = time;
+            this.counter++;
+        }
     }
 }
 
@@ -177,7 +201,7 @@ class MapGenerator {
         path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
         path.push({ x: path[0].x - unitSize, y: path[0].y });
 
-       
+
         const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
         const directions = [LEFT, UP, DOWN];
         const notAllowedPaths = [`${DOWN}-${LEFT}-${UP}`, `${UP}-${LEFT}-${DOWN}`,
@@ -235,7 +259,7 @@ class MapGenerator {
             });
         });
 
-        return path;
+        return path.reverse();
     }
 }
 
@@ -273,8 +297,7 @@ game.enemies = null;
 game.bullets = null;
 game.towers = null;
 game.buttonTowers = null;
-game.addTowerButton = null;
-
+game.enemyGenerator = null;
 
 function preload() {
     this.load.image('bullet', 'bullet.png');
@@ -293,6 +316,8 @@ function create() {
     let path = MapGenerator.generateMap(game, this, game.unitSize, game.grid.rows, game.grid.cols);
     game.enemy.setPath(path);
 
+    game.enemyGenerator = new EnemyGenerator(this, path, game.enemies);
+
     this.physics.add.overlap(game.enemies, game.bullets, function (enemy, bullet) {
         enemy.takeDamage(bullet.damage)
         bullet.destroy();
@@ -310,5 +335,7 @@ function update(time, delta) {
         game.bullets.getChildren().forEach(function (bullet) {
             bullet.update();
         });
+
+        game.enemyGenerator.update(time);
     }
 }
