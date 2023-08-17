@@ -34,7 +34,7 @@ class Enemy extends GameObject {
 
     startMoving() {
         const targetPoint = this.path[this.currentPointIndex];
-        this.scene.tweens.add({
+        this.scene?.tweens.add({
             targets: this,
             x: targetPoint.x,
             y: targetPoint.y,
@@ -54,38 +54,49 @@ class Tower extends GameObject {
     target = null;
     range = 500;
     attackVelocity = 300;
-    groupBullet = null;
+    groupBullets = null;
+    groupEnemies = null;
     lastFired = 0;
 
-    constructor(scene, group, groupBullet, x, y, height, width) {
+    constructor(scene, group, groupEnemies, groupBullets, x, y, height, width) {
         super(scene, group, x, y, 'tower', height, width);
-        this.groupBullet = groupBullet;
+        this.groupBullets = groupBullets;
+        this.groupEnemies = groupEnemies;
         this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
         this.setInteractive();
         this.on('pointerdown', this.toggleRange, this);
-    }
-
-    setTarget(target) {
-        this.target = target;
     }
 
     toggleRange() {
         this.rangeCircle.setVisible(!this.rangeCircle.visible);
     }
 
+    isInRange(enemy) {
+        return Phaser.Math.Distance.Between(enemy.x, enemy.y, this.x, this.y) <= this.range;
+    }
+
     update(time) {
+
+        if (!this.target) {
+            this.groupEnemies.getChildren().forEach(enemy => {
+                if (this.isInRange(enemy)) {
+                    this.target = enemy;
+                }
+            })
+        }
+
         if (this.target && this.target.health <= 0) {
             this.target = null;
         }
 
         if (this.target && time > this.lastFired + this.attackVelocity) {
-            if (Phaser.Math.Distance.Between(this.target.x, this.target.y, this.x, this.y) <= this.range) {
+            if (this.isInRange(this.target)) {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
                 this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
 
                 new Bullet(
                     this.scene,
-                    this.groupBullet,
+                    this.groupBullets,
                     this.x,
                     this.y,
                     angle,
@@ -125,24 +136,21 @@ class ButtonTower extends GameObject {
     tower = null;
     groupTowers = null;
     groupBullets = null;
+    groupEnemies = null;
     unitSize = null;
 
-    constructor(scene, group, groupTowers, groupBullets, x, y, unitSize) {
+    constructor(scene, group, groupTowers, groupEnemies, groupBullets, x, y, unitSize) {
         super(scene, group, x, y, 'button', unitSize, unitSize);
         this.groupTowers = groupTowers;
+        this.groupEnemies = groupEnemies;
         this.groupBullets = groupBullets;
         this.unitSize = unitSize;
         this.setInteractive();
         this.on('pointerdown', this.createTower, this);
     }
 
-    setTarget(target) {
-        this.target = target;
-    }
-
     createTower() {
-        let tower = new Tower(this.scene, this.groupTowers, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize);
-        tower.setTarget(this.target);
+        let tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize);
         tower.setOrigin(0.5);
     }
 }
@@ -190,8 +198,7 @@ class MapGenerator {
                 const x = col * unitSize;
                 const y = row * unitSize;
 
-                let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.bullets, x, y, game.unitSize);
-                buttonTower.setTarget(game.enemy);
+                let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.enemies, game.bullets, x, y, game.unitSize);
                 game.buttonTowers.add(buttonTower);
             }
         }
@@ -308,13 +315,11 @@ function preload() {
 function create() {
 
     game.enemies = this.physics.add.group();
-    game.enemy = new Enemy(this, game.enemies, 0, 0, game.unitSize, game.unitSize);
     game.bullets = this.physics.add.group();
     game.towers = this.add.group();
     game.buttonTowers = this.add.group();
 
     let path = MapGenerator.generateMap(game, this, game.unitSize, game.grid.rows, game.grid.cols);
-    game.enemy.setPath(path);
 
     game.enemyGenerator = new EnemyGenerator(this, path, game.enemies);
 
@@ -327,15 +332,14 @@ function create() {
 
 function update(time, delta) {
 
-    if (game.enemy) {
-        game.towers.getChildren().forEach(function (tower) {
-            tower.update(time);
-        });
+    game.towers.getChildren().forEach(function (tower) {
+        tower.update(time);
+    });
 
-        game.bullets.getChildren().forEach(function (bullet) {
-            bullet.update();
-        });
+    game.bullets.getChildren().forEach(function (bullet) {
+        bullet.update();
+    });
 
-        game.enemyGenerator.update(time);
-    }
+    game.enemyGenerator.update(time);
+
 }
