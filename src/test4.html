@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Scene with Fixed Button Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+</head>
+<body>
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        let isDragging = false;
+        let lastPointerPosition = { x: 0, y: 0 };
+
+        function preload() {
+            this.load.image('background', 'path/to/your/background/image.png');
+            this.load.image('button', 'path/to/your/button/image.png');
+        }
+
+        function create() {
+            // Add background
+            this.add.image(0, 0, 'background').setOrigin(0);
+
+            // Enable input events on the scene
+            this.input.on('pointerdown', pointerDown, this);
+            this.input.on('pointermove', pointerMove, this);
+            this.input.on('pointerup', pointerUp, this);
+            this.input.on('wheel', mouseWheel, this);
+
+            // Add a fixed button
+            const fixedButton = this.add.image(20, 20, 'button').setInteractive();
+            fixedButton.setScrollFactor(0); // Make the button fixed on the screen
+        }
+
+        function update() {
+            if (isDragging) {
+                const pointer = this.input.activePointer;
+                const deltaX = lastPointerPosition.x - pointer.x;
+                const deltaY = lastPointerPosition.y - pointer.y;
+
+                this.cameras.main.scrollX += deltaX;
+                this.cameras.main.scrollY += deltaY;
+
+                lastPointerPosition = { x: pointer.x, y: pointer.y };
+            }
+        }
+
+        function pointerDown(pointer) {
+            isDragging = true;
+            lastPointerPosition = { x: pointer.x, y: pointer.y };
+        }
+
+        function pointerMove(pointer) {
+            if (isDragging) {
+                const deltaX = lastPointerPosition.x - pointer.x;
+                const deltaY = lastPointerPosition.y - pointer.y;
+
+                this.cameras.main.scrollX += deltaX;
+                this.cameras.main.scrollY += deltaY;
+
+                lastPointerPosition = { x: pointer.x, y: pointer.y };
+            }
+        }
+
+        function pointerUp() {
+            isDragging = false;
+        }
+
+        function mouseWheel(event) {
+            const delta = Phaser.Math.Clamp(-event.deltaY, -1, 1);
+            const zoomAmount = 0.05;
+            this.cameras.main.zoom += delta * zoomAmount;
+        }
+    </script>
+</body>
+</html>

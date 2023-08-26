@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Phaser 3 Draggable Example with Bounds</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+</head>
+<body>
+<script>
+  // Phaser configuration
+  const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    scene: {
+      preload,
+      create
+    }
+  };
+
+  // Create a new Phaser game instance
+  const game = new Phaser.Game(config);
+
+  // Preload assets
+  function preload() {
+    this.load.image('ball', 'path/to/your/ball.png');
+  }
+
+  // Create the scene
+  function create() {
+    // Add the draggable sprite
+    const sprite = this.add.sprite(400, 300, 'ball');
+    sprite.setInteractive({ draggable: true });
+
+    // Define bounds for the dragging area
+    const bounds = new Phaser.Geom.Rectangle(100, 100, 600, 400);
+
+    // Add event listeners for dragging
+    sprite.on('dragstart', function (pointer) {
+      //this.setTint(0xff0000);
+    });
+
+    sprite.on('drag', function (pointer, dragX, dragY) {
+      // Keep the sprite within bounds
+      const newX = Phaser.Math.Clamp(dragX, bounds.x, bounds.x + bounds.width - this.width);
+      const newY = Phaser.Math.Clamp(dragY, bounds.y, bounds.y + bounds.height - this.height);
+      
+      this.x = newX;
+      this.y = newY;
+    });
+
+    sprite.on('dragend', function (pointer) {
+      //this.clearTint();
+    });
+  }
+</script>
+</body>
+</html>
