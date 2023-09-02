@@ -188,19 +188,6 @@ class MapGenerator {
             throw "rows should be odd";
         }
 
-        let container = scene.add.container(100,100);
-        container.setSize(500,500);
-        container.setInteractive();
-        scene.input.setDraggable(container);
-        scene.input.on('drag', (pointer, gameObject, dragX, dragY) =>
-        {
-            gameObject.x = dragX;
-            gameObject.y = dragY;
-
-        });
-
-
-
         var path = []
 
         const gridSize = { cols: cols, rows: rows };
@@ -213,7 +200,6 @@ class MapGenerator {
 
                 let buttonTower = new ButtonTower(scene, game.buttonTowers, game.towers, game.enemies, game.bullets, x, y, game.unitSize);
                 game.buttonTowers.add(buttonTower);
-                container.add(buttonTower);
             }
         }
 
@@ -310,7 +296,7 @@ var game = new Phaser.Game(config);
 game.unitSize = 20;
 game.grid = {
     rows: 11,
-    cols: 18
+    cols: 55
 };
 
 game.enemy = null;
@@ -319,6 +305,9 @@ game.bullets = null;
 game.towers = null;
 game.buttonTowers = null;
 game.enemyGenerator = null;
+game.isDragging = false;
+game.lastPointerPosition = { x: 0, y: 0 };
+
 
 function preload() {
     this.load.image('bullet', 'bullet.png');
@@ -342,6 +331,13 @@ function create() {
         bullet.destroy();
     }, null, this);
 
+    //camera
+
+    this.input.on('pointerdown', pointerDown, this);
+    this.input.on('pointermove', pointerMove, this);
+    this.input.on('pointerup', pointerUp, this);
+    this.input.on('wheel', mouseWheel, this);
+
 }
 
 function update(time, delta) {
@@ -356,4 +352,49 @@ function update(time, delta) {
 
     game.enemyGenerator.update(time);
 
+    if (game.isDragging) {
+        const pointer = this.input.activePointer;
+        const deltaX = game.lastPointerPosition.x - pointer.x;
+        const deltaY = game.lastPointerPosition.y - pointer.y;
+
+        this.cameras.main.scrollX += deltaX;
+        this.cameras.main.scrollY += deltaY;
+
+        game.lastPointerPosition = { x: pointer.x, y: pointer.y };
+    }
+
+}
+
+
+function pointerDown(pointer) {
+    game.isDragging = true;
+    game.lastPointerPosition = { x: pointer.x, y: pointer.y };
+}
+
+function pointerMove(pointer) {
+    if (game.isDragging) {
+        const deltaX = game.lastPointerPosition.x - pointer.x;
+        //const deltaY = game.lastPointerPosition.y - pointer.y;
+
+        let aux = this.cameras.main.scrollX + deltaX;
+
+        if (aux > 0 && aux < (game.grid.cols * game.unitSize) - config.width) {
+            this.cameras.main.scrollX += deltaX;
+            //this.cameras.main.scrollY += deltaY;
+        }
+
+        console.log(this.cameras.main.scrollX);
+
+        game.lastPointerPosition = { x: pointer.x, y: pointer.y };
+    }
+}
+
+function pointerUp() {
+    game.isDragging = false;
+}
+
+function mouseWheel(event) {
+    const delta = Phaser.Math.Clamp(-event.deltaY, -1, 1);
+    const zoomAmount = 0.05;
+    this.cameras.main.zoom += delta * zoomAmount;
 }
