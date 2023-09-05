@@ -332,7 +332,7 @@ function create() {
     game.buttonTowers = this.add.group();
 
     game.lifeLabel = this.add.text(0, 250, 'Life:', {
-        font: '24px Arial',
+        font: '24px CustomFont',
         fill: '#777777'
       });
     game.lifeLabel.setScrollFactor(0);  
