@@ -11,8 +11,15 @@ class GameObject extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
+class MainTower extends GameObject {
+    constructor(scene, group,x ,y , height, width) {
+        super(scene, group, x, y, 'main-tower', height, width);
+        this.health = 15;
+    }
+}
+
 class Enemy extends GameObject {
-    constructor(scene, group, x = 0, y = 100, height, width) {
+    constructor(scene, group, x = -10, y = 100, height, width) {
         super(scene, group, x, y, 'enemy', height, width);
         this.health = 100;
         this.currentPointIndex = 0;
@@ -207,7 +214,7 @@ class MapGenerator {
 
         path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
         path.push({ x: path[0].x - unitSize, y: path[0].y });
-
+        game.mainTowers.add(new MainTower(scene, game.mainTowers,path[1].x ,path[1].y, game.unitSize, game.unitSize));
 
         const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
         const directions = [LEFT, UP, DOWN];
@@ -299,7 +306,8 @@ game.grid = {
     cols: 55
 };
 
-game.enemy = null;
+
+game.mainTowers = null;
 game.enemies = null;
 game.bullets = null;
 game.towers = null;
@@ -310,17 +318,24 @@ game.lastPointerPosition = { x: 0, y: 0 };
 
 
 function preload() {
+    this.load.image('main-tower', 'main-tower.png');
     this.load.image('bullet', 'bullet.png');
     this.load.image('enemy', 'enemy.png');
     this.load.image('tower', 'tower.png');
 }
 
 function create() {
-
+    game.mainTowers = this.physics.add.group();
     game.enemies = this.physics.add.group();
     game.bullets = this.physics.add.group();
     game.towers = this.add.group();
     game.buttonTowers = this.add.group();
+
+    game.lifeLabel = this.add.text(0, 250, 'Life:', {
+        font: '24px Arial',
+        fill: '#777777'
+      });
+    game.lifeLabel.setScrollFactor(0);  
 
     let path = MapGenerator.generateMap(game, this, game.unitSize, game.grid.rows, game.grid.cols);
 
@@ -331,8 +346,12 @@ function create() {
         bullet.destroy();
     }, null, this);
 
-    //camera
+    this.physics.add.overlap(game.mainTowers, game.enemies, function (mainTower, enemy) {
+        enemy.destroy();
+        mainTower.health--;
+    }, null, this);
 
+    //camera
     this.input.on('pointerdown', pointerDown, this);
     this.input.on('pointermove', pointerMove, this);
     this.input.on('pointerup', pointerUp, this);
@@ -341,6 +360,13 @@ function create() {
 }
 
 function update(time, delta) {
+
+    game.mainTowers.getChildren().forEach(function (mainTower) {
+        game.lifeLabel.setText(`Life: ${mainTower.health}`);
+        if(mainTower.health == 0) {
+            //game over
+        }
+    });
 
     game.towers.getChildren().forEach(function (tower) {
         tower.update(time);
@@ -382,8 +408,6 @@ function pointerMove(pointer) {
             this.cameras.main.scrollX += deltaX;
             //this.cameras.main.scrollY += deltaY;
         }
-
-        console.log(this.cameras.main.scrollX);
 
         game.lastPointerPosition = { x: pointer.x, y: pointer.y };
     }
