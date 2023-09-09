@@ -36,6 +36,7 @@ class Enemy extends GameObject {
         if (this.health <= 0) {
             this.destroy();
             this.group.remove(this, true, true);
+            changeGold(50);
         }
     }
 
@@ -59,7 +60,7 @@ class Enemy extends GameObject {
 
 class Tower extends GameObject {
     target = null;
-    range = 500;
+    range = 150;
     attackVelocity = 300;
     groupBullets = null;
     groupEnemies = null;
@@ -315,6 +316,7 @@ game.buttonTowers = null;
 game.enemyGenerator = null;
 game.isDragging = false;
 game.lastPointerPosition = { x: 0, y: 0 };
+game.gold = 1000;
 
 
 function preload() {
@@ -331,11 +333,18 @@ function create() {
     game.towers = this.add.group();
     game.buttonTowers = this.add.group();
 
+
+    game.goldLabel = this.add.text(0, 290, `Gold: ${game.gold}`, {
+        font: '24px CustomFont',
+        fill: '#777777'
+      });
     game.lifeLabel = this.add.text(0, 250, 'Life:', {
         font: '24px CustomFont',
         fill: '#777777'
       });
-    game.lifeLabel.setScrollFactor(0);  
+    game.lifeLabel.setScrollFactor(0); 
+    game.goldLabel.setScrollFactor(0);
+
 
     let path = MapGenerator.generateMap(game, this, game.unitSize, game.grid.rows, game.grid.cols);
 
@@ -391,7 +400,14 @@ function update(time, delta) {
 
 }
 
+function changeGold(gold){
+    game.gold += gold;
+    game.goldLabel.setText(`Gold: ${game.gold}`);
+}
 
+
+
+// Camera things
 function pointerDown(pointer) {
     game.isDragging = true;
     game.lastPointerPosition = { x: pointer.x, y: pointer.y };
@@ -422,3 +438,4 @@ function mouseWheel(event) {
     const zoomAmount = 0.05;
     this.cameras.main.zoom += delta * zoomAmount;
 }
+// end camera things
