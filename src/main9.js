@@ -131,6 +131,7 @@ class Tower extends GameObject {
       new Bullet(scene, groupBullets, x, y, angle + 0.2, height, width);
       new Bullet(scene, groupBullets, x, y, angle, height, width);
       new Bullet(scene, groupBullets, x, y, angle - 0.2, height, width);
+      // scene.changeGold.bind(scene)(50); example how it would be if I want some MakeGoldTower or something
     }
   }
 
