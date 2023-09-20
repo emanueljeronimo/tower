@@ -19,9 +19,9 @@ class MainTower extends GameObject {
 }
 
 class Enemy extends GameObject {
-  constructor(scene, group, x = -10, y = 100, height, width, changeGold) {
+  constructor(scene, group, x = -10, y = 100, height, width) {
     super(scene, group, x, y, 'enemy', height, width);
-    this.changeGold = changeGold;
+    this.scene = scene;
     this.health = 100;
     this.currentPointIndex = 0;
     this.speed = 100;
@@ -36,9 +36,9 @@ class Enemy extends GameObject {
   takeDamage(damage) {
     this.health -= damage;
     if (this.health <= 0) {
+      this.scene.changeGold(this.gold);
       this.destroy();
       this.group.remove(this, true, true);
-      this.changeGold(this.gold);
     }
   }
 
@@ -69,7 +69,7 @@ class Tower extends GameObject {
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig) {
     super(scene, group, x, y, towerConfig.texture, height, width);
     this.range = towerConfig.range;
-    this.shot = towerConfig.shot;
+    this.executeOnUpdate = towerConfig.executeOnUpdate;
     this.attackVelocity = towerConfig.attackVelocity;
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
@@ -86,8 +86,7 @@ class Tower extends GameObject {
     return Phaser.Math.Distance.Between(enemy.x, enemy.y, this.x, this.y) <= this.range;
   }
 
-  update(time) {
-
+  updateTarget() {
     if (!this.target) {
       this.groupEnemies.getChildren().forEach(enemy => {
         if (this.isInRange(enemy)) {
@@ -99,15 +98,21 @@ class Tower extends GameObject {
     if (this.target && (this.target.health <= 0 || !this.isInRange(this.target))) {
       this.target = null;
     }
+  }
 
+  shotWhenTargetIsClose(time, shot){
     if (this.target && time > this.lastFired + this.attackVelocity) {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        this.shot(this.scene, this.groupBullets, this.x, this.y, angle, this.scene.unitSize, this.scene.unitSize);
+        shot(this.scene, this.groupBullets, this.x, this.y, angle);
       }
       this.lastFired = time;
     }
+  }
+
+  update(time){
+    this.executeOnUpdate(this, time);
   }
 
   static commonTower = {
@@ -116,8 +121,11 @@ class Tower extends GameObject {
     attackVelocity: 300,
     texture: 'tower',
     description: 'Common Tower',
-    shot: (scene, groupBullets, x, y, angle, height, width) => {
-      new Bullet(scene, groupBullets, x, y, angle, height, width);
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) =>{
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
+      });
     }
   }
 
@@ -127,14 +135,15 @@ class Tower extends GameObject {
     attackVelocity: 300,
     texture: 'tower',
     description: 'Triple Tower',
-    shot: (scene, groupBullets, x, y, angle, height, width) => {
-      new Bullet(scene, groupBullets, x, y, angle + 0.2, height, width);
-      new Bullet(scene, groupBullets, x, y, angle, height, width);
-      new Bullet(scene, groupBullets, x, y, angle - 0.2, height, width);
-      // scene.changeGold.bind(scene)(50); example how it would be if I want some MakeGoldTower or something
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) =>{
+      new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize, scene.unitSize);
+      new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
+      new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize, scene.unitSize);
+      });
     }
   }
-
 }
 
 class Bullet extends GameObject {
@@ -168,33 +177,30 @@ class ButtonTower extends GameObject {
   groupEnemies = null;
   unitSize = null;
 
-  constructor(scene, group, groupTowers, groupEnemies, groupBullets, x, y, unitSize, getSelectedTowerConfig, cleanSelectedTowerConfig) {
+  constructor(scene, group, groupTowers, groupEnemies, groupBullets, x, y, unitSize) {
     super(scene, group, x, y, 'button', unitSize, unitSize);
+    this.scene = scene;
     this.groupTowers = groupTowers;
     this.groupEnemies = groupEnemies;
     this.groupBullets = groupBullets;
     this.unitSize = unitSize;
-    this.getSelectedTowerConfig = getSelectedTowerConfig;
-    this.cleanSelectedTowerConfig = cleanSelectedTowerConfig;
     this.setInteractive();
     this.on('pointerdown', this.createTower, this);
   }
 
   createTower() {
-    if(this.getSelectedTowerConfig()){
-      let tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.getSelectedTowerConfig());
+    if(this.scene.getSelectedTowerConfig()){
+      let tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
       tower.setOrigin(0.5);
-      this.cleanSelectedTowerConfig();
+      this.scene.cleanSelectedTowerConfig();
     }
   }
 }
 
 class CardContainer extends Phaser.GameObjects.Container {
-  constructor(scene, x, y, getGold, changeGold, setSelectedTowerConfig) {
+  constructor(scene, x, y) {
       super(scene, x, y);
-      this.getGold = getGold;
-      this.changeGold = changeGold;
-      this.setSelectedTowerConfig = setSelectedTowerConfig;
+      this.scene = scene;
       this.image = scene.add.image(0, 0, '');
       this.add(this.image);
 
@@ -212,9 +218,9 @@ class CardContainer extends Phaser.GameObjects.Container {
       
       button.setInteractive();
       button.on('pointerdown', () => {
-        if(this.getGold() - this.towerConfig.price >= 0) {
-          this.changeGold(-this.towerConfig.price);
-          this.setSelectedTowerConfig(this.towerConfig);
+        if(this.scene.getGold() - this.towerConfig.price >= 0) {
+          this.scene.changeGold(-this.towerConfig.price);
+          this.scene.setSelectedTowerConfig(this.towerConfig);
         }
       });
 
@@ -236,16 +242,15 @@ class EnemyGenerator {
   enemiesQuatity = 5;
   scene = null;
   lastEnemyCreated = 0;
-  constructor(scene, path, groupEnemies, changeGold) {
+  constructor(scene, path, groupEnemies) {
     this.scene = scene;
     this.path = path;
     this.groupEnemies = groupEnemies;
-    this.changeGold = changeGold;
   }
 
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
-      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize, this.scene.unitSize, this.changeGold);
+      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize, this.scene.unitSize);
       enemy.setPath(this.path);
       this.lastEnemyCreated = time;
       this.counter++;
@@ -272,7 +277,7 @@ class MapGenerator {
         const x = col * unitSize;
         const y = row * unitSize;
 
-        let buttonTower = new ButtonTower(scene, scene.buttonTowers, scene.towers, scene.enemies, scene.bullets, x, y, scene.unitSize, scene.getSelectedTowerConfig.bind(scene), scene.cleanSelectedTowerConfig.bind(scene));
+        let buttonTower = new ButtonTower(scene, scene.buttonTowers, scene.towers, scene.enemies, scene.bullets, x, y, scene.unitSize);
         scene.buttonTowers.add(buttonTower);
       }
     }
@@ -398,13 +403,13 @@ class Game extends Phaser.Scene {
       this.grid.cols
     );
 
-    const card1 = new CardContainer(this, 10, 450, this.getGold.bind(this), this.changeGold.bind(this), this.setSelectedTowerConfig.bind(this));
+    const card1 = new CardContainer(this, 10, 450);
     card1.setConfig(Tower.commonTower);
 
-    const card2 = new CardContainer(this, 110, 450, this.getGold.bind(this), this.changeGold.bind(this), this.setSelectedTowerConfig.bind(this));
+    const card2 = new CardContainer(this, 110, 450);
     card2.setConfig(Tower.tripleShotTower);
 
-    this.enemyGenerator = new EnemyGenerator(this, path, this.enemies, this.changeGold.bind(this));
+    this.enemyGenerator = new EnemyGenerator(this, path, this.enemies);
 
     this.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
       enemy.takeDamage(bullet.damage);
