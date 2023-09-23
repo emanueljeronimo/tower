@@ -18,9 +18,10 @@ class MainTower extends GameObject {
   }
 }
 
+
 class Enemy extends GameObject {
   constructor(scene, group, x = -10, y = 100, height, width) {
-    super(scene, group, x, y, 'enemy', height*0.6, width*0.6);
+    super(scene, group, x, y, 'enemy', height, width);
     this.scene = scene;
     this.health = 100;
     this.currentPointIndex = 0;
