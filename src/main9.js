@@ -20,7 +20,7 @@ class MainTower extends GameObject {
 
 class Enemy extends GameObject {
   constructor(scene, group, x = -10, y = 100, height, width) {
-    super(scene, group, x, y, 'enemy', height, width);
+    super(scene, group, x, y, 'enemy', height*0.6, width*0.6);
     this.scene = scene;
     this.health = 100;
     this.currentPointIndex = 0;
@@ -41,9 +41,19 @@ class Enemy extends GameObject {
       this.group.remove(this, true, true);
     }
   }
-
+  
   startMoving() {
     const targetPoint = this.path[this.currentPointIndex];
+    // Calculate the angle to the target point and set it as the rotation
+    const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, targetPoint.x, targetPoint.y);
+    this.rotation = angleToTarget;
+
+    /*
+    onUpdate: (tween, target) => {
+        // Update the rotation during the tween animation
+        target.rotation = angleDiff * tween.progress;
+      }
+    */
     this.scene?.tweens.add({
       targets: this,
       x: targetPoint.x,
@@ -57,6 +67,7 @@ class Enemy extends GameObject {
       }
     });
   }
+
 }
 
 
@@ -69,17 +80,21 @@ class Tower extends GameObject {
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig) {
     super(scene, group, x, y, towerConfig.texture, height, width);
     this.range = towerConfig.range;
+    this.price = towerConfig.price;
+    this.description = towerConfig.description;
     this.executeOnUpdate = towerConfig.executeOnUpdate;
     this.attackVelocity = towerConfig.attackVelocity;
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
     this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
     this.setInteractive();
-    this.on('pointerdown', this.toggleRange, this);
+    this.on('pointerdown', this.click, this);
   }
 
-  toggleRange() {
-    this.rangeCircle.setVisible(!this.rangeCircle.visible);
+  click() {
+    this.rangeCircle.setVisible(true);
+    setTimeout(()=>{this.rangeCircle.setVisible(false)},300);
+    this.scene.sellPopUp.setTower(this);
   }
 
   isInRange(enemy) {
@@ -234,6 +249,48 @@ class CardContainer extends Phaser.GameObjects.Container {
   }
 }
 
+class SellPopUp extends Phaser.GameObjects.Container {
+  constructor(scene) {
+      super(scene, -100, -100);
+      this.scene = scene;
+
+      // Create a description text
+      this.description = scene.add.text(-100, -50, '', {
+          fontSize: '24px',
+          fill: '#ffffff'
+      });
+      this.add(this.description);
+
+      // Create a button
+      const button = scene.add.sprite(0, 50, 'sell'); // Replace 'button' with your button texture key
+      this.add(button);
+
+      
+      button.setInteractive();
+      button.on('pointerdown', () => {
+          this.setOutSide();
+          this.scene.changeGold(this.tower.price);       
+          this.tower.destroy()
+        });
+      scene.add.existing(this);
+  }
+
+  setTower(tower) {
+    setTimeout(() => {
+      this.setOutSide()
+    }, 1500);
+    this.tower = tower;
+    this.description.setText(tower.description);
+    this.x = this.tower.x;
+    this.y = this.tower.y;
+  }
+
+  setOutSide(){
+    this.x = -100;
+    this.y = -100;
+  }
+}
+
 class EnemyGenerator {
   frequency = 500;
   path = null;
@@ -345,7 +402,20 @@ class MapGenerator {
       });
     });
 
-    return path.reverse();
+    // doing it "flat"
+    path = path.reverse(); 
+    let flatPath = [];
+    flatPath.push(path[0]);
+    for(var i=1;i<=path.length-1; i++){
+      if(i==path.length<-1){
+        flatPath.push(path[i]);
+        break;
+      }
+      if(path[i].x !== flatPath[flatPath.length-1].x && path[i].y !== flatPath[flatPath.length-1].y){
+        flatPath.push(path[i-1]);
+      }
+    }
+    return flatPath;
   }
 }
 
@@ -378,13 +448,14 @@ class Game extends Phaser.Scene {
     this.load.image('tower', 'tower.png');
   }
 
-  create() {
+  create() {   
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
     this.towers = this.add.group();
     this.buttonTowers = this.add.group();
 
+    
     this.goldLabel = this.add.text(0, 290, `Gold: ${this.gold}`, {
       font: '24px CustomFont',
       fill: '#777777',
@@ -405,9 +476,13 @@ class Game extends Phaser.Scene {
 
     const card1 = new CardContainer(this, 10, 450);
     card1.setConfig(Tower.commonTower);
+    card1.setScrollFactor(0);
 
     const card2 = new CardContainer(this, 110, 450);
     card2.setConfig(Tower.tripleShotTower);
+    card2.setScrollFactor(0);
+
+    this.sellPopUp = new SellPopUp(this);
 
     this.enemyGenerator = new EnemyGenerator(this, path, this.enemies);
 
