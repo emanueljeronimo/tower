@@ -44,16 +44,8 @@ class Enemy extends GameObject {
   
   startMoving() {
     const targetPoint = this.path[this.currentPointIndex];
-    // Calculate the angle to the target point and set it as the rotation
     const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, targetPoint.x, targetPoint.y);
     this.rotation = angleToTarget;
-
-    /*
-    onUpdate: (tween, target) => {
-        // Update the rotation during the tween animation
-        target.rotation = angleDiff * tween.progress;
-      }
-    */
     this.scene?.tweens.add({
       targets: this,
       x: targetPoint.x,
@@ -64,10 +56,19 @@ class Enemy extends GameObject {
         if (this.currentPointIndex < this.path.length) {
           this.startMoving();
         }
+      },
+      onUpdate: (tween, target) => {
+        if(this.path.length-1!=this.currentPointIndex && this.path[this.currentPointIndex-1]){
+           let absDistance =  Math.abs(this.x - targetPoint.x) +  Math.abs(this.y - targetPoint.y);
+           if(absDistance<this.scene?.unitSize/1.2) {
+            const nextTargetPoint = this.path[this.currentPointIndex+1]
+            let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
+            target.rotation = nextAngleToTarget * tween.progress
+           }
+        }
       }
     });
   }
-
 }
 
 
