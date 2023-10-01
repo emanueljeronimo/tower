@@ -162,7 +162,7 @@ class Tower extends GameObject {
   static fastTower = {
     price: 250,
     rangeUnit: 10,
-    attackVelocity: 700,
+    attackVelocity: 100,
     texture: 'tower',
     description: 'Fast Tower',
     executeOnUpdate: (that, time) => {
