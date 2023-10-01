@@ -18,7 +18,6 @@ class MainTower extends GameObject {
   }
 }
 
-
 class Enemy extends GameObject {
   constructor(scene, group, x = -10, y = 100, height, width) {
     super(scene, group, x, y, 'enemy', height, width);
@@ -59,14 +58,12 @@ class Enemy extends GameObject {
         }
       },
       onUpdate: (tween, target) => {
-        if(this.path.length-1!=this.currentPointIndex && this.path[this.currentPointIndex-1]){
-           let absDistance =  Math.abs(this.x - targetPoint.x) +  Math.abs(this.y - targetPoint.y);
-           if(absDistance<this.scene?.unitSize/1.2) {
-            const nextTargetPoint = this.path[this.currentPointIndex+1]
-            let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
-            target.rotation = nextAngleToTarget * tween.progress
-           }
-        }
+        let absDistance =  Math.abs(this.x - targetPoint.x) +  Math.abs(this.y - targetPoint.y);
+        if(absDistance<this.scene?.unitSize/1.2 &&  this.path[this.currentPointIndex+1]) {
+        const nextTargetPoint = this.path[this.currentPointIndex+1]
+        let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
+        target.rotation = nextAngleToTarget * tween.progress
+        }        
       }
     });
   }
@@ -81,7 +78,7 @@ class Tower extends GameObject {
 
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig) {
     super(scene, group, x, y, towerConfig.texture, height, width);
-    this.range = towerConfig.range;
+    this.range = towerConfig.rangeUnit * scene.unitSize;
     this.price = towerConfig.price;
     this.description = towerConfig.description;
     this.executeOnUpdate = towerConfig.executeOnUpdate;
@@ -134,7 +131,7 @@ class Tower extends GameObject {
 
   static commonTower = {
     price: 250,
-    range: 150,
+    rangeUnit: 10,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Common Tower',
@@ -148,7 +145,7 @@ class Tower extends GameObject {
 
   static tripleShotTower = {
     price: 350,
-    range: 150,
+    rangeUnit: 10,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Triple Tower',
@@ -161,6 +158,22 @@ class Tower extends GameObject {
       });
     }
   }
+
+  static fastTower = {
+    price: 250,
+    rangeUnit: 10,
+    attackVelocity: 700,
+    texture: 'tower',
+    description: 'Fast Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) =>{
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
+      });
+    }
+  }
+
+
 }
 
 class Bullet extends GameObject {
@@ -207,13 +220,125 @@ class ButtonTower extends GameObject {
 
   createTower() {
     if(this.scene.getSelectedTowerConfig()){
-      let tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
-      tower.setOrigin(0.5);
+      this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
+      this.tower.setOrigin(0.5);
       this.scene.cleanSelectedTowerConfig();
+    }
+  }
+  destroyTower() {
+    if(this.tower){
+      this.tower.destroy();
     }
   }
 }
 
+class TowerMenuContainer extends Phaser.GameObjects.Container {
+  constructor(scene, x, y) {
+    super(scene, x, y);
+
+    this.scene = scene;
+    this.enemies = scene.physics.add.group();
+    this.bullets = scene.physics.add.group();
+    this.towers = scene.add.group();
+    this.buttonTowers = scene.add.group();
+    scene.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
+      enemy.takeDamage(bullet.damage);
+      bullet.destroy();
+    });
+
+
+    this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x+210, this.y+150, scene.unitSize);
+    this.buttonTowers.add(this.buttonTower);
+    
+    // Create a description text
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower];
+
+    this.tower1Desc = scene.add.text(10, 50, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.tower1Desc);
+
+    this.tower2Desc = scene.add.text(10, 80, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.tower2Desc);
+
+    this.tower3Desc = scene.add.text(10, 110, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.tower3Desc);
+
+    this.tower1Desc.setText('tower 1');
+    this.tower2Desc.setText('tower 2');
+    this.tower3Desc.setText('tower 3');
+
+    const buttonUp = scene.add.sprite(10, 0, 'button'); // Replace 'button' with your button texture key
+    this.add(buttonUp);
+    
+    buttonUp.setInteractive();
+    buttonUp.on('pointerdown', () => {
+      const firstElement = this.arrTowerConfig.shift(); // Remove the first element
+      this.arrTowerConfig.push(firstElement);
+      this.updateTower();
+    });
+
+    const buttonDown = scene.add.sprite(10, 160, 'button'); // Replace 'button' with your button texture key
+    this.add(buttonDown);
+    
+    buttonDown.setInteractive();
+    buttonDown.on('pointerdown', () => {
+      const lastElement = this.arrTowerConfig.pop(); // Remove the last element
+      this.arrTowerConfig.unshift(lastElement);
+      this.updateTower();
+    });
+
+    this.updateTower();
+
+    // Create a button
+    /*
+    const button = scene.add.sprite(0, 50, 'button'); // Replace 'button' with your button texture key
+    this.add(button);
+    
+    button.setInteractive();
+    button.on('pointerdown', () => {
+      if(this.scene.getGold() - this.towerConfig.price >= 0) {
+        this.scene.changeGold(-this.towerConfig.price);
+        this.scene.setSelectedTowerConfig(this.towerConfig);
+      }
+    });
+    */
+    scene.add.existing(this);
+  }
+
+  updateTower() {
+    this.tower1Desc.setText(this.arrTowerConfig[0].description);
+    this.tower2Desc.setText(this.arrTowerConfig[1].description);
+    this.tower3Desc.setText(this.arrTowerConfig[2].description);
+    this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
+    this.buttonTower.destroyTower();
+    this.enemy = new Enemy(this.scene, this.enemies, this.x+310, this.y+150, this.scene.unitSize, this.scene.unitSize);
+    this.buttonTower.createTower();
+  }
+
+  update(time) {
+    this.towers.getChildren().forEach(function (tower) {
+      tower.update(time);
+    });
+  
+    this.bullets.getChildren().forEach(function (bullet) {
+      bullet.update();
+    });
+  }
+  
+
+
+}
+
+
+/*
 class CardContainer extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
       super(scene, x, y);
@@ -249,7 +374,7 @@ class CardContainer extends Phaser.GameObjects.Container {
     this.description.setText(towerConfig.description);
     this.image.setTexture(towerConfig.texture)
   }
-}
+}*/
 
 class SellPopUp extends Phaser.GameObjects.Container {
   constructor(scene) {
@@ -476,13 +601,8 @@ class Game extends Phaser.Scene {
       this.grid.cols
     );
 
-    const card1 = new CardContainer(this, 10, 450);
-    card1.setConfig(Tower.commonTower);
-    card1.setScrollFactor(0);
-
-    const card2 = new CardContainer(this, 110, 450);
-    card2.setConfig(Tower.tripleShotTower);
-    card2.setScrollFactor(0);
+    this.towerMenuContainer = new TowerMenuContainer(this, 0, 350);
+    this.towerMenuContainer.setScrollFactor(0);
 
     this.sellPopUp = new SellPopUp(this);
 
@@ -536,6 +656,9 @@ class Game extends Phaser.Scene {
 
       this.lastPointerPosition = { x: pointer.x, y: pointer.y };
     }
+
+    this.towerMenuContainer.update(time);
+
   }
 
   changeGold(gold) {
