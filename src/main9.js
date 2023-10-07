@@ -59,10 +59,11 @@ class Enemy extends GameObject {
       },
       onUpdate: (tween, target) => {
         let absDistance =  Math.abs(this.x - targetPoint.x) +  Math.abs(this.y - targetPoint.y);
-        if(absDistance<this.scene?.unitSize/1.2 &&  this.path[this.currentPointIndex+1]) {
-        const nextTargetPoint = this.path[this.currentPointIndex+1]
-        let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
-        target.rotation = nextAngleToTarget * tween.progress
+        if(absDistance < this.scene?.unitSize/2 &&  this.path[this.currentPointIndex+1]) {
+          const nextTargetPoint = this.path[this.currentPointIndex+1]
+          let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
+          target.rotation = nextAngleToTarget * tween.progress
+          //target.rotation = nextAngleToTarget * (absDistance*100/(this.scene?.unitSize/2));
         }        
       }
     });
@@ -215,21 +216,27 @@ class ButtonTower extends GameObject {
     this.groupBullets = groupBullets;
     this.unitSize = unitSize;
     this.setInteractive();
-    this.on('pointerdown', this.createTower, this);
+    this.on('pointerdown', this.buyTower, this);
   }
 
   createTower() {
-    if(this.scene.getSelectedTowerConfig()){
-      this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
-      this.tower.setOrigin(0.5);
-      this.scene.cleanSelectedTowerConfig();
+    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
+    this.tower.setOrigin(0.5);
+  }
+
+  buyTower() {
+    if (this.scene.isBuying()) {
+      this.createTower();
+      this.scene.afterPlaceTower();
     }
   }
+
   destroyTower() {
     if(this.tower){
       this.tower.destroy();
     }
   }
+
 }
 
 class TowerMenuContainer extends Phaser.GameObjects.Container {
@@ -295,21 +302,15 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.updateTower();
     });
 
-    this.updateTower();
-
-    // Create a button
-    /*
-    const button = scene.add.sprite(0, 50, 'button'); // Replace 'button' with your button texture key
-    this.add(button);
+    const buyButton = scene.add.sprite(150, 0, 'buy-button'); // Replace 'button' with your button texture key
+    this.add(buyButton);
     
-    button.setInteractive();
-    button.on('pointerdown', () => {
-      if(this.scene.getGold() - this.towerConfig.price >= 0) {
-        this.scene.changeGold(-this.towerConfig.price);
-        this.scene.setSelectedTowerConfig(this.towerConfig);
-      }
+    buyButton.setInteractive();
+    buyButton.on('pointerdown', () => {
+      this.scene.buy();
     });
-    */
+
+    this.updateTower();   
     scene.add.existing(this);
   }
 
@@ -423,7 +424,7 @@ class EnemyGenerator {
   path = null;
   groupEnemies = null;
   counter = 0;
-  enemiesQuatity = 5;
+  enemiesQuatity = 1;
   scene = null;
   lastEnemyCreated = 0;
   constructor(scene, path, groupEnemies) {
@@ -566,6 +567,7 @@ class Game extends Phaser.Scene {
     this.lastPointerPosition = { x: 0, y: 0 };
     this.gold = 1000;
     this.selectedTowerConfig = null;
+    this.buying = false;
   }
 
   preload() {
@@ -646,16 +648,16 @@ class Game extends Phaser.Scene {
 
     this.enemyGenerator.update(time);
 
-    if (this.isDragging) {
+    /*if (this.isDragging) {
       const pointer = this.input.activePointer;
       const deltaX = this.lastPointerPosition.x - pointer.x;
-      const deltaY = this.lastPointerPosition.y - pointer.y;
+      // const deltaY = this.lastPointerPosition.y - pointer.y;
 
       this.cameras.main.scrollX += deltaX;
-      this.cameras.main.scrollY += deltaY;
+      // this.cameras.main.scrollY += deltaY;
 
       this.lastPointerPosition = { x: pointer.x, y: pointer.y };
-    }
+    }*/
 
     this.towerMenuContainer.update(time);
 
@@ -678,8 +680,19 @@ class Game extends Phaser.Scene {
     return this.selectedTowerConfig;
   }
 
-  cleanSelectedTowerConfig() {
-    return this.selectedTowerConfig = null;
+  isBuying() {
+    return this.buying;
+  }
+
+  afterPlaceTower() {
+    return this.buying = false;
+  }
+
+  buy() {
+    if(this.selectedTowerConfig && this.gold > this.selectedTowerConfig.price){
+      this.changeGold(-this.selectedTowerConfig.price);
+      this.buying = true;
+    }
   }
 
   // Camera things
