@@ -19,13 +19,13 @@ class MainTower extends GameObject {
 }
 
 class Enemy extends GameObject {
-  constructor(scene, group, x = -10, y = 100, height, width) {
-    super(scene, group, x, y, 'enemy', height, width);
+  constructor(scene, group, x = -10, y = 100, height, width, enemyConfig) {
+    super(scene, group, x, y, enemyConfig.texture, height, width);
     this.scene = scene;
-    this.health = 100;
     this.currentPointIndex = 0;
-    this.speed = 100;
-    this.gold = 15;
+    this.health = enemyConfig.health;
+    this.speed = enemyConfig.speed;
+    this.gold = enemyConfig.gold;
   }
 
   setPath(path) {
@@ -68,6 +68,20 @@ class Enemy extends GameObject {
       }
     });
   }
+
+  static commonEnemy = {
+    texture: 'enemy',
+    health: 100,
+    speed: 100,
+    gold: 15
+  }
+
+  static dummyEnemy = {
+    texture: 'enemy',
+    health: 100,
+    speed: 0,
+    gold: 0
+  }
 }
 
 
@@ -77,7 +91,7 @@ class Tower extends GameObject {
   groupEnemies = null;
   lastFired = 0;
 
-  constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig) {
+  constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, sellable) {
     super(scene, group, x, y, towerConfig.texture, height, width);
     this.range = towerConfig.rangeUnit * scene.unitSize;
     this.price = towerConfig.price;
@@ -87,8 +101,10 @@ class Tower extends GameObject {
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
     this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
-    this.setInteractive();
-    this.on('pointerdown', this.click, this);
+    if (sellable) {
+      this.setInteractive();
+      this.on('pointerdown', this.click, this);
+    }
   }
 
   click() {
@@ -219,14 +235,15 @@ class ButtonTower extends GameObject {
     this.on('pointerdown', this.buyTower, this);
   }
 
-  createTower() {
-    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig());
+  createTower(sellable) {
+    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig(), sellable);
     this.tower.setOrigin(0.5);
+    return this.tower;
   }
 
   buyTower() {
     if (this.scene.isBuying()) {
-      this.createTower();
+      this.createTower(true);
       this.scene.afterPlaceTower();
     }
   }
@@ -248,6 +265,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.bullets = scene.physics.add.group();
     this.towers = scene.add.group();
     this.buttonTowers = scene.add.group();
+    
     scene.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
       enemy.takeDamage(bullet.damage);
       bullet.destroy();
@@ -256,6 +274,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x+210, this.y+150, scene.unitSize);
     this.buttonTowers.add(this.buttonTower);
+    this.add(this.buttonTower);
+    
     
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower];
@@ -277,10 +297,6 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       fill: '#ffffff'
     });
     this.add(this.tower3Desc);
-
-    this.tower1Desc.setText('tower 1');
-    this.tower2Desc.setText('tower 2');
-    this.tower3Desc.setText('tower 3');
 
     const buttonUp = scene.add.sprite(10, 0, 'button'); // Replace 'button' with your button texture key
     this.add(buttonUp);
@@ -312,6 +328,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     this.updateTower();   
     scene.add.existing(this);
+    
   }
 
   updateTower() {
@@ -320,8 +337,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.tower3Desc.setText(this.arrTowerConfig[2].description);
     this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
     this.buttonTower.destroyTower();
-    this.enemy = new Enemy(this.scene, this.enemies, this.x+310, this.y+150, this.scene.unitSize, this.scene.unitSize);
-    this.buttonTower.createTower();
+    this.enemy = new Enemy(this.scene, this.enemies, this.x+310, this.y+150, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+    this.buttonTower.createTower(false);
   }
 
   update(time) {
@@ -424,7 +441,7 @@ class EnemyGenerator {
   path = null;
   groupEnemies = null;
   counter = 0;
-  enemiesQuatity = 1;
+  enemiesQuatity = 5;
   scene = null;
   lastEnemyCreated = 0;
   constructor(scene, path, groupEnemies) {
@@ -435,7 +452,7 @@ class EnemyGenerator {
 
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
-      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize, this.scene.unitSize);
+      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize, this.scene.unitSize, Enemy.commonEnemy);
       enemy.setPath(this.path);
       this.lastEnemyCreated = time;
       this.counter++;
@@ -593,8 +610,8 @@ class Game extends Phaser.Scene {
       font: '24px CustomFont',
       fill: '#777777',
     });
-    this.lifeLabel.setScrollFactor(0);
-    this.goldLabel.setScrollFactor(0);
+    //this.lifeLabel.setScrollFactor(0);
+    //this.goldLabel.setScrollFactor(0);
 
     let path = MapGenerator.generateMap(
       this,
@@ -604,7 +621,7 @@ class Game extends Phaser.Scene {
     );
 
     this.towerMenuContainer = new TowerMenuContainer(this, 0, 350);
-    this.towerMenuContainer.setScrollFactor(0);
+    //this.towerMenuContainer.setScrollFactor(0);
 
     this.sellPopUp = new SellPopUp(this);
 
@@ -624,6 +641,10 @@ class Game extends Phaser.Scene {
     });
 
     // Camera
+    this.horizontalCamera = this.cameras.add(0, 0, 800, 220);
+    this.cameras.main.setScroll(0, 220)
+    this.cameras.main.setSize(800, 500);
+    this.cameras.main.setPosition(0, 220);
     this.input.on('pointerdown', this.pointerDown, this);
     this.input.on('pointermove', this.pointerMove, this);
     this.input.on('pointerup', this.pointerUp, this);
@@ -706,13 +727,13 @@ class Game extends Phaser.Scene {
       const deltaX = this.lastPointerPosition.x - pointer.x;
       // const deltaY = this.lastPointerPosition.y - pointer.y;
 
-      let aux = this.cameras.main.scrollX + deltaX;
+      let aux = this.horizontalCamera.scrollX + deltaX;
 
       if (
         aux > 0 &&
         aux < this.grid.cols * this.unitSize - config.width
       ) {
-        this.cameras.main.scrollX += deltaX;
+        this.horizontalCamera.scrollX += deltaX;
         // this.cameras.main.scrollY += deltaY;
       }
 
@@ -724,11 +745,11 @@ class Game extends Phaser.Scene {
     this.isDragging = false;
   }
 
-  mouseWheel(event) {
+  /*mouseWheel(event) {
     const delta = Phaser.Math.Clamp(-event.deltaY, -1, 1);
     const zoomAmount = 0.05;
     this.cameras.main.zoom += delta * zoomAmount;
-  }
+  }*/
   // End camera things
 }
 
