@@ -72,7 +72,7 @@ class Enemy extends GameObject {
   static commonEnemy = {
     texture: 'enemy',
     health: 100,
-    speed: 100,
+    speed: 600,
     gold: 15
   }
 
@@ -552,7 +552,7 @@ class MapGenerator {
     let flatPath = [];
     flatPath.push(path[0]);
     for(var i=1;i<=path.length-1; i++){
-      if(i==path.length<-1){
+      if(i==path.length-1){
         flatPath.push(path[i]);
         break;
       }
