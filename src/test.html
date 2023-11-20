@@ -1,51 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Phaser 3 Draggable Example</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phaser Particle Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
 </head>
 <body>
+
 <script>
-  // Phaser configuration
-  const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    scene: {
-      preload,
-      create
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    function preload() {
+        this.load.image('particleImageKey', 'assets/tower.png');
     }
-  };
 
-  // Create a new Phaser game instance
-  const game = new Phaser.Game(config);
+    function create() {
+        var particles = this.add.particles('particleImageKey');
 
-  // Preload assets
-  function preload() {
-    this.load.image('ball', 'path/to/your/ball.png');
-  }
+        var emitter = particles.createEmitter({
+            speed: 100,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD'
+        });
 
-  // Create the scene
-  function create() {
-    // Add the draggable sprite
-    const sprite = this.add.sprite(400, 300, 'ball');
-    sprite.setInteractive({ draggable: true });
+        // If you want particles to follow a game object (e.g., cursor)
+        // var cursor = this.input.activePointer;
+        // emitter.startFollow(cursor);
+    }
 
-    // Add event listeners for dragging
-    sprite.on('dragstart', function (pointer) {
-      this.setTint(0xff0000);
-    });
-
-    sprite.on('drag', function (pointer, dragX, dragY) {
-      this.x = dragX;
-      this.y = dragY;
-    });
-
-    sprite.on('dragend', function (pointer) {
-      this.clearTint();
-    });
-  }
+    function update() {
+        // Update game logic
+    }
 </script>
+
 </body>
 </html>
