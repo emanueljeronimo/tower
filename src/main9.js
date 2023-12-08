@@ -623,7 +623,7 @@ class Game extends Phaser.Scene {
   preload() {
     this.load.image('main-tower', 'assets/main-tower.png');
     this.load.image('bullet', 'assets/bullet.png');
-    this.load.image('enemy', 'assets/enemy-4.png');
+    this.load.image('enemy', 'assets/enemy-6.png');
     this.load.image('tower', 'assets/tower.png');
     this.load.image('particle', 'assets/particle.png');
   }
