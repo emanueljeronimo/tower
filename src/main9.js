@@ -266,7 +266,7 @@ class ButtonTower extends GameObject {
   }
 
   createTower(sellable) {
-    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig(), sellable);
+    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize*3, this.scene.getSelectedTowerConfig(), sellable);
     this.tower.setOrigin(0.5);
     return this.tower;
   }
@@ -624,7 +624,7 @@ class Game extends Phaser.Scene {
     this.load.image('main-tower', 'assets/main-tower.png');
     this.load.image('bullet', 'assets/bullet.png');
     this.load.image('enemy', 'assets/enemy-6.png');
-    this.load.image('tower', 'assets/tower.png');
+    this.load.image('tower', 'assets/tower-2.png');
     this.load.image('particle', 'assets/particle.png');
   }
 
