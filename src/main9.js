@@ -1,6 +1,15 @@
 // fix overlapping when you change tower
 // you can buy ilimted towers
 
+class Utils {
+  static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
+      const angle = Phaser.Math.Angle.Between(currentX, currentY, targetX, targetY);
+      const newX = currentX + distance * Math.cos(angle);
+      const newY = currentY + distance * Math.sin(angle);
+      return { x: newX, y: newY };
+  }
+}
+
 class GameObject extends Phaser.Physics.Arcade.Sprite {
   group = null;
   constructor(scene, group, x, y, texture, height, width) {
@@ -166,7 +175,8 @@ class Tower extends GameObject {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        shot(this.scene, this.groupBullets, this.x, this.y, angle);
+        let newPosition =  Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize*1.5);
+        shot(this.scene, this.groupBullets, newPosition.x, newPosition.y, angle);
       }
       this.lastFired = time;
     }
@@ -266,7 +276,7 @@ class ButtonTower extends GameObject {
   }
 
   createTower(sellable) {
-    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize*3, this.scene.getSelectedTowerConfig(), sellable);
+    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize*2, this.scene.getSelectedTowerConfig(), sellable);
     this.tower.setOrigin(0.5);
     return this.tower;
   }
