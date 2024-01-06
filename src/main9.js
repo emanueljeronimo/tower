@@ -3,10 +3,10 @@
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
-      const angle = Phaser.Math.Angle.Between(currentX, currentY, targetX, targetY);
-      const newX = currentX + distance * Math.cos(angle);
-      const newY = currentY + distance * Math.sin(angle);
-      return { x: newX, y: newY };
+    const angle = Phaser.Math.Angle.Between(currentX, currentY, targetX, targetY);
+    const newX = currentX + distance * Math.cos(angle);
+    const newY = currentY + distance * Math.sin(angle);
+    return { x: newX, y: newY };
   }
 }
 
@@ -38,9 +38,9 @@ class Particle extends GameObject {
   }
 
   startMoving() {
-    const randomValues = [this.scene.unitSize, -this.scene.unitSize, this.scene.unitSize/2, -this.scene.unitSize/2, this.scene.unitSize*1.5, -this.scene.unitSize*1.5]
-    const getRandomValue = ()=> randomValues[Math.floor(Math.random() * randomValues.length)];
-    const targetPoint = {x: this.x + getRandomValue(), y: this.y + getRandomValue()};
+    const randomValues = [this.scene.unitSize, -this.scene.unitSize, this.scene.unitSize / 2, -this.scene.unitSize / 2, this.scene.unitSize * 1.5, -this.scene.unitSize * 1.5]
+    const getRandomValue = () => randomValues[Math.floor(Math.random() * randomValues.length)];
+    const targetPoint = { x: this.x + getRandomValue(), y: this.y + getRandomValue() };
     this.scene?.tweens.add({
       targets: this,
       x: targetPoint.x,
@@ -74,7 +74,7 @@ class Enemy extends GameObject {
     if (this.health <= 0) {
       this.scene.changeGold(this.gold);
       for (var i = 1; i <= 5; i++) {
-        new Particle(this.scene, this.particleGroup, this.x, this.y, this.scene.unitSize/3, this.scene.unitSize/3);
+        new Particle(this.scene, this.particleGroup, this.x, this.y, this.scene.unitSize / 3, this.scene.unitSize / 3);
       }
       this.destroy();
       this.group.remove(this, true, true);
@@ -131,7 +131,7 @@ class Tower extends GameObject {
   lastFired = 0;
 
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, canSellIt) {
-    super(scene, group, x, y, towerConfig.texture, height, width);
+    super(scene, group, x, y, towerConfig.texture, height*towerConfig.heightRatio, width*towerConfig.widthRatio);
     this.range = towerConfig.rangeUnit * scene.unitSize;
     this.price = towerConfig.price;
     this.description = towerConfig.description;
@@ -175,8 +175,7 @@ class Tower extends GameObject {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        let newPosition =  Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize*1.5);
-        shot(this.scene, this.groupBullets, newPosition.x, newPosition.y, angle);
+        shot(this.scene, this.groupBullets, this.x, this.y, this.target, angle);
       }
       this.lastFired = time;
     }
@@ -187,6 +186,8 @@ class Tower extends GameObject {
   }
 
   static commonTower = {
+    heightRatio: 1,
+    widthRatio: 2,
     price: 250,
     rangeUnit: 10,
     attackVelocity: 300,
@@ -194,13 +195,16 @@ class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.updateTarget();
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3);
       });
     }
   }
 
   static tripleShotTower = {
+    heightRatio: 1,
+    widthRatio: 2,
     price: 350,
     rangeUnit: 10,
     attackVelocity: 300,
@@ -208,15 +212,18 @@ class Tower extends GameObject {
     description: 'Triple Tower',
     executeOnUpdate: (that, time) => {
       that.updateTarget();
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) => {
-        new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize, scene.unitSize);
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
-        new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize, scene.unitSize);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3);
+        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3);
+        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3);
       });
     }
   }
 
   static fastTower = {
+    heightRatio: 1,
+    widthRatio: 2,
     price: 250,
     rangeUnit: 10,
     attackVelocity: 100,
@@ -224,8 +231,26 @@ class Tower extends GameObject {
     description: 'Fast Tower',
     executeOnUpdate: (that, time) => {
       that.updateTarget();
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, angle) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3);
+      });
+    }
+  }
+
+  static laserTower = {
+    heightRatio: 1,
+    widthRatio: 1,
+    price: 250,
+    rangeUnit: 300,
+    attackVelocity: 500,
+    texture: 'laser-tower',
+    description: 'Laser',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, (scene.unitSize * 15)/2);
+        new LaserBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize * 15);
       });
     }
   }
@@ -233,12 +258,12 @@ class Tower extends GameObject {
 
 }
 
-class Bullet extends GameObject {
-  damage = 10;
-  maxDistance = 150;
+class CommonBullet extends GameObject {
+  damage = 50;
+  maxDistance = 300;
 
   constructor(scene, group, x, y, angle, height, width) {
-    super(scene, group, x, y, 'bullet', height, width);
+    super(scene, group, x, y, 'common-bullet', height, width);
     this.startX = x;
     this.startY = y;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
@@ -255,6 +280,27 @@ class Bullet extends GameObject {
   }
 }
 
+class LaserBullet extends GameObject {
+  damage = 100;
+  maxDistance = 1500;
+
+  constructor(scene, group, x, y, angle, height, width) {
+    super(scene, group, x, y, 'common-bullet', height, width);
+    this.startX = x;
+    this.startY = y;
+    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+    this.setVelocityX(Math.cos(angle) * 5000);
+    this.setVelocityY(Math.sin(angle) * 5000);
+  }
+
+  update() {
+    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
+    if (distance > this.maxDistance) {
+      this.destroy();
+      this.group.remove(this);
+    }
+  }
+}
 
 class ButtonTower extends GameObject {
   target = null;
@@ -276,7 +322,7 @@ class ButtonTower extends GameObject {
   }
 
   createTower(sellable) {
-    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize*2, this.scene.getSelectedTowerConfig(), sellable);
+    this.tower = new Tower(this.scene, this.groupTowers, this.groupEnemies, this.groupBullets, this.x, this.y, this.unitSize, this.unitSize, this.scene.getSelectedTowerConfig(), sellable);
     this.tower.setOrigin(0.5);
     return this.tower;
   }
@@ -319,7 +365,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower];
 
     this.tower1Desc = scene.add.text(10, 50, '', {
       fontSize: '24px',
@@ -632,10 +678,12 @@ class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('main-tower', 'assets/main-tower.png');
-    this.load.image('bullet', 'assets/bullet.png');
+    this.load.image('common-bullet', 'assets/common-bullet.png');
     this.load.image('enemy', 'assets/enemy-6.png');
     this.load.image('tower', 'assets/tower-2.png');
     this.load.image('particle', 'assets/particle.png');
+    this.load.image('laser', 'assets/laser.png');
+    this.load.image('laser-tower', 'assets/laser-tower.png');
   }
 
   create() {
