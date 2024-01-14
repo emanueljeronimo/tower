@@ -359,7 +359,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
 
 
-    this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x + 210, this.y + 150, scene.unitSize);
+    this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x + scene.unitSize*3, this.y + scene.unitSize*2, scene.unitSize);
     this.buttonTowers.add(this.buttonTower);
     this.add(this.buttonTower);
 
@@ -367,12 +367,13 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower];
 
-    this.tower1Desc = scene.add.text(10, 50, '', {
+    this.towerDesc = scene.add.text(scene.unitSize*2.5, scene.unitSize*3, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
-    this.add(this.tower1Desc);
+    this.add(this.towerDesc);
 
+    /*
     this.tower2Desc = scene.add.text(10, 80, '', {
       fontSize: '24px',
       fill: '#ffffff'
@@ -383,24 +384,26 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       fontSize: '24px',
       fill: '#ffffff'
     });
-    this.add(this.tower3Desc);
+    this.add(this.tower3Desc);*/
 
-    const buttonUp = scene.add.sprite(10, 0, 'button'); // Replace 'button' with your button texture key
+    const buttonUp = scene.add.sprite(scene.unitSize, 0, 'up');
+    buttonUp.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
     this.add(buttonUp);
 
     buttonUp.setInteractive();
     buttonUp.on('pointerdown', () => {
-      const firstElement = this.arrTowerConfig.shift(); // Remove the first element
+      const firstElement = this.arrTowerConfig.shift();
       this.arrTowerConfig.push(firstElement);
       this.updateTower();
     });
 
-    const buttonDown = scene.add.sprite(10, 160, 'button'); // Replace 'button' with your button texture key
+    const buttonDown = scene.add.sprite(scene.unitSize, scene.unitSize*4, 'down');
+    buttonDown.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
     this.add(buttonDown);
 
     buttonDown.setInteractive();
     buttonDown.on('pointerdown', () => {
-      const lastElement = this.arrTowerConfig.pop(); // Remove the last element
+      const lastElement = this.arrTowerConfig.pop();
       this.arrTowerConfig.unshift(lastElement);
       this.updateTower();
     });
@@ -419,12 +422,11 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
   }
 
   updateTower() {
-    this.tower1Desc.setText(this.arrTowerConfig[0].description);
-    this.tower2Desc.setText(this.arrTowerConfig[1].description);
-    this.tower3Desc.setText(this.arrTowerConfig[2].description);
-    this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
+    this.towerDesc.setText(this.arrTowerConfig[0].description);
+    this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
-    this.enemy = new Enemy(this.scene, this.enemies, this.particles, this.x + 310, this.y + 150, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+    if (this.enemy!=null)this.enemy.destroy();
+    this.enemy = new Enemy(this.scene, this.enemies, this.particles, this.x + this.scene.unitSize * 9, this.y + this.scene.unitSize*2, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
     this.buttonTower.createTower(false);
   }
 
@@ -677,6 +679,9 @@ class Game extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image('up', 'assets/up.png');
+    this.load.image('down', 'assets/down.png');
+
     this.load.image('main-tower', 'assets/main-tower.png');
     this.load.image('common-bullet', 'assets/common-bullet.png');
     this.load.image('enemy', 'assets/enemy-6.png');
@@ -684,6 +689,7 @@ class Game extends Phaser.Scene {
     this.load.image('particle', 'assets/particle.png');
     this.load.image('laser', 'assets/laser.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
+    
   }
 
   create() {
