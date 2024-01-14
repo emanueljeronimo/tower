@@ -373,18 +373,6 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
     this.add(this.towerDesc);
 
-    /*
-    this.tower2Desc = scene.add.text(10, 80, '', {
-      fontSize: '24px',
-      fill: '#ffffff'
-    });
-    this.add(this.tower2Desc);
-
-    this.tower3Desc = scene.add.text(10, 110, '', {
-      fontSize: '24px',
-      fill: '#ffffff'
-    });
-    this.add(this.tower3Desc);*/
 
     const buttonUp = scene.add.sprite(scene.unitSize, 0, 'up');
     buttonUp.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
@@ -408,7 +396,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.updateTower();
     });
 
-    const buyButton = scene.add.sprite(150, 0, 'buy-button'); // Replace 'button' with your button texture key
+    const buyButton = scene.add.sprite(scene.unitSize*3,scene.unitSize*5, 'buy');
+    buyButton.setDisplaySize(scene.unitSize*5, scene.unitSize*2);
     this.add(buyButton);
 
     buyButton.setInteractive();
@@ -681,6 +670,8 @@ class Game extends Phaser.Scene {
   preload() {
     this.load.image('up', 'assets/up.png');
     this.load.image('down', 'assets/down.png');
+    this.load.image('buy', 'assets/buy.png');
+    this.load.image('sell', 'assets/sell.png');
 
     this.load.image('main-tower', 'assets/main-tower.png');
     this.load.image('common-bullet', 'assets/common-bullet.png');
