@@ -1,5 +1,7 @@
-// fix overlapping when you change tower
 // you can buy ilimted towers
+// acomodar todo el menu
+// hacer que la main tower tenga un pasillo mas largo 
+// centrar el texto
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -373,30 +375,48 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
     this.add(this.towerDesc);
 
+    this.towerPrice = scene.add.text(scene.unitSize*16, scene.unitSize*3, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.towerPrice);
 
-    const buttonUp = scene.add.sprite(scene.unitSize, 0, 'up');
-    buttonUp.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
-    this.add(buttonUp);
+    this.towerRange = scene.add.text(scene.unitSize*16, scene.unitSize*1, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.towerRange);
 
-    buttonUp.setInteractive();
-    buttonUp.on('pointerdown', () => {
+    this.towerVelocity = scene.add.text(scene.unitSize*16, 0, '', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.towerVelocity);
+
+
+    const buttonLeft = scene.add.sprite(scene.unitSize, scene.unitSize*7, 'left');
+    buttonLeft.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
+    this.add(buttonLeft);
+
+    buttonLeft.setInteractive();
+    buttonLeft.on('pointerdown', () => {
       const firstElement = this.arrTowerConfig.shift();
       this.arrTowerConfig.push(firstElement);
       this.updateTower();
     });
 
-    const buttonDown = scene.add.sprite(scene.unitSize, scene.unitSize*4, 'down');
-    buttonDown.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
-    this.add(buttonDown);
+    const buttonRight = scene.add.sprite(scene.unitSize*15, scene.unitSize*7, 'right');
+    buttonRight.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
+    this.add(buttonRight);
 
-    buttonDown.setInteractive();
-    buttonDown.on('pointerdown', () => {
+    buttonRight.setInteractive();
+    buttonRight.on('pointerdown', () => {
       const lastElement = this.arrTowerConfig.pop();
       this.arrTowerConfig.unshift(lastElement);
       this.updateTower();
     });
 
-    const buyButton = scene.add.sprite(scene.unitSize*3,scene.unitSize*5, 'buy');
+    const buyButton = scene.add.sprite(scene.unitSize*8,scene.unitSize*7, 'buy');
     buyButton.setDisplaySize(scene.unitSize*5, scene.unitSize*2);
     this.add(buyButton);
 
@@ -405,6 +425,11 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.scene.buy();
     });
 
+
+    var rectangle = this.scene.add.rectangle(this.x + scene.unitSize*8, this.y + scene.unitSize, scene.unitSize*15, scene.unitSize*8, null); // x, y, width, height, color
+    var thickness = 1;
+    rectangle.setStrokeStyle(thickness, 0xffffff); 
+
     this.updateTower();
     scene.add.existing(this);
 
@@ -412,6 +437,10 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
   updateTower() {
     this.towerDesc.setText(this.arrTowerConfig[0].description);
+    this.towerPrice.setText(`Price: ${this.arrTowerConfig[0].price}`);
+    this.towerRange.setText(`Range: ${this.arrTowerConfig[0].rangeUnit}`);
+    this.towerVelocity.setText(`Velocity: ${this.arrTowerConfig[0].attackVelocity}`);
+
     this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
     if (this.enemy!=null)this.enemy.destroy();
@@ -428,8 +457,6 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       bullet.update();
     });
   }
-
-
 
 }
 
@@ -669,6 +696,8 @@ class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('up', 'assets/up.png');
+    this.load.image('left', 'assets/left.png');
+    this.load.image('right', 'assets/right.png');
     this.load.image('down', 'assets/down.png');
     this.load.image('buy', 'assets/buy.png');
     this.load.image('sell', 'assets/sell.png');
@@ -692,14 +721,15 @@ class Game extends Phaser.Scene {
     this.towers = this.add.group();
     this.buttonTowers = this.add.group();
 
-    this.goldLabel = this.add.text(0, 290, `Gold: ${this.gold}`, {
+    
+    this.goldLabel = this.add.text(500, 290, `Gold: ${this.gold}`, {
       font: '24px CustomFont',
       fill: '#777777',
     });
-    this.lifeLabel = this.add.text(0, 250, 'Life:', {
+    this.lifeLabel = this.add.text(500, 250, 'Life:', {
       font: '24px CustomFont',
       fill: '#777777',
-    });
+    }); 
 
 
     let path = MapGenerator.generateMap(
