@@ -1,8 +1,5 @@
-// you can buy ilimted towers
 // acomodar todo el menu
-// hacer que la main tower tenga un pasillo mas largo 
-// centrar el texto
-// pasa el rango y la velocidad a los bullets
+// bien, hacer varias torres mas
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -259,16 +256,16 @@ class Tower extends GameObject {
   }
 }
 
-class CommonBullet extends GameObject {
-  constructor(scene, group, x, y, angle, height, width, damage, range) {
-    super(scene, group, x, y, 'common-bullet', height, width);
+class Bullet extends GameObject {
+  constructor(scene, group, x, y, texture, angle, height, width, damage, range, velocity) {
+    super(scene, group, x, y, texture, height, width);
     this.startX = x;
     this.startY = y;
     this.damage = damage;
     this.range = range;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * 400);
-    this.setVelocityY(Math.sin(angle) * 400);
+    this.setVelocityX(Math.cos(angle) * velocity);
+    this.setVelocityY(Math.sin(angle) * velocity);
   }
 
   update() {
@@ -280,25 +277,15 @@ class CommonBullet extends GameObject {
   }
 }
 
-class LaserBullet extends GameObject {
-
+class CommonBullet extends Bullet {
   constructor(scene, group, x, y, angle, height, width, damage, range) {
-    super(scene, group, x, y, 'common-bullet', height, width);
-    this.startX = x;
-    this.startY = y;
-    this.damage = damage;
-    this.range = range;
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * 5000);
-    this.setVelocityY(Math.sin(angle) * 5000);
+    super(scene, group, x, y, 'common-bullet', angle, height, width, damage, range, 400);
   }
+}
 
-  update() {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-    if (distance > this.range) {
-      this.destroy();
-      this.group.remove(this);
-    }
+class LaserBullet extends Bullet {
+  constructor(scene, group, x, y, angle, height, width, damage, range) {
+    super(scene, group, x, y, 'laser', angle, height, width, damage, range, 5000);
   }
 }
 
@@ -367,10 +354,11 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower];
 
-    this.towerDesc = scene.add.text(scene.unitSize*2.5, scene.unitSize*3, '', {
+    this.towerDesc = scene.add.text(scene.unitSize*7, scene.unitSize*4, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
+    this.towerDesc.setOrigin(0.5);
     this.add(this.towerDesc);
 
     this.towerPrice = scene.add.text(scene.unitSize*16, scene.unitSize*3, '', {
@@ -458,45 +446,6 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 }
 
-
-/*
-class CardContainer extends Phaser.GameObjects.Container {
-  constructor(scene, x, y) {
-      super(scene, x, y);
-      this.scene = scene;
-      this.image = scene.add.image(0, 0, '');
-      this.add(this.image);
-
-      // Create a description text
-      this.description = scene.add.text(-100, -50, '', {
-          fontSize: '24px',
-          fill: '#ffffff'
-      });
-      this.add(this.description);
-
-      // Create a button
-      const button = scene.add.sprite(0, 50, 'button'); // Replace 'button' with your button texture key
-      this.add(button);
-
-      
-      button.setInteractive();
-      button.on('pointerdown', () => {
-        if(this.scene.getGold() - this.towerConfig.price >= 0) {
-          this.scene.changeGold(-this.towerConfig.price);
-          this.scene.setSelectedTowerConfig(this.towerConfig);
-        }
-      });
-
-      scene.add.existing(this);
-  }
-
-  setConfig(towerConfig) {
-    this.towerConfig = towerConfig;
-    this.description.setText(towerConfig.description);
-    this.image.setTexture(towerConfig.texture)
-  }
-}*/
-
 class SellPopUp extends Phaser.GameObjects.Container {
   constructor(scene) {
     super(scene, -100, -100);
@@ -564,7 +513,6 @@ class EnemyGenerator {
   }
 }
 
-
 class MapGenerator {
 
   static generateMap(scene, unitSize, rows, cols) {
@@ -590,8 +538,14 @@ class MapGenerator {
 
     let buttonTower0 = scene.buttonTowers.getChildren()[0];
 
+    
     path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
-    path.push({ x: path[0].x - unitSize, y: path[0].y });
+
+    // el pasillo antes de la torre
+    for (let i=0; i<=5; i++) {
+      path.push({ x: path[i].x - unitSize, y: path[i].y });
+    }
+
     scene.mainTowers.add(new MainTower(scene, scene.mainTowers, path[1].x, path[1].y, scene.unitSize, scene.unitSize));
 
     const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
@@ -812,7 +766,7 @@ class Game extends Phaser.Scene {
   }
 
   buy() {
-    if (this.selectedTowerConfig && this.gold > this.selectedTowerConfig.price) {
+    if (this.selectedTowerConfig && this.gold > this.selectedTowerConfig.price && !this.buying) {
       this.changeGold(-this.selectedTowerConfig.price);
       this.buying = true;
     }
