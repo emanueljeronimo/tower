@@ -1,5 +1,7 @@
 // acomodar todo el menu
 // bien, hacer varias torres mas
+// que los bullets sean como las torres con su "config"
+// terminar la torre de burbujas
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -255,7 +257,7 @@ class Tower extends GameObject {
     }
   }
 }
-
+/*
 class Bullet extends GameObject {
   constructor(scene, group, x, y, texture, angle, height, width, damage, range, velocity) {
     super(scene, group, x, y, texture, height, width);
@@ -274,6 +276,40 @@ class Bullet extends GameObject {
       this.destroy();
       this.group.remove(this);
     }
+  }
+}*/
+
+class Bullet extends GameObject {
+
+  constructor(scene, group, x, y, texture, angle, height, width, damage, range, velocity, frequency) {
+    super(scene, group, x, y, texture, height, width);
+    this.startX = x;
+    this.startY = y;
+    this.damage = damage;
+    this.range = range;
+    this.frequency = frequency; // Frecuencia de oscilación
+    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+    this.setVelocityX(Math.cos(angle) * velocity);
+    this.setVelocityY(Math.sin(angle) * velocity);
+    this.elapsedTime = 0; // Tiempo transcurrido desde el inicio
+  }
+
+  update(delta) {
+    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
+
+    if (distance > this.range) {
+      this.destroy();
+      this.group.remove(this);
+    }
+
+
+    /* esto será la logica de las burbujas o lo que sea
+    this.elapsedTime += delta;
+    const amplitude = 5; 
+    const offsetY = amplitude * Math.sin(this.x/2);
+    this.y += offsetY;
+    */
+
   }
 }
 
@@ -434,13 +470,13 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.buttonTower.createTower(false);
   }
 
-  update(time) {
+  update(time, delta) {
     this.towers.getChildren().forEach(function (tower) {
       tower.update(time);
     });
 
     this.bullets.getChildren().forEach(function (bullet) {
-      bullet.update();
+      bullet.update(delta);
     });
   }
 
@@ -732,11 +768,11 @@ class Game extends Phaser.Scene {
     });
 
     this.bullets.getChildren().forEach(function (bullet) {
-      bullet.update();
+      bullet.update(delta);
     });
 
     this.enemyGenerator.update(time);
-    this.towerMenuContainer.update(time);
+    this.towerMenuContainer.update(time, delta);
 
   }
 
@@ -801,12 +837,6 @@ class Game extends Phaser.Scene {
     this.isDragging = false;
   }
 
-  /*mouseWheel(event) {
-    const delta = Phaser.Math.Clamp(-event.deltaY, -1, 1);
-    const zoomAmount = 0.05;
-    this.cameras.main.zoom += delta * zoomAmount;
-  }*/
-  // End camera things
 }
 
 var config = {
