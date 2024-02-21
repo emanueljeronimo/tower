@@ -1,6 +1,5 @@
 // acomodar todo el menu
 // bien, hacer varias torres mas
-// que los bullets sean como las torres con su "config"
 // terminar la torre de burbujas
 
 class Utils {
@@ -168,12 +167,12 @@ class Tower extends GameObject {
     }
   }
 
-  shotWhenTargetIsClose(time, shot) {
+  shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastFired + this.attackVelocity) {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
         this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        shot(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
+        shotFn(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
       }
       this.lastFired = time;
     }
@@ -196,7 +195,7 @@ class Tower extends GameObject {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -214,9 +213,9 @@ class Tower extends GameObject {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range);
-        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range);
-        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -234,7 +233,7 @@ class Tower extends GameObject {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new CommonBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -252,46 +251,46 @@ class Tower extends GameObject {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, (scene.unitSize * 15)/2);
-        new LaserBullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range, Bullet.laser);
+      });
+    }
+  }
+
+  static lightBulbTower = {
+    heightRatio: 1,
+    widthRatio: 1.8,
+    price: 250,
+    damage: 100,
+    range: 1500,
+    attackVelocity: 500,
+    texture: 'light-bulb',
+    description: 'light',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
       });
     }
   }
 }
-/*
+
 class Bullet extends GameObject {
-  constructor(scene, group, x, y, texture, angle, height, width, damage, range, velocity) {
-    super(scene, group, x, y, texture, height, width);
+
+  constructor(scene, group, x, y, angle, height, width, damage, range, config) {
+    super(scene, group, x, y, config.texture, height, width);
+    Object.assign(this, config);
     this.startX = x;
     this.startY = y;
     this.damage = damage;
     this.range = range;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * velocity);
-    this.setVelocityY(Math.sin(angle) * velocity);
-  }
-
-  update() {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-    if (distance > this.range) {
-      this.destroy();
-      this.group.remove(this);
-    }
-  }
-}*/
-
-class Bullet extends GameObject {
-
-  constructor(scene, group, x, y, texture, angle, height, width, damage, range, velocity, frequency) {
-    super(scene, group, x, y, texture, height, width);
-    this.startX = x;
-    this.startY = y;
-    this.damage = damage;
-    this.range = range;
-    this.frequency = frequency; // Frecuencia de oscilación
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * velocity);
-    this.setVelocityY(Math.sin(angle) * velocity);
-    this.elapsedTime = 0; // Tiempo transcurrido desde el inicio
+    this.setVelocityX(Math.cos(angle) * this.velocity);
+    this.setVelocityY(Math.sin(angle) * this.velocity);
   }
 
   update(delta) {
@@ -302,28 +301,32 @@ class Bullet extends GameObject {
       this.group.remove(this);
     }
 
-
-    /* esto será la logica de las burbujas o lo que sea
-    this.elapsedTime += delta;
-    const amplitude = 5; 
-    const offsetY = amplitude * Math.sin(this.x/2);
-    this.y += offsetY;
-    */
-
+    this.afterUpdate && this.afterUpdate(this);
   }
+
+  static common = {
+    texture: 'common-bullet',
+    velocity: 400
+  }
+
+  static lightBulbShot = {
+    texture: 'light-bulb-shot',
+    velocity: 400,
+    afterUpdate: (that)=>{
+      const amplitude = 5.5; 
+      that.y += amplitude * Math.sin(that.x);
+      that.x += amplitude * Math.cos(that.y);
+      /*that.y += Math.sin(that.x)*Math.cos(that.x)*amplitude;
+      that.x += Math.sin(that.y)*Math.cos(that.y)*amplitude;   */
+    }
+  }
+
+  static laser = {
+    texture: 'laser',
+    velocity: 5000
+ }
 }
 
-class CommonBullet extends Bullet {
-  constructor(scene, group, x, y, angle, height, width, damage, range) {
-    super(scene, group, x, y, 'common-bullet', angle, height, width, damage, range, 400);
-  }
-}
-
-class LaserBullet extends Bullet {
-  constructor(scene, group, x, y, angle, height, width, damage, range) {
-    super(scene, group, x, y, 'laser', angle, height, width, damage, range, 5000);
-  }
-}
 
 class ButtonTower extends GameObject {
   target = null;
@@ -388,7 +391,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower];
 
     this.towerDesc = scene.add.text(scene.unitSize*7, scene.unitSize*4, '', {
       fontSize: '24px',
@@ -529,7 +532,7 @@ class EnemyGenerator {
   path = null;
   groupEnemies = null;
   counter = 0;
-  enemiesQuatity = 5;
+  enemiesQuatity = 25;
   scene = null;
   lastEnemyCreated = 0;
   constructor(scene, path, groupEnemies, groupParticles) {
@@ -691,12 +694,16 @@ class Game extends Phaser.Scene {
     this.load.image('sell', 'assets/sell.png');
 
     this.load.image('main-tower', 'assets/main-tower.png');
-    this.load.image('common-bullet', 'assets/common-bullet.png');
+    
     this.load.image('enemy', 'assets/enemy-6.png');
     this.load.image('tower', 'assets/tower-2.png');
     this.load.image('particle', 'assets/particle.png');
-    this.load.image('laser', 'assets/laser.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
+    this.load.image('light-bulb', 'assets/light-bulb.png');
+
+    this.load.image('laser', 'assets/laser.png');
+    this.load.image('common-bullet', 'assets/common-bullet.png');
+    this.load.image('light-bulb-shot', 'assets/light-bulb-shot.png');
     
   }
 
