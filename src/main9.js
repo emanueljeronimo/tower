@@ -57,17 +57,20 @@ class Particle extends GameObject {
 class Enemy extends GameObject {
   constructor(scene, group, particleGroup, x = -10, y = 100, height, width, enemyConfig) {
     super(scene, group, x, y, enemyConfig.texture, height, width);
+    Object.assign(this, enemyConfig);
     this.particleGroup = particleGroup;
     this.scene = scene;
     this.currentPointIndex = 0;
-    this.health = enemyConfig.health;
-    this.speed = enemyConfig.speed;
-    this.gold = enemyConfig.gold;
+    this.slowFactor = 1;
   }
 
   setPath(path) {
     this.path = path;
     this.startMoving();
+  }
+
+  setSlowFactor(sf){
+    this.slowFactor = sf;
   }
 
   takeDamage(damage) {
@@ -90,7 +93,7 @@ class Enemy extends GameObject {
       targets: this,
       x: targetPoint.x,
       y: targetPoint.y,
-      duration: Phaser.Math.Distance.Between(this.x, this.y, targetPoint.x, targetPoint.y) / this.speed * 1000,
+      duration: Phaser.Math.Distance.Between(this.x, this.y, targetPoint.x, targetPoint.y) / (this.speed * this.slowFactor) * 1000,
       onComplete: () => {
         this.currentPointIndex++;
         if (this.currentPointIndex < this.path.length) {
@@ -103,7 +106,6 @@ class Enemy extends GameObject {
           const nextTargetPoint = this.path[this.currentPointIndex + 1]
           let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
           target.rotation = nextAngleToTarget * tween.progress
-          //target.rotation = nextAngleToTarget * (absDistance*100/(this.scene?.unitSize/2));
         }
       }
     });
@@ -280,9 +282,9 @@ class Tower extends GameObject {
 
   static icePlasma = {
     heightRatio: 1,
-    widthRatio: 1,
+    widthRatio: 1.5,
     price: 250,
-    damage: 50,
+    damage: 0,
     range: 300,
     attackVelocity: 300,
     texture: 'ice-plasma',
@@ -312,6 +314,11 @@ class Bullet extends GameObject {
     this.setVelocityY(Math.sin(angle) * this.velocity);
   }
 
+  hit(enemy) {
+    enemy.takeDamage(this.damage);
+    this.afterHit && this.afterHit(this, enemy);
+  }
+
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
     if (distance > this.range) {
@@ -325,7 +332,11 @@ class Bullet extends GameObject {
 
   static common = {
     texture: 'common-bullet',
-    velocity: 400
+    velocity: 400,
+    afterHit: (that, enemy)=>{
+      that.destroy();
+      that.group.remove(that);
+    }
   }
 
   static lightBulbShot = {
@@ -335,6 +346,10 @@ class Bullet extends GameObject {
       const amplitude = 5.5;
       that.y += amplitude * Math.sin(that.x);
       that.x += amplitude * Math.cos(that.y);
+    },
+    afterHit: (that, enemy)=>{
+      that.destroy();
+      that.group.remove(that);
     }
   }
 
@@ -344,25 +359,40 @@ class Bullet extends GameObject {
     afterUpdate: (that, delta) => {
       if (!that.lastTime) {
         that.lastTime = 1;
-        that.rotation = 20;
+        that.rotation = 1;
         that.xscale = 1.1;
+        that.setAlpha(0.2); 
+        setTimeout(()=>{
+          that.destroy();
+          that.group.remove(that);
+        },500);
       }
       that.lastTime += delta;
       if (that.lastTime > 10) {
         that.rotation += 1;
         that.xscale += 0.1;
-        console.log(that.xscale);
         that.body.velocity.x *= 0.976
         that.body.velocity.y *= 0.976
         that.setScale(that.xscale);
         that.lastTime = 1;
       }
+    },
+    afterHit: (that, enemy)=>{
+      if(!enemy.active) return;
+      enemy.setSlowFactor(0.7);
+      setTimeout(()=>{
+        enemy.setSlowFactor(1);
+      },1000);
     }
   }
 
   static laser = {
     texture: 'laser',
-    velocity: 5000
+    velocity: 5000,
+    afterHit: (that, enemy)=>{
+      that.destroy();
+      that.group.remove(that);
+    }
   }
 }
 
@@ -419,8 +449,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.buttonTowers = scene.add.group();
 
     scene.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
-      enemy.takeDamage(bullet.damage);
-      bullet.destroy();
+      bullet.hit(enemy);
     });
 
 
@@ -780,8 +809,7 @@ class Game extends Phaser.Scene {
     this.enemyGenerator = new EnemyGenerator(this, path, this.enemies, this.particles);
 
     this.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
-      enemy.takeDamage(bullet.damage);
-      bullet.destroy();
+      bullet.hit(enemy);
     });
 
     this.physics.add.overlap(this.mainTowers, this.enemies, function (
