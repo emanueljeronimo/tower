@@ -132,7 +132,7 @@ class Tower extends GameObject {
   lastFired = 0;
 
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, canSellIt) {
-    super(scene, group, x, y, towerConfig.texture, height*towerConfig.heightRatio, width*towerConfig.widthRatio);
+    super(scene, group, x, y, towerConfig.texture, height * towerConfig.heightRatio, width * towerConfig.widthRatio);
     Object.assign(this, towerConfig);
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
@@ -250,7 +250,7 @@ class Tower extends GameObject {
     executeOnUpdate: (that, time) => {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, (scene.unitSize * 15)/2);
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, (scene.unitSize * 15) / 2);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range, Bullet.laser);
       });
     }
@@ -258,7 +258,7 @@ class Tower extends GameObject {
 
   static lightBulbTower = {
     heightRatio: 1,
-    widthRatio: 1.8,
+    widthRatio: 1.2,
     price: 250,
     damage: 100,
     range: 1500,
@@ -268,12 +268,30 @@ class Tower extends GameObject {
     executeOnUpdate: (that, time) => {
       that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
         new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+      });
+    }
+  }
+
+  static icePlasma = {
+    heightRatio: 1,
+    widthRatio: 1,
+    price: 250,
+    damage: 50,
+    range: 300,
+    attackVelocity: 300,
+    texture: 'ice-plasma',
+    description: 'Ice Plasma',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.icePlasmaShot);
       });
     }
   }
@@ -288,6 +306,7 @@ class Bullet extends GameObject {
     this.startY = y;
     this.damage = damage;
     this.range = range;
+    this.angle = angle;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
@@ -295,13 +314,13 @@ class Bullet extends GameObject {
 
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-
     if (distance > this.range) {
       this.destroy();
       this.group.remove(this);
+      return;
     }
 
-    this.afterUpdate && this.afterUpdate(this);
+    this.afterUpdate && this.afterUpdate(this, delta);
   }
 
   static common = {
@@ -312,19 +331,39 @@ class Bullet extends GameObject {
   static lightBulbShot = {
     texture: 'light-bulb-shot',
     velocity: 400,
-    afterUpdate: (that)=>{
-      const amplitude = 5.5; 
+    afterUpdate: (that, _delta) => {
+      const amplitude = 5.5;
       that.y += amplitude * Math.sin(that.x);
       that.x += amplitude * Math.cos(that.y);
-      /*that.y += Math.sin(that.x)*Math.cos(that.x)*amplitude;
-      that.x += Math.sin(that.y)*Math.cos(that.y)*amplitude;   */
+    }
+  }
+
+  static icePlasmaShot = {
+    texture: 'ice-plasma-shot',
+    velocity: 400,
+    afterUpdate: (that, delta) => {
+      if (!that.lastTime) {
+        that.lastTime = 1;
+        that.rotation = 20;
+        that.xscale = 1.1;
+      }
+      that.lastTime += delta;
+      if (that.lastTime > 10) {
+        that.rotation += 1;
+        that.xscale += 0.1;
+        console.log(that.xscale);
+        that.body.velocity.x *= 0.976
+        that.body.velocity.y *= 0.976
+        that.setScale(that.xscale);
+        that.lastTime = 1;
+      }
     }
   }
 
   static laser = {
     texture: 'laser',
     velocity: 5000
- }
+  }
 }
 
 
@@ -385,42 +424,42 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
 
 
-    this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x + scene.unitSize*3, this.y + scene.unitSize*2, scene.unitSize);
+    this.buttonTower = new ButtonTower(scene, scene.buttonTowers, this.towers, this.enemies, this.bullets, this.x + scene.unitSize * 3, this.y + scene.unitSize * 2, scene.unitSize);
     this.buttonTowers.add(this.buttonTower);
     this.add(this.buttonTower);
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma];
 
-    this.towerDesc = scene.add.text(scene.unitSize*7, scene.unitSize*4, '', {
+    this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
     this.towerDesc.setOrigin(0.5);
     this.add(this.towerDesc);
 
-    this.towerPrice = scene.add.text(scene.unitSize*16, scene.unitSize*3, '', {
+    this.towerPrice = scene.add.text(scene.unitSize * 16, scene.unitSize * 3, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
     this.add(this.towerPrice);
 
-    this.towerRange = scene.add.text(scene.unitSize*16, scene.unitSize*1, '', {
+    this.towerRange = scene.add.text(scene.unitSize * 16, scene.unitSize * 1, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
     this.add(this.towerRange);
 
-    this.towerVelocity = scene.add.text(scene.unitSize*16, 0, '', {
+    this.towerVelocity = scene.add.text(scene.unitSize * 16, 0, '', {
       fontSize: '24px',
       fill: '#ffffff'
     });
     this.add(this.towerVelocity);
 
 
-    const buttonLeft = scene.add.sprite(scene.unitSize, scene.unitSize*7, 'left');
-    buttonLeft.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
+    const buttonLeft = scene.add.sprite(scene.unitSize, scene.unitSize * 7, 'left');
+    buttonLeft.setDisplaySize(scene.unitSize * 1.5, scene.unitSize * 1.5);
     this.add(buttonLeft);
 
     buttonLeft.setInteractive();
@@ -430,8 +469,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.updateTower();
     });
 
-    const buttonRight = scene.add.sprite(scene.unitSize*15, scene.unitSize*7, 'right');
-    buttonRight.setDisplaySize(scene.unitSize*1.5, scene.unitSize*1.5);
+    const buttonRight = scene.add.sprite(scene.unitSize * 15, scene.unitSize * 7, 'right');
+    buttonRight.setDisplaySize(scene.unitSize * 1.5, scene.unitSize * 1.5);
     this.add(buttonRight);
 
     buttonRight.setInteractive();
@@ -441,8 +480,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.updateTower();
     });
 
-    const buyButton = scene.add.sprite(scene.unitSize*8,scene.unitSize*7, 'buy');
-    buyButton.setDisplaySize(scene.unitSize*5, scene.unitSize*2);
+    const buyButton = scene.add.sprite(scene.unitSize * 8, scene.unitSize * 7, 'buy');
+    buyButton.setDisplaySize(scene.unitSize * 5, scene.unitSize * 2);
     this.add(buyButton);
 
     buyButton.setInteractive();
@@ -451,9 +490,9 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
 
 
-    var rectangle = this.scene.add.rectangle(this.x + scene.unitSize*8, this.y + scene.unitSize, scene.unitSize*15, scene.unitSize*8, null); // x, y, width, height, color
+    var rectangle = this.scene.add.rectangle(this.x + scene.unitSize * 8, this.y + scene.unitSize, scene.unitSize * 15, scene.unitSize * 8, null); // x, y, width, height, color
     var thickness = 1;
-    rectangle.setStrokeStyle(thickness, 0xffffff); 
+    rectangle.setStrokeStyle(thickness, 0xffffff);
 
     this.updateTower();
     scene.add.existing(this);
@@ -468,8 +507,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
-    if (this.enemy!=null)this.enemy.destroy();
-    this.enemy = new Enemy(this.scene, this.enemies, this.particles, this.x + this.scene.unitSize * 9, this.y + this.scene.unitSize*2, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+    if (this.enemy != null) this.enemy.destroy();
+    this.enemy = new Enemy(this.scene, this.enemies, this.particles, this.x + this.scene.unitSize * 9, this.y + this.scene.unitSize * 2, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
     this.buttonTower.createTower(false);
   }
 
@@ -577,11 +616,11 @@ class MapGenerator {
 
     let buttonTower0 = scene.buttonTowers.getChildren()[0];
 
-    
+
     path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
 
     // el pasillo antes de la torre
-    for (let i=0; i<=5; i++) {
+    for (let i = 0; i <= 5; i++) {
       path.push({ x: path[i].x - unitSize, y: path[i].y });
     }
 
@@ -694,17 +733,19 @@ class Game extends Phaser.Scene {
     this.load.image('sell', 'assets/sell.png');
 
     this.load.image('main-tower', 'assets/main-tower.png');
-    
+
     this.load.image('enemy', 'assets/enemy-6.png');
     this.load.image('tower', 'assets/tower-2.png');
     this.load.image('particle', 'assets/particle.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
     this.load.image('light-bulb', 'assets/light-bulb.png');
+    this.load.image('ice-plasma-shot', 'assets/ice-plasma-shot.png');
 
     this.load.image('laser', 'assets/laser.png');
     this.load.image('common-bullet', 'assets/common-bullet.png');
     this.load.image('light-bulb-shot', 'assets/light-bulb-shot.png');
-    
+    this.load.image('ice-plasma', 'assets/ice-plasma.png');
+
   }
 
   create() {
@@ -716,7 +757,7 @@ class Game extends Phaser.Scene {
     this.towers = this.add.group();
     this.buttonTowers = this.add.group();
 
-    
+
     this.goldLabel = this.add.text(500, 290, `Gold: ${this.gold}`, {
       font: '24px CustomFont',
       fill: '#777777',
@@ -724,7 +765,7 @@ class Game extends Phaser.Scene {
     this.lifeLabel = this.add.text(500, 250, 'Life:', {
       font: '24px CustomFont',
       fill: '#777777',
-    }); 
+    });
 
 
     let path = MapGenerator.generateMap(
