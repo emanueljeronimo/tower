@@ -61,16 +61,11 @@ class Enemy extends GameObject {
     this.particleGroup = particleGroup;
     this.scene = scene;
     this.currentPointIndex = 0;
-    this.slowFactor = 1;
   }
 
   setPath(path) {
     this.path = path;
     this.startMoving();
-  }
-
-  setSlowFactor(sf){
-    this.slowFactor = sf;
   }
 
   takeDamage(damage) {
@@ -85,30 +80,24 @@ class Enemy extends GameObject {
     }
   }
 
+  update() {
+    const targetPoint = this.path[this.currentPointIndex];
+    if(this.x - this.scene.unitSize < targetPoint.x && this.x + this.scene.unitSize > targetPoint.x &&
+      this.y - this.scene.unitSize < targetPoint.y && this.y + this.scene.unitSize > targetPoint.y  ) {
+      this.currentPointIndex++;
+      if (this.currentPointIndex < this.path.length) {
+        this.startMoving();
+      }
+    }
+  }
+
   startMoving() {
     const targetPoint = this.path[this.currentPointIndex];
     const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, targetPoint.x, targetPoint.y);
     this.rotation = angleToTarget;
-    this.scene?.tweens.add({
-      targets: this,
-      x: targetPoint.x,
-      y: targetPoint.y,
-      duration: Phaser.Math.Distance.Between(this.x, this.y, targetPoint.x, targetPoint.y) / (this.speed * this.slowFactor) * 1000,
-      onComplete: () => {
-        this.currentPointIndex++;
-        if (this.currentPointIndex < this.path.length) {
-          this.startMoving();
-        }
-      },
-      onUpdate: (tween, target) => {
-        let absDistance = Math.abs(this.x - targetPoint.x) + Math.abs(this.y - targetPoint.y);
-        if (absDistance < this.scene?.unitSize / 2 && this.path[this.currentPointIndex + 1]) {
-          const nextTargetPoint = this.path[this.currentPointIndex + 1]
-          let nextAngleToTarget = Phaser.Math.Angle.Between(this.x, this.y, nextTargetPoint.x, nextTargetPoint.y);
-          target.rotation = nextAngleToTarget * tween.progress
-        }
-      }
-    });
+    this.setAngle(Phaser.Math.RAD_TO_DEG * angleToTarget);
+    this.setVelocityX(Math.cos(angleToTarget) * this.speed);
+    this.setVelocityY(Math.sin(angleToTarget) * this.speed);
   }
 
   static commonEnemy = {
@@ -281,8 +270,8 @@ class Tower extends GameObject {
   }
 
   static icePlasma = {
-    heightRatio: 1,
-    widthRatio: 1.5,
+    heightRatio: 0.8,
+    widthRatio: 1.3,
     price: 250,
     damage: 0,
     range: 300,
@@ -379,9 +368,11 @@ class Bullet extends GameObject {
     },
     afterHit: (that, enemy)=>{
       if(!enemy.active) return;
-      enemy.setSlowFactor(0.7);
+      enemy.body.velocity.x *= 0.90
+      enemy.body.velocity.y *= 0.90
       setTimeout(()=>{
-        enemy.setSlowFactor(1);
+        enemy.body.velocity.x *= 1.10
+        enemy.body.velocity.y *= 1.10
       },1000);
     }
   }
@@ -845,6 +836,10 @@ class Game extends Phaser.Scene {
 
     this.bullets.getChildren().forEach(function (bullet) {
       bullet.update(delta);
+    });
+
+    this.enemies.getChildren().forEach(function (enemy) {
+      enemy.update();
     });
 
     this.enemyGenerator.update(time);
