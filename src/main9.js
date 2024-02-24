@@ -286,6 +286,24 @@ class Tower extends GameObject {
       });
     }
   }
+
+  static bombTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 50,
+    range: 300,
+    attackVelocity: 300,
+    texture: 'tower',
+    description: 'Bomb Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bomb);
+      });
+    }
+  }
 }
 
 class Bullet extends GameObject {
@@ -298,6 +316,7 @@ class Bullet extends GameObject {
     this.damage = damage;
     this.range = range;
     this.angle = angle;
+    this.scene = scene;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
@@ -385,6 +404,19 @@ class Bullet extends GameObject {
       that.group.remove(that);
     }
   }
+
+  static bomb = {
+    texture: 'common-bullet',
+    velocity: 400,
+    afterHit: (that, enemy)=>{
+        for (let i = 0; i < 360; i++) {
+            const angle = Phaser.Math.DegToRad(i);        
+            new Bullet(that.scene, that.group, that.x, that.y, angle, that.scene.unitSize / 3, that.scene.unitSize / 3, that.damage, that.range, Bullet.common);
+        }    
+        that.destroy();
+        that.group.remove(that);
+    }
+  }
 }
 
 
@@ -450,7 +482,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower];
 
     this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
