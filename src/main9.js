@@ -1,6 +1,9 @@
 // acomodar todo el menu
 // bien, hacer varias torres mas
-// terminar la torre de burbujas
+// hacer 2 paths
+// que las naves se teletransporten
+// Torre de espinas: Cubre el camino con espinas afiladas que causan daño a los enemigos que las atraviesan.
+
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -304,6 +307,24 @@ class Tower extends GameObject {
       });
     }
   }
+
+  static circleTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 1,
+    range: 300,
+    attackVelocity: 300,
+    texture: 'tower',
+    description: 'Circle Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize * 3, scene.unitSize * 3, damage, range, Bullet.circleShot);
+      });
+    }
+  }
 }
 
 class Bullet extends GameObject {
@@ -320,6 +341,7 @@ class Bullet extends GameObject {
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
+    this.afterInit && this.afterInit(this);
   }
 
   hit(enemy) {
@@ -375,6 +397,7 @@ class Bullet extends GameObject {
           that.group.remove(that);
         },500);
       }
+
       that.lastTime += delta;
       if (that.lastTime > 10) {
         that.rotation += 1;
@@ -417,6 +440,25 @@ class Bullet extends GameObject {
         that.group.remove(that);
     }
   }
+
+  static circleShot = {
+    texture: 'circle-shot',
+    velocity: 200,
+    afterInit:(that) =>{
+      that.setTint(0xff0000);
+    },
+    afterUpdate: (that, delta) => {
+      if (!that.lastTime) {
+        that.lastTime = 1;
+      }
+      that.lastTime += delta;
+      if (that.lastTime > 10) {
+        that.rotation += 1;
+        that.lastTime = 1;
+      }
+    },
+  }
+
 }
 
 
@@ -482,7 +524,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower, Tower.circleTower];
 
     this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
@@ -792,6 +834,7 @@ class Game extends Phaser.Scene {
     this.load.image('laser-tower', 'assets/laser-tower.png');
     this.load.image('light-bulb', 'assets/light-bulb.png');
     this.load.image('ice-plasma-shot', 'assets/ice-plasma-shot.png');
+    this.load.image('circle-shot', 'assets/circle-shot.png');
 
     this.load.image('laser', 'assets/laser.png');
     this.load.image('common-bullet', 'assets/common-bullet.png');
