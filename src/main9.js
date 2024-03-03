@@ -12,6 +12,11 @@ class Utils {
     const newY = currentY + distance * Math.sin(angle);
     return { x: newX, y: newY };
   }
+
+  static getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
 }
 
 class GameObject extends Phaser.Physics.Arcade.Sprite {
@@ -113,7 +118,7 @@ class Enemy extends GameObject {
   static dummyEnemy = {
     texture: 'enemy',
     health: 100,
-    speed: 0,
+    speed: 10,
     gold: 0
   }
 }
@@ -325,6 +330,26 @@ class Tower extends GameObject {
       });
     }
   }
+
+  static teleportTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 0,
+    range: 300,
+    attackVelocity: 1000,
+    texture: 'tower',
+    description: 'Teleport Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize, scene.unitSize, damage, range, Bullet.teleport);
+      });
+    }
+  }
+
+
 }
 
 class Bullet extends GameObject {
@@ -459,6 +484,31 @@ class Bullet extends GameObject {
     },
   }
 
+  static teleport = {
+    texture: 'common-bullet',
+    velocity: 1000,
+    afterHit: (that, enemy)=> {
+      enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
+      enemy.body.x = enemy.path[enemy.currentPointIndex].x;
+      enemy.body.y = enemy.path[enemy.currentPointIndex].y;
+
+      enemy.startMoving();
+      that.destroy();
+      that.group.remove(that);
+
+      /*let x1 = enemy.path[enemy.currentPointIndex].x;
+      let x2 = enemy.path[enemy.currentPointIndex + 1].x;
+      let y1 = enemy.path[enemy.currentPointIndex].y;
+      let y2 = enemy.path[enemy.currentPointIndex + 1].y;
+      enemy.body.x = x1 == x2 ? x1 : Utils.getRandomNumber(x1,x2);
+      enemy.body.y = y1 == y2 ? y1 : Utils.getRandomNumber(y1,y2);
+
+      enemy.startMoving();
+      that.destroy();
+      that.group.remove(that);*/
+    }
+  }
+
 }
 
 
@@ -522,9 +572,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.buttonTowers.add(this.buttonTower);
     this.add(this.buttonTower);
 
-
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower, Tower.circleTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower];
 
     this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
@@ -602,7 +651,11 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
     if (this.enemy != null) this.enemy.destroy();
-    this.enemy = new Enemy(this.scene, this.enemies, this.particles, this.x + this.scene.unitSize * 9, this.y + this.scene.unitSize * 2, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+    let x = this.x + this.scene.unitSize * 9;
+    let y = this.y + this.scene.unitSize * 2;
+    this.enemy = new Enemy(this.scene, this.enemies, this.particles, x, y, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+
+    this.enemy.setPath([{x:x,y:y},{x:x+this.scene.unitSize*10,y:y}]);
     this.buttonTower.createTower(false);
   }
 
