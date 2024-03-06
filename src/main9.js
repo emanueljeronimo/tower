@@ -69,6 +69,7 @@ class Enemy extends GameObject {
     this.particleGroup = particleGroup;
     this.scene = scene;
     this.currentPointIndex = 0;
+    this.increasedDamagePercent = 0;
   }
 
   setPath(path) {
@@ -77,7 +78,8 @@ class Enemy extends GameObject {
   }
 
   takeDamage(damage) {
-    this.health -= damage;
+    this.health -= damage + (damage * this.increasedDamagePercent / 100);
+    console.log(this.health);
     if (this.health <= 0) {
       this.scene.changeGold(this.gold);
       for (var i = 1; i <= 5; i++) {
@@ -349,6 +351,44 @@ class Tower extends GameObject {
     }
   }
 
+  static mineTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 5000,
+    range: 3000,
+    attackVelocity: 500,
+    texture: 'tower',
+    description: 'Mine Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let randomPoint = Utils.getRandomNumber(0,target.path.length-1);
+        let point1 = target.path[randomPoint];
+        let point2 = target.path[randomPoint-1] ? target.path[randomPoint-1] : target.path[randomPoint+1];
+        new Bullet(scene, groupBullets, Utils.getRandomNumber(point1.x, point2.x), Utils.getRandomNumber(point1.y, point2.y), angle, scene.unitSize, scene.unitSize, damage, range, Bullet.mine);
+      });
+    }
+  }
+
+  static damageTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 0,
+    range: 300,
+    attackVelocity: 200,
+    texture: 'tower',
+    description: 'Damage Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.damage);
+      });
+    }
+  }
+
 
 }
 
@@ -494,19 +534,50 @@ class Bullet extends GameObject {
 
       enemy.startMoving();
       that.destroy();
-      that.group.remove(that);
-
-      /*let x1 = enemy.path[enemy.currentPointIndex].x;
-      let x2 = enemy.path[enemy.currentPointIndex + 1].x;
-      let y1 = enemy.path[enemy.currentPointIndex].y;
-      let y2 = enemy.path[enemy.currentPointIndex + 1].y;
-      enemy.body.x = x1 == x2 ? x1 : Utils.getRandomNumber(x1,x2);
-      enemy.body.y = y1 == y2 ? y1 : Utils.getRandomNumber(y1,y2);
-
-      enemy.startMoving();
-      that.destroy();
-      that.group.remove(that);*/
+      that.group.remove(that);    
     }
+  }
+
+  static mine = {
+    texture: 'common-bullet',
+    velocity: 200,
+    afterInit:(that) =>{
+      that.setVelocityX(0);
+      that.setVelocityY(0);
+      setTimeout(()=>{
+        that.destroy();
+        that.group.remove(that);
+      },500);
+    },
+    afterHit: (that, enemy)=>{
+      that.destroy();
+      that.group.remove(that);
+    }
+  }
+
+  static damage = {
+    texture: 'common-bullet',
+    velocity: 200,
+    afterHit: (that, enemy)=>{
+     that.glued = true;
+     that.enemy = enemy;
+    },
+    afterUpdate:(that, delta) =>{
+      if(!that.increasedDamage && that.enemy) {
+        that.enemy.increasedDamagePercent += 10;
+        setTimeout(()=>{
+          that.enemy.increasedDamagePercent -= 10;
+          that.destroy();
+          that.group.remove(that);
+        },2000)
+        that.increasedDamage = true;
+      }
+
+      if(that.glued && that.enemy.body) {
+        that.body.x = that.enemy.body.x;
+        that.body.y = that.enemy.body.y;
+      }
+    },
   }
 
 }
@@ -573,7 +644,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.add(this.buttonTower);
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower, Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower];
+    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
+                           Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower];
 
     this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
