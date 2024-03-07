@@ -2,8 +2,6 @@
 // bien, hacer varias torres mas
 // hacer 2 paths
 // que las naves se teletransporten
-// Torre de espinas: Cubre el camino con espinas afiladas que causan daño a los enemigos que las atraviesan.
-
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -15,6 +13,24 @@ class Utils {
 
   static getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  static getClosestEnemy(enemyToAvoid, enemiesFromScene, x, y){
+  
+      let enemies = enemiesFromScene.getChildren();
+      let closestEnemy = null;
+      let distanciaMinima = 99999999;
+ 
+      enemies.forEach(enemy => {
+          let distancia = Phaser.Math.Distance.Between(enemy.x, enemy.y, x, y);
+          if (distancia < distanciaMinima && enemyToAvoid !== enemy) {
+              distanciaMinima = distancia; 
+              closestEnemy = enemy; 
+          }
+      });
+  
+      return closestEnemy;
+
   }
 
 }
@@ -389,6 +405,24 @@ class Tower extends GameObject {
     }
   }
 
+  static bouncerTower = {
+    heightRatio: 1,
+    widthRatio: 2,
+    price: 250,
+    damage: 50,
+    range: 300,
+    attackVelocity: 300,
+    texture: 'tower',
+    description: 'Bouncing Tower',
+    executeOnUpdate: (that, time) => {
+      that.updateTarget();
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
+        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bouncer);
+      });
+    }
+  }
+
 
 }
 
@@ -580,6 +614,34 @@ class Bullet extends GameObject {
     },
   }
 
+  static bouncer = {
+    texture: 'common-bullet',
+    velocity: 1000,
+    afterHit: (that, enemy) => {
+      if(!that.rebounds) that.rebounds = 1;
+      if(that.enemy !== enemy) {
+        that.enemy = enemy;
+        let nextEnemy =  Utils.getClosestEnemy(that.enemy, that.scene.enemies, that.body.x, that.body.y);
+        if(!nextEnemy) {
+          that.destroy();
+          that.group.remove(that);
+          return;
+        }
+        const angle = Phaser.Math.Angle.Between(that.body.x, that.body.y, nextEnemy.x, nextEnemy.y);
+        that.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+        that.setVelocityX(Math.cos(angle) * that.velocity);
+        that.setVelocityY(Math.sin(angle) * that.velocity); 
+        that.rebounds++;
+      } 
+
+      if(that.rebounds == 8) {
+        that.destroy();
+        that.group.remove(that);
+      }
+    }
+  }
+
+
 }
 
 
@@ -645,7 +707,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
-                           Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower];
+                           Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.bouncerTower];
 
     this.towerDesc = scene.add.text(scene.unitSize * 7, scene.unitSize * 4, '', {
       fontSize: '24px',
