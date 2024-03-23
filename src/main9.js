@@ -3,6 +3,7 @@
 // hacer 2 paths
 // que las naves se teletransporten
 
+
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
     const angle = Phaser.Math.Angle.Between(currentX, currentY, targetX, targetY);
@@ -151,6 +152,7 @@ class Tower extends GameObject {
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, canSellIt) {
     super(scene, group, x, y, towerConfig.texture, height * towerConfig.heightRatio, width * towerConfig.widthRatio);
     Object.assign(this, towerConfig);
+    this.range = towerConfig.rangeUnits * scene.unitSize;
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
     this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
@@ -204,7 +206,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 50,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Common Tower',
@@ -222,7 +224,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 350,
     damage: 50,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Triple Tower',
@@ -242,7 +244,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 50,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 100,
     texture: 'tower',
     description: 'Fast Tower',
@@ -260,7 +262,7 @@ class Tower extends GameObject {
     widthRatio: 1,
     price: 250,
     damage: 100,
-    range: 1500,
+    rangeUnits: 150,
     attackVelocity: 500,
     texture: 'laser-tower',
     description: 'Laser',
@@ -278,7 +280,7 @@ class Tower extends GameObject {
     widthRatio: 1.2,
     price: 250,
     damage: 100,
-    range: 1500,
+    rangeUnits: 150,
     attackVelocity: 500,
     texture: 'light-bulb',
     description: 'light',
@@ -300,7 +302,7 @@ class Tower extends GameObject {
     widthRatio: 1.3,
     price: 250,
     damage: 0,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'ice-plasma',
     description: 'Ice Plasma',
@@ -318,7 +320,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 50,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Bomb Tower',
@@ -336,7 +338,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 1,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Circle Tower',
@@ -354,7 +356,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 0,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 1000,
     texture: 'tower',
     description: 'Teleport Tower',
@@ -372,7 +374,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 5000,
-    range: 3000,
+    rangeUnits: 800,
     attackVelocity: 500,
     texture: 'tower',
     description: 'Mine Tower',
@@ -392,7 +394,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 0,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 200,
     texture: 'tower',
     description: 'Damage Tower',
@@ -410,7 +412,7 @@ class Tower extends GameObject {
     widthRatio: 2,
     price: 250,
     damage: 50,
-    range: 300,
+    rangeUnits: 8,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Bouncing Tower',
@@ -855,9 +857,9 @@ class EnemyGenerator {
   enemiesQuatity = 25;
   scene = null;
   lastEnemyCreated = 0;
-  constructor(scene, path, groupEnemies, groupParticles) {
+  constructor(scene, paths, groupEnemies, groupParticles) {
     this.scene = scene;
-    this.path = path;
+    this.paths = paths;
     this.groupEnemies = groupEnemies;
     this.groupParticles = groupParticles;
   }
@@ -865,7 +867,7 @@ class EnemyGenerator {
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
       let enemy = new Enemy(this.scene, this.groupEnemies, this.groupParticles, 0, 0, this.scene.unitSize, this.scene.unitSize, Enemy.commonEnemy);
-      enemy.setPath(this.path);
+      enemy.setPath(this.paths[Utils.getRandomNumber(0,1)]);
       this.lastEnemyCreated = time;
       this.counter++;
     }
@@ -880,7 +882,7 @@ class MapGenerator {
       throw "rows should be odd";
     }
 
-    var path = []
+    var paths = [[], []];
 
     const gridSize = { cols: cols, rows: rows };
 
@@ -898,86 +900,92 @@ class MapGenerator {
     let buttonTower0 = scene.buttonTowers.getChildren()[0];
 
 
-    path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
+    paths.forEach((path, index) => {
 
-    // el pasillo antes de la torre
-    for (let i = 0; i <= 5; i++) {
-      path.push({ x: path[i].x - unitSize, y: path[i].y });
-    }
+      path.push({ x: (unitSize * (cols - 1)) + buttonTower0.x + 1, y: (unitSize / 2 * (rows)) + buttonTower0.y - (unitSize / 2) + 1 });
 
-    scene.mainTowers.add(new MainTower(scene, scene.mainTowers, path[1].x, path[1].y, scene.unitSize, scene.unitSize));
+      // el pasillo antes de la torre
+      for (let i = 0; i <= 5; i++) {
+        path.push({ x: path[i].x - unitSize, y: path[i].y });
+      }
 
-    const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
-    const directions = [LEFT, UP, DOWN];
-    const notAllowedPaths = [`${DOWN}-${LEFT}-${UP}`, `${UP}-${LEFT}-${DOWN}`,
-    `${LEFT}-${DOWN}-${UP}`, `${LEFT}-${UP}-${DOWN}`,
-    `${UP}-${DOWN}-${LEFT}`, `${DOWN}-${UP}-${LEFT}`,
-    `${UP}-${DOWN}-${DOWN}`, `${UP}-${DOWN}-${UP}`,
-    `${DOWN}-${UP}-${DOWN}`, `${DOWN}-${UP}-${UP}`,
-    `${DOWN}-${DOWN}-${UP}`, `${DOWN}-${UP}-${UP}`,
-    `${UP}-${UP}-${DOWN}`, `${UP}-${DOWN}-${DOWN}`];
+      index == 0 && scene.mainTowers.add(new MainTower(scene, scene.mainTowers, path[1].x, path[1].y, scene.unitSize, scene.unitSize));
 
-
-    let steps = `${LEFT}-${LEFT}`;
-    let stepsAux = steps;
-
-    let leftF = ({ x, y }) => ({ x: x - unitSize, y });
-    let upF = ({ x, y }) => ({ x, y: y - unitSize });
-    let downF = ({ x, y }) => ({ x, y: y + unitSize });
+      const LEFT = "LEFT", UP = "UP", DOWN = "DOWN";
+      const directions = [LEFT, UP, DOWN];
+      const notAllowedPaths = [`${DOWN}-${LEFT}-${UP}`, `${UP}-${LEFT}-${DOWN}`,
+      `${LEFT}-${DOWN}-${UP}`, `${LEFT}-${UP}-${DOWN}`,
+      `${UP}-${DOWN}-${LEFT}`, `${DOWN}-${UP}-${LEFT}`,
+      `${UP}-${DOWN}-${DOWN}`, `${UP}-${DOWN}-${UP}`,
+      `${DOWN}-${UP}-${DOWN}`, `${DOWN}-${UP}-${UP}`,
+      `${DOWN}-${DOWN}-${UP}`, `${DOWN}-${UP}-${UP}`,
+      `${UP}-${UP}-${DOWN}`, `${UP}-${DOWN}-${DOWN}`];
 
 
-    let pathConfigArr = [{ direction: LEFT, funct: leftF }, { direction: UP, funct: upF }, { direction: DOWN, funct: downF }];
-    while (path[path.length - 1].x > buttonTower0.x) {
-      let direction = directions[Math.floor(Math.random() * directions.length)]
-      let arrF = pathConfigArr.filter(path => path.direction == direction);
-      let nextDirectionConfig = arrF[Math.floor(Math.random() * arrF.length)];
+      let steps = `${LEFT}-${LEFT}`;
+      let stepsAux = steps;
 
-      stepsAux += `-${nextDirectionConfig.direction}`;
-      if (stepsAux.split('-').length > 2) {
-        let stepArr = stepsAux.split('-')
-        let last3Steps = stepArr.splice(-3).join('-');
+      let leftF = ({ x, y }) => ({ x: x - unitSize, y });
+      let upF = ({ x, y }) => ({ x, y: y - unitSize });
+      let downF = ({ x, y }) => ({ x, y: y + unitSize });
 
-        if (notAllowedPaths.some(notAllowedPath => notAllowedPath == last3Steps)) {
-          stepsAux = steps;
-          continue;
-        }
-        else {
-          let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
-          if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
-            path.push({ x, y });
-            direction = nextDirectionConfig.direction;
-            steps = stepsAux;
+
+      let pathConfigArr = [{ direction: LEFT, funct: leftF }, { direction: UP, funct: upF }, { direction: DOWN, funct: downF }];
+      while (path[path.length - 1].x > buttonTower0.x) {
+        let direction = directions[Math.floor(Math.random() * directions.length)]
+        let arrF = pathConfigArr.filter(path => path.direction == direction);
+        let nextDirectionConfig = arrF[Math.floor(Math.random() * arrF.length)];
+
+        stepsAux += `-${nextDirectionConfig.direction}`;
+        if (stepsAux.split('-').length > 2) {
+          let stepArr = stepsAux.split('-')
+          let last3Steps = stepArr.splice(-3).join('-');
+
+          if (notAllowedPaths.some(notAllowedPath => notAllowedPath == last3Steps)) {
+            stepsAux = steps;
+            continue;
           }
+          else {
+            let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
+            if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
+              path.push({ x, y });
+              direction = nextDirectionConfig.direction;
+              steps = stepsAux;
+            }
 
+          }
         }
       }
-    }
 
 
-    // Remove sprites that touch the specified points
-    path.forEach((point) => {
-      scene.buttonTowers.children.each((buttonTower) => {
-        if (point.x >= buttonTower.x && point.x <= buttonTower.x + unitSize && point.y >= buttonTower.y && point.y <= buttonTower.y + unitSize) {
-          scene.buttonTowers.remove(buttonTower);
-          buttonTower.destroy();
-        }
+      // Remove sprites that touch the specified points
+      path.forEach((point) => {
+        scene.buttonTowers.children.each((buttonTower) => {
+          if (point.x >= buttonTower.x && point.x <= buttonTower.x + unitSize && point.y >= buttonTower.y && point.y <= buttonTower.y + unitSize) {
+            scene.buttonTowers.remove(buttonTower);
+            buttonTower.destroy();
+          }
+        });
       });
+
+      // doing it "flat"
+      path = path.reverse();
+      let flatPath = [];
+      flatPath.push(path[0]);
+      for (var i = 1; i <= path.length - 1; i++) {
+        if (i == path.length - 1) {
+          flatPath.push(path[i]);
+          break;
+        }
+        if (path[i].x !== flatPath[flatPath.length - 1].x && path[i].y !== flatPath[flatPath.length - 1].y) {
+          flatPath.push(path[i - 1]);
+        }
+      }
+      path = flatPath;
+
     });
 
-    // doing it "flat"
-    path = path.reverse();
-    let flatPath = [];
-    flatPath.push(path[0]);
-    for (var i = 1; i <= path.length - 1; i++) {
-      if (i == path.length - 1) {
-        flatPath.push(path[i]);
-        break;
-      }
-      if (path[i].x !== flatPath[flatPath.length - 1].x && path[i].y !== flatPath[flatPath.length - 1].y) {
-        flatPath.push(path[i - 1]);
-      }
-    }
-    return flatPath;
+    return paths;
   }
 }
 
@@ -1050,7 +1058,7 @@ class Game extends Phaser.Scene {
     });
 
 
-    let path = MapGenerator.generateMap(
+    let paths = MapGenerator.generateMap(
       this,
       this.unitSize,
       this.grid.rows,
@@ -1059,7 +1067,7 @@ class Game extends Phaser.Scene {
 
     this.towerMenuContainer = new TowerMenuContainer(this, 0, 350);
     this.sellPopUp = new SellPopUp(this);
-    this.enemyGenerator = new EnemyGenerator(this, path, this.enemies, this.particles);
+    this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies, this.particles);
 
     this.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
       bullet.hit(enemy);
