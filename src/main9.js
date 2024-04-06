@@ -190,14 +190,19 @@ class Tower extends GameObject {
     if (this.target && time > this.lastFired + this.attackVelocity) {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
-        this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        shotFn(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
+        let newPosition = this.unitsCloserToTarget ? Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize * this. unitsCloserToTarget )  : { x: this.x, y: this.y};
+        shotFn(this.scene, this.groupBullets, newPosition.x, newPosition.y, this.target, angle, this.damage, this.range);
       }
       this.lastFired = time;
     }
   }
 
   update(time) {
+    this.updateTarget();
+    if(this.target) {
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
+      this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+    }
     this.executeOnUpdate(this, time);
   }
 
@@ -207,14 +212,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -225,16 +229,15 @@ class Tower extends GameObject {
     price: 350,
     damage: 50,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Triple Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -245,14 +248,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 100,
     texture: 'tower',
     description: 'Fast Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
       });
     }
   }
@@ -263,14 +265,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 100,
     rangeUnits: 150,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 500,
     texture: 'laser-tower',
     description: 'Laser',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, (scene.unitSize * 15) / 2);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range, Bullet.laser);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range, Bullet.laser);
       });
     }
   }
@@ -281,18 +282,17 @@ class Tower extends GameObject {
     price: 250,
     damage: 100,
     rangeUnits: 150,
+    unitsCloserToTarget: 1,
     attackVelocity: 500,
     texture: 'light-bulb',
     description: 'light',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, x, y, angle + 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, x, y, angle - 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
+        new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
       });
     }
   }
@@ -303,14 +303,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 0,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     texture: 'ice-plasma',
     description: 'Ice Plasma',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.icePlasmaShot);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.icePlasmaShot);
       });
     }
   }
@@ -321,14 +320,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Bomb Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bomb);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bomb);
       });
     }
   }
@@ -339,14 +337,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 1,
     rangeUnits: 8,
+    unitsCloserToTarget: 2.3,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Circle Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize * 3, scene.unitSize * 3, damage, range, Bullet.circleShot);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize * 3, scene.unitSize * 3, damage, range, Bullet.circleShot);
       });
     }
   }
@@ -357,14 +354,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 0,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 1000,
     texture: 'tower',
     description: 'Teleport Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize, scene.unitSize, damage, range, Bullet.teleport);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize, damage, range, Bullet.teleport);
       });
     }
   }
@@ -379,7 +375,6 @@ class Tower extends GameObject {
     texture: 'tower',
     description: 'Mine Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         let randomPoint = Utils.getRandomNumber(0,target.path.length-1);
         let point1 = target.path[randomPoint];
@@ -395,14 +390,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 0,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 200,
     texture: 'tower',
     description: 'Damage Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.damage);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.damage);
       });
     }
   }
@@ -413,14 +407,13 @@ class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     texture: 'tower',
     description: 'Bouncing Tower',
     executeOnUpdate: (that, time) => {
-      that.updateTarget();
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let newPosition = Utils.calculatePositionTowardsTarget(x, y, target.x, target.y, scene.unitSize * 1.5);
-        new Bullet(scene, groupBullets, newPosition.x, newPosition.y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bouncer);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {      
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bouncer);
       });
     }
   }
