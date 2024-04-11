@@ -147,7 +147,8 @@ class Tower extends GameObject {
   target = null;
   groupBullets = null;
   groupEnemies = null;
-  lastFired = 0;
+  lastTimeFired = 0;
+  lastTimeUpdated = 0;
 
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, canSellIt) {
     super(scene, group, x, y, towerConfig.texture, height * towerConfig.heightRatio, width * towerConfig.widthRatio);
@@ -187,22 +188,24 @@ class Tower extends GameObject {
   }
 
   shotWhenTargetIsClose(time, shotFn) {
-    if (this.target && time > this.lastFired + this.attackVelocity) {
+    if (this.target && time > this.lastTimeFired + this.attackVelocity) {
       if (this.isInRange(this.target)) {
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
+        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x+this.scene.unitSize , this.target.y);
         let newPosition = this.unitsCloserToTarget ? Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize * this. unitsCloserToTarget )  : { x: this.x, y: this.y};
         shotFn(this.scene, this.groupBullets, newPosition.x, newPosition.y, this.target, angle, this.damage, this.range);
       }
-      this.lastFired = time;
+      this.lastTimeFired = time;
     }
   }
 
   update(time) {
     this.updateTarget();
-    if(this.target) {
+    if(this.lastTimeUpdated > 200 && this.target) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
       this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+      this.lastTimeUpdated = 0;
     }
+    this.lastTimeUpdated += time;
     this.executeOnUpdate(this, time);
   }
 
@@ -218,7 +221,7 @@ class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common, target);
       });
     }
   }
@@ -423,7 +426,7 @@ class Tower extends GameObject {
 
 class Bullet extends GameObject {
 
-  constructor(scene, group, x, y, angle, height, width, damage, range, config) {
+  constructor(scene, group, x, y, angle, height, width, damage, range, config, target) {
     super(scene, group, x, y, config.texture, height, width);
     Object.assign(this, config);
     this.startX = x;
@@ -432,6 +435,7 @@ class Bullet extends GameObject {
     this.range = range;
     this.angle = angle;
     this.scene = scene;
+    this.target = target;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
@@ -442,7 +446,7 @@ class Bullet extends GameObject {
     enemy.takeDamage(this.damage);
     this.afterHit && this.afterHit(this, enemy);
   }
-
+  
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
     if (distance > this.range) {
@@ -451,12 +455,17 @@ class Bullet extends GameObject {
       return;
     }
 
+    if(this.target) {
+      const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
+      this.setAngle(Phaser.Math.RAD_TO_DEG * angle);      
+    }
+
     this.afterUpdate && this.afterUpdate(this, delta);
   }
 
   static common = {
     texture: 'common-bullet',
-    velocity: 400,
+    velocity: 800,
     afterHit: (that, enemy)=>{
       that.destroy();
       that.group.remove(that);
