@@ -660,7 +660,7 @@ class ButtonTower extends GameObject {
   groupEnemies = null;
 
   constructor(scene, group, groupTowers, groupEnemies, groupBullets, x, y) {
-    super(scene, group, x, y, 'button', scene.buttonTowerSize, scene.buttonTowerSize);
+    super(scene, group, x, y, 'background', scene.buttonTowerSize, scene.buttonTowerSize);
     this.scene = scene;
     this.groupTowers = groupTowers;
     this.groupEnemies = groupEnemies;
@@ -1019,6 +1019,7 @@ class Game extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image('background', 'assets/background.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
     this.load.image('right', 'assets/right.png');
