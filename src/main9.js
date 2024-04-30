@@ -660,7 +660,7 @@ class ButtonTower extends GameObject {
   groupEnemies = null;
 
   constructor(scene, group, groupTowers, groupEnemies, groupBullets, x, y) {
-    super(scene, group, x, y, 'background', scene.buttonTowerSize, scene.buttonTowerSize);
+    super(scene, group, x, y, 'buttonTower', scene.buttonTowerSize, scene.buttonTowerSize);
     this.scene = scene;
     this.groupTowers = groupTowers;
     this.groupEnemies = groupEnemies;
@@ -891,8 +891,8 @@ class MapGenerator {
     const gridSize = { cols: cols, rows: rows };
 
     // Loop through each buttonTower in the grid
-    for (let row = 1; row < gridSize.rows; row++) {
-      for (let col = 1; col < gridSize.cols; col++) {
+    for (let row = 1; row <= gridSize.rows; row++) {
+      for (let col = 1; col <= gridSize.cols; col++) {
         const x = col * scene.buttonTowerSize;
         const y = row * scene.buttonTowerSize;
 
@@ -998,10 +998,10 @@ class Game extends Phaser.Scene {
     super({ key: 'Game' });
 
     this.unitSize = 20;
-    this.buttonTowerSize = this.unitSize * 2;
+    this.buttonTowerSize = this.unitSize * 3;
     this.grid = {
-      rows: 11,
-      cols: 55,
+      rows: 7,
+      cols: 41,
     };
 
     this.mainTowers = null;
@@ -1019,7 +1019,8 @@ class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('background', 'assets/background.png');
+    this.load.image('milkyway', 'assets/milkyway.jpg');
+    this.load.image('buttonTower', 'assets/buttonTower.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
     this.load.image('right', 'assets/right.png');
@@ -1046,6 +1047,7 @@ class Game extends Phaser.Scene {
 
   create() {
 
+    this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/2, this.grid.rows * this.buttonTowerSize/2, 'milkyway', (this.grid.rows+1) * this.buttonTowerSize, this.grid.cols * this.buttonTowerSize );
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
@@ -1086,10 +1088,10 @@ class Game extends Phaser.Scene {
     });
 
     // Camera
-    this.horizontalCamera = this.cameras.add(0, 0, config.width, this.buttonTowerSize * this.grid.rows);
-    this.cameras.main.setScroll(0, this.buttonTowerSize * this.grid.rows)
+    this.horizontalCamera = this.cameras.add(0, 0, config.width, this.buttonTowerSize * (this.grid.rows+1));
+    this.cameras.main.setScroll(0, this.buttonTowerSize * (this.grid.rows+1))
     this.cameras.main.setSize(800, 500);
-    this.cameras.main.setPosition(0, this.buttonTowerSize * this.grid.rows);
+    this.cameras.main.setPosition(0, this.buttonTowerSize * (this.grid.rows+1));
     this.input.on('pointerdown', this.pointerDown, this);
     this.input.on('pointermove', this.pointerMove, this);
     this.input.on('pointerup', this.pointerUp, this);
@@ -1171,6 +1173,7 @@ class Game extends Phaser.Scene {
         aux < this.grid.cols * this.buttonTowerSize - config.width
       ) {
         this.horizontalCamera.scrollX += deltaX;
+        this.milkyWay.x += deltaX/2;
         // this.cameras.main.scrollY += deltaY;
       }
 
