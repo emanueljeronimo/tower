@@ -1,7 +1,6 @@
 // acomodar todo el menu
-// bien, hacer varias torres mas
-// hacer 2 paths
-// que las naves se teletransporten
+// revisar todas las naves
+// los bordes
 
 
 class Utils {
@@ -893,8 +892,8 @@ class MapGenerator {
     // Loop through each buttonTower in the grid
     for (let row = 1; row <= gridSize.rows; row++) {
       for (let col = 1; col <= gridSize.cols; col++) {
-        const x = col * scene.buttonTowerSize;
-        const y = row * scene.buttonTowerSize;
+        const x = (col * scene.buttonTowerSize) - scene.buttonTowerSize/2;
+        const y = (row * scene.buttonTowerSize) - scene.buttonTowerSize/2;
 
         let buttonTower = new ButtonTower(scene, scene.buttonTowers, scene.towers, scene.enemies, scene.bullets, x, y);
         scene.buttonTowers.add(buttonTower);
@@ -951,7 +950,7 @@ class MapGenerator {
           }
           else {
             let { x, y } = nextDirectionConfig.funct({ x: path[path.length - 1].x, y: path[path.length - 1].y });
-            if (y > buttonTower0.y && y < (buttonTower0.y * rows)) {
+            if (y > buttonTower0.y && y < (buttonTower0.y* 2 * rows/*  *2 because the size */ )) {
               path.push({ x, y });
               direction = nextDirectionConfig.direction;
               steps = stepsAux;
@@ -998,9 +997,9 @@ class Game extends Phaser.Scene {
     super({ key: 'Game' });
 
     this.unitSize = 20;
-    this.buttonTowerSize = this.unitSize * 3;
+    this.buttonTowerSize = this.unitSize * 4;
     this.grid = {
-      rows: 7,
+      rows: 5,
       cols: 41,
     };
 
