@@ -1,7 +1,7 @@
 // acomodar todo el menu
 // revisar todas las naves
 // los bordes
-
+// spritesheet de octagonos, como plataformas espaciales 
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
@@ -1018,7 +1018,7 @@ class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('milkyway', 'assets/milkyway.jpg');
+    this.load.image('milkyway', 'assets/background7.png');
     this.load.image('buttonTower', 'assets/buttonTower.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
@@ -1046,7 +1046,7 @@ class Game extends Phaser.Scene {
 
   create() {
 
-    this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/2, this.grid.rows * this.buttonTowerSize/2, 'milkyway', (this.grid.rows+1) * this.buttonTowerSize, this.grid.cols * this.buttonTowerSize );
+    this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/3, this.grid.rows * this.buttonTowerSize/2, 'milkyway', (this.grid.rows+1) * this.buttonTowerSize, this.grid.cols * (this.buttonTowerSize/1.5) );
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
