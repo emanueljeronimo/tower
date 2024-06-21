@@ -1019,7 +1019,7 @@ class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background7.png');
-    this.load.image('buttonTower', 'assets/buttonTower.png');
+    this.load.image('buttonTower', 'assets/buttonTower3.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
     this.load.image('right', 'assets/right.png');
