@@ -80,12 +80,13 @@ class Particle extends GameObject {
 
 class Enemy extends GameObject {
   constructor(scene, group, particleGroup, x = -10, y = 100, height, width, enemyConfig) {
-    super(scene, group, x, y, enemyConfig.texture, height, width);
+    super(scene, group, x, y, enemyConfig.enemyAnimation, height, width);
     Object.assign(this, enemyConfig);
     this.particleGroup = particleGroup;
     this.scene = scene;
     this.currentPointIndex = 0;
     this.increasedDamagePercent = 0;
+    this.play({ key: enemyConfig.enemyAnimation, repeat: -1 });
   }
 
   setPath(path) {
@@ -127,14 +128,14 @@ class Enemy extends GameObject {
   }
 
   static commonEnemy = {
-    texture: 'enemy',
+    enemyAnimation: 'enemyAnimation',
     health: 100,
     speed: 150,
     gold: 15
   }
 
   static dummyEnemy = {
-    texture: 'enemy',
+    enemyAnimation: 'enemyAnimation',
     health: 100,
     speed: 10,
     gold: 0
@@ -869,7 +870,7 @@ class EnemyGenerator {
 
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
-      let enemy = new Enemy(this.scene, this.groupEnemies, this.groupParticles, 0, 0, this.scene.unitSize, this.scene.unitSize, Enemy.commonEnemy);
+      let enemy = new Enemy(this.scene, this.groupEnemies, this.groupParticles, 0, 0, this.scene.unitSize*1.8, this.scene.unitSize*1.8, Enemy.commonEnemy);
       enemy.setPath(this.paths[Utils.getRandomNumber(0,1)]);
       this.lastEnemyCreated = time;
       this.counter++;
@@ -1029,7 +1030,7 @@ class Game extends Phaser.Scene {
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
-    this.load.image('enemy', 'assets/enemy-6.png');
+    this.load.spritesheet('enemy', 'assets/enemy1.png', { frameWidth: 37, frameHeight: 28 });
     this.load.image('tower', 'assets/tower-2.png');
     this.load.image('particle', 'assets/particle.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
@@ -1045,6 +1046,12 @@ class Game extends Phaser.Scene {
   }
 
   create() {
+
+    const enemyAnimation = this.anims.create({
+      key: 'enemyAnimation',
+      frames: this.anims.generateFrameNumbers('enemy'),
+      frameRate: 16
+    });
 
     this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/3, this.grid.rows * this.buttonTowerSize/2, 'milkyway', (this.grid.rows+1) * this.buttonTowerSize, this.grid.cols * (this.buttonTowerSize/1.5) );
     this.mainTowers = this.physics.add.group();
