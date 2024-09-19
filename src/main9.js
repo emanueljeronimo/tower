@@ -80,7 +80,7 @@ class Particle extends GameObject {
 
 class Enemy extends GameObject {
   constructor(scene, group, particleGroup, x = -10, y = 100, height, width, enemyConfig) {
-    super(scene, group, x, y, enemyConfig.animation, height, width);
+    super(scene, group, x, y, null, height, width);
     Object.assign(this, enemyConfig);
     this.particleGroup = particleGroup;
     this.scene = scene;
@@ -151,7 +151,7 @@ class Tower extends GameObject {
   lastTimeUpdated = 0;
 
   constructor(scene, group, groupEnemies, groupBullets, x, y, height, width, towerConfig, canSellIt) {
-    super(scene, group, x, y, towerConfig.animation, height * towerConfig.heightRatio, width * towerConfig.widthRatio);
+    super(scene, group, x, y, towerConfig.texture, height * towerConfig.heightRatio, width * towerConfig.widthRatio);
     Object.assign(this, towerConfig);
     this.stopOnFrame(0)
     this.range = towerConfig.rangeUnits * scene.unitSize;
@@ -213,13 +213,14 @@ class Tower extends GameObject {
 
   static commonTower = {
     heightRatio: 1,
-    widthRatio: 0.7,
+    widthRatio: 3,
     price: 250,
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
     animation: 'towerAnimation',
+    texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -1033,9 +1034,9 @@ class Game extends Phaser.Scene {
     this.load.image('main-tower', 'assets/main-tower.png');
 
     this.load.spritesheet('enemy', 'assets/enemy1.png', { frameWidth: 37, frameHeight: 28 });
-    this.load.spritesheet('tower', 'assets/tower-2-sheet.png', { frameWidth: 116, frameHeight: 34 });
+    this.load.spritesheet('towerSheet', 'assets/tower-2-sheet.png', { frameWidth: 120, frameHeight: 45 });
 
-    //this.load.image('tower', 'assets/tower-2.png');
+    this.load.image('towerTexture', 'assets/tower-2.png');
 
     this.load.image('particle', 'assets/particle.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
@@ -1055,12 +1056,12 @@ class Game extends Phaser.Scene {
     this.anims.create({
       key: Enemy.commonEnemy.animation,
       frames: this.anims.generateFrameNumbers('enemy'),
-      frameRate: 16
+      frameRate: 100
     });
 
     this.anims.create({
       key: Tower.commonTower.animation,
-      frames: this.anims.generateFrameNumbers('tower'),
+      frames: this.anims.generateFrameNumbers('towerSheet'),
       frameRate: 16
     });
 
