@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phaser Particle Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+</head>
+<body>
+
+<script>
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    function preload() {
+        this.load.image('particleImageKey', 'assets/tower.png');
+    }
+
+    function create() {
+        var particles = this.add.particles('particleImageKey');
+
+        var emitter = particles.createEmitter({
+            speed: 100,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD'
+        });
+
+        // If you want particles to follow a game object (e.g., cursor)
+        // var cursor = this.input.activePointer;
+        // emitter.startFollow(cursor);
+    }
+
+    function update() {
+        // Update game logic
+    }
+</script>
+
+</body>
+</html>

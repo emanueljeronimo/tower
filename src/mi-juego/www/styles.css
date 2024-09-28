@@ -1,0 +1,5 @@
+@font-face {
+    font-family: 'CustomFont';
+    src: url('joystix monospace.otf') format('opentype');
+    /* You can specify other font formats (e.g., woff2, truetype) if available */
+  }
