@@ -1,7 +1,12 @@
-// acomodar todo el menu
-// revisar todas las naves
-// los bordes
-// spritesheet de octagonos, como plataformas espaciales 
+/*
+-acomodar todo el menu
+-revisar todas las naves
+-los bordes
+-la parte de abajo tiene que estar mas despegada de arriba
+-aplicar algun filtro de color por los niveles y el daño de las naves
+-sonidos
+-que las plataformas sean mas grises
+*/
 
 class Utils {
   static calculatePositionTowardsTarget(currentX, currentY, targetX, targetY, distance) {
