@@ -6,6 +6,8 @@
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
 -que las plataformas sean mas grises
+-el bug de los disparos que quedan flotando
+-que disparen dentro de la pantalla
 */
 
 class Utils {
@@ -1027,7 +1029,7 @@ class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background7.png');
-    this.load.image('buttonTower', 'assets/buttonTower4.png');
+    this.load.image('buttonTower', 'assets/buttonTower6.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
     this.load.image('right', 'assets/right.png');
