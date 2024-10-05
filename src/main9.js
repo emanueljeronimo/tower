@@ -5,8 +5,6 @@
 -la parte de abajo tiene que estar mas despegada de arriba
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
--que las plataformas sean mas grises
--el bug de los disparos que quedan flotando
 -que disparen dentro de la pantalla
 */
 
@@ -130,14 +128,14 @@ class Enemy extends GameObject {
     const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, targetPoint.x, targetPoint.y);
     this.rotation = angleToTarget;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angleToTarget);
-    this.setVelocityX(Math.cos(angleToTarget) * this.speed);
-    this.setVelocityY(Math.sin(angleToTarget) * this.speed);
+    this.setVelocityX(Math.cos(angleToTarget) * (this.speed * this.scene.unitSize));
+    this.setVelocityY(Math.sin(angleToTarget) * (this.speed * this.scene.unitSize));
   }
 
   static commonEnemy = {
     animation: 'enemyAnimation',
     health: 100,
-    speed: 150,
+    speed: 8,
     gold: 15
   }
 
@@ -148,7 +146,6 @@ class Enemy extends GameObject {
     gold: 0
   }
 }
-
 
 class Tower extends GameObject {
   target = null;
@@ -463,7 +460,7 @@ class Bullet extends GameObject {
       return;
     }
 
-    if(this.target) {
+    if(this.target && this.target.health > 0) {
       const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
       this.setDirection(angle);      
     }
@@ -716,6 +713,14 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     });
 
     this.offset = this.scene.unitSize * 1;
+
+    let leftFrame = this.scene.add.sprite(this.x + (this.scene.unitSize*1.5) , this.y, 'leftFrame');
+    leftFrame.setSize(this.scene.unitSize * 5, this.scene.unitSize * 7);
+    leftFrame.setDisplaySize(this.scene.unitSize * 5, this.scene.unitSize * 7);
+
+    let rightFrame = this.scene.add.sprite(config.width - this.scene.unitSize * 3 , this.y, 'rightFrame');
+    rightFrame.setSize(this.scene.unitSize * 5, this.scene.unitSize * 7);
+    rightFrame.setDisplaySize(this.scene.unitSize * 5, this.scene.unitSize * 7);
 
     this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 3, this.y );
     this.buttonTowers.add(this.buttonTower);
@@ -1036,6 +1041,8 @@ class Game extends Phaser.Scene {
     this.load.image('down', 'assets/down.png');
     this.load.image('buy', 'assets/buy.png');
     this.load.image('sell', 'assets/sell.png');
+    this.load.image('leftFrame', 'assets/leftFrame.png');
+    this.load.image('rightFrame', 'assets/rightFrame.png');
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
@@ -1114,7 +1121,7 @@ class Game extends Phaser.Scene {
     // Camera
     this.horizontalCamera = this.cameras.add(0, 0, config.width, this.buttonTowerSize * (this.grid.rows+1));
     this.cameras.main.setScroll(0, this.buttonTowerSize * (this.grid.rows+1))
-    this.cameras.main.setSize(800, 500);
+    this.cameras.main.setSize(config.width, config.height);
     this.cameras.main.setPosition(0, this.buttonTowerSize * (this.grid.rows+1));
     this.input.on('pointerdown', this.pointerDown, this);
     this.input.on('pointermove', this.pointerMove, this);
