@@ -714,13 +714,9 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     this.offset = this.scene.unitSize * 1;
 
-    let leftFrame = this.scene.add.sprite(this.x + (this.scene.unitSize*1.5) , this.y, 'leftFrame');
-    leftFrame.setSize(this.scene.unitSize * 5, this.scene.unitSize * 7);
-    leftFrame.setDisplaySize(this.scene.unitSize * 5, this.scene.unitSize * 7);
-
-    let rightFrame = this.scene.add.sprite(config.width - this.scene.unitSize * 3 , this.y, 'rightFrame');
-    rightFrame.setSize(this.scene.unitSize * 5, this.scene.unitSize * 7);
-    rightFrame.setDisplaySize(this.scene.unitSize * 5, this.scene.unitSize * 7);
+    let mainFrame = this.scene.add.sprite(this.x + config.width/2 - this.scene.unitSize * 0.9 , this.y + this.scene.unitSize*1.5 , 'mainFrame');
+    mainFrame.setSize(config.width, this.scene.unitSize * 9);
+    mainFrame.setDisplaySize(config.width, this.scene.unitSize * 9);
 
     this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 3, this.y );
     this.buttonTowers.add(this.buttonTower);
@@ -1041,8 +1037,7 @@ class Game extends Phaser.Scene {
     this.load.image('down', 'assets/down.png');
     this.load.image('buy', 'assets/buy.png');
     this.load.image('sell', 'assets/sell.png');
-    this.load.image('leftFrame', 'assets/leftFrame.png');
-    this.load.image('rightFrame', 'assets/rightFrame.png');
+    this.load.image('mainFrame', 'assets/mainFrame.png');
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
@@ -1220,8 +1215,8 @@ class Game extends Phaser.Scene {
 
 var config = {
   type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: window.innerWidth-4,
+  height: window.innerHeight-4,
   physics: {
     default: 'arcade',
     arcade: {
