@@ -1097,7 +1097,12 @@ class Game extends Phaser.Scene {
       this.grid.cols
     );
 
-    this.towerMenuContainer = new TowerMenuContainer(this, this.unitSize*1, this.unitSize*25);
+    
+    this.towerMenuContainer = new TowerMenuContainer(this, this.unitSize*1, this.unitSize*50);//random offset
+    this.cameras.main.setScroll(0, this.unitSize*47)
+    this.cameras.main.setPosition(0, this.unitSize*22);
+    this.cameras.main.setSize(config.width, this.unitSize*20);
+
     this.sellPopUp = new SellPopUp(this);
     this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies, this.particles);
 
@@ -1115,9 +1120,7 @@ class Game extends Phaser.Scene {
 
     // Camera
     this.horizontalCamera = this.cameras.add(0, 0, config.width, this.buttonTowerSize * (this.grid.rows+1));
-    this.cameras.main.setScroll(0, this.buttonTowerSize * (this.grid.rows+1))
-    this.cameras.main.setSize(config.width, config.height);
-    this.cameras.main.setPosition(0, this.buttonTowerSize * (this.grid.rows+1));
+    
     this.input.on('pointerdown', this.pointerDown, this);
     this.input.on('pointermove', this.pointerMove, this);
     this.input.on('pointerup', this.pointerUp, this);
