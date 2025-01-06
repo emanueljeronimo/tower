@@ -715,10 +715,10 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.offset = this.scene.unitSize * 1;
 
     let mainFrame = this.scene.add.sprite(this.x + config.width/2 - this.scene.unitSize * 0.9 , this.y + this.scene.unitSize*1.5 , 'mainFrame');
-    mainFrame.setSize(config.width, this.scene.unitSize * 9);
-    mainFrame.setDisplaySize(config.width, this.scene.unitSize * 9);
+    mainFrame.setSize(config.width, this.scene.unitSize * 11);
+    mainFrame.setDisplaySize(config.width, this.scene.unitSize * 11);
 
-    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 3, this.y );
+    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 30, this.y );
     this.buttonTowers.add(this.buttonTower);
 
     // Create a description text
@@ -751,6 +751,9 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.add(this.towerVelocity);
     */
 
+    //left rigth buy
+
+    /*
     const buttonLeft = scene.add.sprite(scene.unitSize, this.offset + scene.unitSize * 3, 'left');
     buttonLeft.setDisplaySize(scene.unitSize * 1.5, scene.unitSize * 1.5);
     this.add(buttonLeft);
@@ -772,8 +775,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.arrTowerConfig.unshift(lastElement);
       this.updateTower();
     });
-
-    const buyButton = scene.add.sprite(scene.unitSize * 8, this.offset +  scene.unitSize * 3, 'buy');
+    */
+    const buyButton = scene.add.sprite(scene.unitSize * 30, this.offset +  scene.unitSize * 3, 'buy');
     buyButton.setDisplaySize(scene.unitSize * 5, scene.unitSize * 2);
     this.add(buyButton);
 
@@ -787,6 +790,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     var thickness = 1;
     rectangle.setStrokeStyle(thickness, 0xffffff);
     */
+
     this.updateTower();
     scene.add.existing(this);
 
@@ -1097,11 +1101,13 @@ class Game extends Phaser.Scene {
       this.grid.cols
     );
 
-    
+    //Cameras
     this.towerMenuContainer = new TowerMenuContainer(this, this.unitSize*1, this.unitSize*50);//random offset
-    this.cameras.main.setScroll(0, this.unitSize*47)
-    this.cameras.main.setPosition(0, this.unitSize*22);
-    this.cameras.main.setSize(config.width, this.unitSize*20);
+    this.cameras.main.setScroll(0, this.unitSize*46)
+    this.cameras.main.setPosition(0, this.unitSize*20);
+    this.cameras.main.setSize(config.width, this.unitSize*22);
+    this.horizontalCamera = this.cameras.add(0, 0, config.width, this.unitSize*20);
+
 
     this.sellPopUp = new SellPopUp(this);
     this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies, this.particles);
@@ -1117,10 +1123,7 @@ class Game extends Phaser.Scene {
       enemy.destroy();
       mainTower.health--;
     });
-
-    // Camera
-    this.horizontalCamera = this.cameras.add(0, 0, config.width, this.buttonTowerSize * (this.grid.rows+1));
-    
+  
     this.input.on('pointerdown', this.pointerDown, this);
     this.input.on('pointermove', this.pointerMove, this);
     this.input.on('pointerup', this.pointerUp, this);
