@@ -718,12 +718,41 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     mainFrame.setSize(config.width, this.scene.unitSize * 11);
     mainFrame.setDisplaySize(config.width, this.scene.unitSize * 11);
 
-    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 30, this.y );
+    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 35, this.y );
     this.buttonTowers.add(this.buttonTower);
+
+    const buyButton = scene.add.sprite(scene.unitSize * 35, this.offset +  scene.unitSize * 3, 'buy');
+    buyButton.setDisplaySize(scene.unitSize * 5, scene.unitSize * 2);
+    this.add(buyButton);
+
+    buyButton.setInteractive();
+    buyButton.on('pointerdown', () => {
+      this.scene.buy();
+    });
+
 
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
                            Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.bouncerTower];
+
+    for(let i=0; i<2; i++) {
+      for(let j=0; j<6; j++) {
+
+        let xoffset= this.scene.unitSize*3;
+        let selectButton = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , 'buttonTower');
+        selectButton.setSize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
+        selectButton.setDisplaySize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
+        selectButton.setInteractive();
+        selectButton.on('pointerdown', () => {
+          
+        });
+
+        let tower = this.arrTowerConfig[j+(6*i)];
+        let towerTexture = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , tower.texture);
+        towerTexture.setSize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
+        towerTexture.setDisplaySize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
+      }
+    }
 
     /*this.towerDesc = scene.add.text(scene.unitSize * 7, this.offset + scene.unitSize * 4, '', {
       fontSize: '24px',
@@ -776,15 +805,6 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.updateTower();
     });
     */
-    const buyButton = scene.add.sprite(scene.unitSize * 30, this.offset +  scene.unitSize * 3, 'buy');
-    buyButton.setDisplaySize(scene.unitSize * 5, scene.unitSize * 2);
-    this.add(buyButton);
-
-    buyButton.setInteractive();
-    buyButton.on('pointerdown', () => {
-      this.scene.buy();
-    });
-
 
     /*var rectangle = this.scene.add.rectangle(this.x + scene.unitSize * 8, this.y+ this.offset + scene.unitSize, scene.unitSize * 15, scene.unitSize * 8, null); // x, y, width, height, color
     var thickness = 1;
