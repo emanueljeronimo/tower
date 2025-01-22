@@ -2,10 +2,10 @@
 -acomodar todo el menu
 -revisar todas las naves
 -los bordes
--la parte de abajo tiene que estar mas despegada de arriba
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
 -que disparen dentro de la pantalla
+-sacar animaciones que van a ser con p5.js
 */
 
 class Utils {
@@ -718,10 +718,14 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     mainFrame.setSize(config.width, this.scene.unitSize * 11);
     mainFrame.setDisplaySize(config.width, this.scene.unitSize * 11);
 
-    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.x + this.scene.unitSize * 35, this.y );
+    this.backgroudDemo = this.scene.add.sprite(this.scene.unitSize*5, this.scene.unitSize * 83, 'backgroudDemo');
+    this.backgroudDemo.setSize(this.scene.unitSize * 10, this.scene.unitSize * 10);
+    this.backgroudDemo.setDisplaySize(this.scene.unitSize * 10, this.scene.unitSize * 10);
+
+    this.buttonTower = new ButtonTower(this.scene, this.buttonTowers, this.towers, this.enemies, this.bullets, this.scene.unitSize * 5, this.scene.unitSize * 83);
     this.buttonTowers.add(this.buttonTower);
 
-    const buyButton = scene.add.sprite(scene.unitSize * 35, this.offset +  scene.unitSize * 3, 'buy');
+    const buyButton = this.scene.add.sprite(scene.unitSize * 35, this.offset +  scene.unitSize * 3, 'buy');
     buyButton.setDisplaySize(scene.unitSize * 5, scene.unitSize * 2);
     this.add(buyButton);
 
@@ -735,6 +739,7 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
                            Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.bouncerTower];
 
+    let borderGraphics;
     for(let i=0; i<2; i++) {
       for(let j=0; j<6; j++) {
 
@@ -742,9 +747,21 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
         let selectButton = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , 'buttonTower');
         selectButton.setSize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
         selectButton.setDisplaySize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
-        selectButton.setInteractive();
+        selectButton.setInteractive();    
+
         selectButton.on('pointerdown', () => {
-          
+            if (borderGraphics) {
+                borderGraphics.destroy();
+            }
+        
+            borderGraphics = this.scene.add.graphics();
+            borderGraphics.lineStyle(2, 0xffffff);
+            borderGraphics.strokeRect(
+                selectButton.x - selectButton.displayWidth / 2,
+                selectButton.y - selectButton.displayHeight / 2,
+                selectButton.displayWidth,
+                selectButton.displayHeight
+            );
         });
 
         let tower = this.arrTowerConfig[j+(6*i)];
@@ -825,8 +842,8 @@ class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
     if (this.enemy != null) this.enemy.destroy();
-    let x = this.x + this.scene.unitSize * 9;
-    let y = this.y+ this.offset + this.scene.unitSize * 2;
+    let x = this.x + this.scene.unitSize * 8;
+    let y = this.scene.unitSize * 83
     this.enemy = new Enemy(this.scene, this.enemies, this.particles, x, y, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
 
     this.enemy.setPath([{x:x,y:y},{x:x+this.scene.unitSize*10,y:y}]);
@@ -1055,6 +1072,7 @@ class Game extends Phaser.Scene {
   preload() {
     this.load.image('milkyway', 'assets/background7.png');
     this.load.image('buttonTower', 'assets/buttonTower6.png');
+    this.load.image('backgroudDemo', 'assets/backgroudDemo.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
     this.load.image('right', 'assets/right.png');
@@ -1127,6 +1145,10 @@ class Game extends Phaser.Scene {
     this.cameras.main.setPosition(0, this.unitSize*20);
     this.cameras.main.setSize(config.width, this.unitSize*22);
     this.horizontalCamera = this.cameras.add(0, 0, config.width, this.unitSize*20);
+
+    this.demoCamera = this.cameras.add(0, 0, this.unitSize*10, this.unitSize*6);
+    this.demoCamera.setScroll(0, this.unitSize*80);
+    this.demoCamera.setPosition(this.unitSize*31, this.unitSize*21);
 
 
     this.sellPopUp = new SellPopUp(this);
