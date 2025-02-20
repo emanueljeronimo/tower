@@ -31,7 +31,6 @@ class Game extends Phaser.Scene {
     this.mainTowers = null;
     this.enemies = null;
     this.bullets = null;
-    this.particles = null;
     this.towers = null;
     this.buttonTowers = null;
     this.enemyGenerator = null;
@@ -56,12 +55,9 @@ class Game extends Phaser.Scene {
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
-    this.load.spritesheet('enemy', 'assets/enemy1.png', { frameWidth: 37, frameHeight: 28 });
-    this.load.spritesheet('towerSheet', 'assets/tower-2-sheet.png', { frameWidth: 120, frameHeight: 45 });
-
+    this.load.image('enemy', 'assets/enemy-3.png');
     this.load.image('towerTexture', 'assets/tower-2.png');
 
-    this.load.image('particle', 'assets/particle.png');
     this.load.image('laser-tower', 'assets/laser-tower.png');
     this.load.image('light-bulb', 'assets/light-bulb.png');
     this.load.image('ice-plasma-shot', 'assets/ice-plasma-shot.png');
@@ -75,24 +71,10 @@ class Game extends Phaser.Scene {
   }
 
   create() {
-
-    this.anims.create({
-      key: Enemy.commonEnemy.animation,
-      frames: this.anims.generateFrameNumbers('enemy'),
-      frameRate: 100
-    });
-
-    this.anims.create({
-      key: Tower.commonTower.animation,
-      frames: this.anims.generateFrameNumbers('towerSheet'),
-      frameRate: 16
-    });
-
     this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/3, this.grid.rows * this.buttonTowerSize/2, 'milkyway', (this.grid.rows+1) * this.buttonTowerSize, this.grid.cols * (this.buttonTowerSize/1.5) );
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group();
-    this.particles = this.physics.add.group();
     this.towers = this.add.group();
     this.buttonTowers = this.add.group();
 
@@ -123,9 +105,8 @@ class Game extends Phaser.Scene {
     this.demoCamera.setScroll(0, this.unitSize*80);
     this.demoCamera.setPosition(this.unitSize*31, this.unitSize*21);
 
-
     this.sellPopUp = new SellPopUp(this);
-    this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies, this.particles);
+    this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies);
 
     this.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
       bullet.hit(enemy);
@@ -245,7 +226,7 @@ var config = {
       debug: false,
     },
   },
-  scene: Game, // Use the custom Game class here
+  scene: Game,
 };
 
 var game = new Phaser.Game(config);

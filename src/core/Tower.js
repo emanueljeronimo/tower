@@ -50,7 +50,6 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackVelocity) {
       if (this.isInRange(this.target)) {
-        this.play({ key: this.animation, repeat: 0 });
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x+(this.scene.unitSize*0.8) , this.target.y);
         let newPosition = this.unitsCloserToTarget ? Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize * this. unitsCloserToTarget )  : { x: this.x, y: this.y};
         shotFn(this.scene, this.groupBullets, newPosition.x, newPosition.y, this.target, angle, this.damage, this.range);
@@ -78,7 +77,6 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
-    animation: 'towerAnimation',
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
@@ -96,7 +94,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Triple Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -115,7 +113,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 100,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Fast Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -132,7 +130,7 @@ export class Tower extends GameObject {
     rangeUnits: 150,
     unitsCloserToTarget: 1.5,
     attackVelocity: 500,
-    animation: 'laser-tower',
+    texture: 'towerTexture',
     description: 'Laser',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -149,7 +147,7 @@ export class Tower extends GameObject {
     rangeUnits: 150,
     unitsCloserToTarget: 1,
     attackVelocity: 500,
-    animation: 'light-bulb',
+    texture: 'towerTexture',
     description: 'light',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -170,7 +168,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
-    animation: 'ice-plasma',
+    texture: 'towerTexture',
     description: 'Ice Plasma',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -187,7 +185,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Bomb Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -204,7 +202,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 2.3,
     attackVelocity: 300,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Circle Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -221,7 +219,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 1000,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Teleport Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -237,7 +235,7 @@ export class Tower extends GameObject {
     damage: 5000,
     rangeUnits: 800,
     attackVelocity: 500,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Mine Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -257,7 +255,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 200,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Damage Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
@@ -274,7 +272,7 @@ export class Tower extends GameObject {
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
     attackVelocity: 300,
-    animation: 'tower',
+    texture: 'towerTexture',
     description: 'Bouncing Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {      

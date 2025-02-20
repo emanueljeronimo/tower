@@ -1,15 +1,12 @@
 import { GameObject } from './GameObject.js'
-import { Particle } from './Particle.js'
 
 export class Enemy extends GameObject {
-  constructor(scene, group, particleGroup, x = -10, y = 100, height, width, enemyConfig) {
-    super(scene, group, x, y, null, height, width);
+  constructor(scene, group, x = -10, y = 100, height, width, enemyConfig) {
+    super(scene, group, x, y, enemyConfig.texture, height, width);
     Object.assign(this, enemyConfig);
-    this.particleGroup = particleGroup;
     this.scene = scene;
     this.currentPointIndex = 0;
     this.increasedDamagePercent = 0;
-    this.play({ key: enemyConfig.animation, repeat: -1 });
   }
 
   setPath(path) {
@@ -21,9 +18,6 @@ export class Enemy extends GameObject {
     this.health -= damage + (damage * this.increasedDamagePercent / 100);
     if (this.health <= 0) {
       this.scene.changeGold(this.gold);
-      for (var i = 1; i <= 5; i++) {
-        new Particle(this.scene, this.particleGroup, this.x, this.y, this.scene.unitSize / 3, this.scene.unitSize / 3);
-      }
       this.destroy();
       this.group.remove(this, true, true);
     }
@@ -50,14 +44,14 @@ export class Enemy extends GameObject {
   }
 
   static commonEnemy = {
-    animation: 'enemyAnimation',
+    texture: 'enemy',
     health: 100,
     speed: 8,
     gold: 15
   }
 
   static dummyEnemy = {
-    animation: 'enemyAnimation',
+    texture: 'enemy',
     health: 100,
     speed: 10,
     gold: 0

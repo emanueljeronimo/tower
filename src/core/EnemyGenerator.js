@@ -9,16 +9,15 @@ export class EnemyGenerator {
   enemiesQuatity = 25;
   scene = null;
   lastEnemyCreated = 0;
-  constructor(scene, paths, groupEnemies, groupParticles) {
+  constructor(scene, paths, groupEnemies) {
     this.scene = scene;
     this.paths = paths;
     this.groupEnemies = groupEnemies;
-    this.groupParticles = groupParticles;
   }
 
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
-      let enemy = new Enemy(this.scene, this.groupEnemies, this.groupParticles, 0, 0, this.scene.unitSize*1.8, this.scene.unitSize*1.8, Enemy.commonEnemy);
+      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize*1.8, this.scene.unitSize*1.8, Enemy.commonEnemy);
       enemy.setPath(this.paths[Utils.getRandomNumber(0,1)]);
       this.lastEnemyCreated = time;
       this.counter++;
