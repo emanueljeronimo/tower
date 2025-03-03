@@ -12,6 +12,7 @@ import { GameObject } from './core/GameObject.js'
 import { Enemy } from './core/Enemy.js'
 import { Tower } from './core/Tower.js'
 import { ButtonTower } from './core/ButtonTower.js'
+import { Bullet } from './core/Bullet.js'
 import { TowerMenuContainer } from './core/TowerMenuContainer.js'
 import { SellPopUp } from './core/SellPopUp.js'
 import { EnemyGenerator } from './core/EnemyGenerator.js'
@@ -67,7 +68,7 @@ class Game extends Phaser.Scene {
     this.load.image('common-bullet', 'assets/common-bullet.png');
     this.load.image('light-bulb-shot', 'assets/light-bulb-shot.png');
     this.load.image('ice-plasma', 'assets/ice-plasma.png');
-
+    Bullet.initTextures(this);
   }
 
   create() {

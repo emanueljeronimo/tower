@@ -81,7 +81,24 @@ export class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common, target);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.common, target);
+      });
+    }
+  }
+
+  static laserTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
+    attackVelocity: 300,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.laser, target);
       });
     }
   }

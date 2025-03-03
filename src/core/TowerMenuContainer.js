@@ -45,7 +45,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
+    this.arrTowerConfig = [Tower.commonTower, Tower.laserTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
                            Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.bouncerTower];
 
     let borderGraphics;
@@ -148,7 +148,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.towerRange.setText(`Range: ${this.arrTowerConfig[0].range}`);
     this.towerVelocity.setText(`Velocity: ${this.arrTowerConfig[0].attackVelocity}`);
     */
-    this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
+    this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
     this.buttonTower.destroyTower();
     if (this.enemy != null) this.enemy.destroy();
     let x = this.x + this.scene.unitSize * 8;
