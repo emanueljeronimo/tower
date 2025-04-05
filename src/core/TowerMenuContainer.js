@@ -148,7 +148,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.towerRange.setText(`Range: ${this.arrTowerConfig[0].range}`);
     this.towerVelocity.setText(`Velocity: ${this.arrTowerConfig[0].attackVelocity}`);
     */
-    this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
+    this.scene.setSelectedTowerConfig(this.arrTowerConfig[0]);
     this.buttonTower.destroyTower();
     if (this.enemy != null) this.enemy.destroy();
     let x = this.x + this.scene.unitSize * 8;

@@ -4,7 +4,6 @@ export class Bullet extends GameObject {
   constructor(scene, group, x, y, angle, height, width, damage, range, config, target) {
     super(scene, group, x, y, null, height, width);
     Object.assign(this, config);
-
     this.startX = x;
     this.startY = y;
     this.damage = damage;
@@ -12,7 +11,7 @@ export class Bullet extends GameObject {
     this.angle = angle;
     this.scene = scene;
     this.target = target;
-
+    this.visible = false;
     this.setTexture(config.texture);
     this.setDirection(angle);
     this.afterInit && this.afterInit(this);
@@ -21,17 +20,23 @@ export class Bullet extends GameObject {
   hit(enemy) {
     enemy.takeDamage(this.damage);
     this.afterHit && this.afterHit(this, enemy);
-    this.destroyAfterHit && this.destroy();
-    this.group.remove(this);
+    if (this.destroyAfterHit) {
+      this.destroy();
+      this.group.remove(this);
+    }
   }
 
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
     //TODO: check this something is not working well
-    if (distance > this.range) {
+    if (distance > this.unitsToDestroy * this.scene.unitSize) {
       this.destroy();
       this.group.remove(this);
       return;
+    }
+
+    if (distance > this.unitsToSetVisible * this.scene.unitSize){
+      this.visible = true;
     }
 
     if (this.target && this.target.health > 0 && this.follow) {
@@ -94,6 +99,8 @@ export class Bullet extends GameObject {
     velocity: 800,
     follow: true,
     destroyAfterHit: true,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
 
     afterInit: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
@@ -128,6 +135,8 @@ export class Bullet extends GameObject {
     velocity: 1500,
     follow: false,
     destroyAfterHit: false,
+    unitsToSetVisible: 3.5,
+    unitsToDestroy: 16,
 
     afterInit: (that) => {
       /*const beamEffect = that.scene.add.particles(that.x, that.y, 'laser-texture', {
