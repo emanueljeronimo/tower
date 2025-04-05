@@ -21,19 +21,20 @@ export class Bullet extends GameObject {
   hit(enemy) {
     enemy.takeDamage(this.damage);
     this.afterHit && this.afterHit(this, enemy);
-    this.destroy();
+    this.destroyAfterHit && this.destroy();
     this.group.remove(this);
   }
 
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
+    //TODO: check this something is not working well
     if (distance > this.range) {
       this.destroy();
       this.group.remove(this);
       return;
     }
 
-    if (this.target && this.target.health > 0) {
+    if (this.target && this.target.health > 0 && this.follow) {
       const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
       this.setDirection(angle);
     }
@@ -50,7 +51,7 @@ export class Bullet extends GameObject {
   static initTextures(scene) {
     // Crear un lienzo HTML5
     const canvasBullet = document.createElement('canvas');
-    const radiusBullet  = 10; // Radio para una forma redondeada
+    const radiusBullet  = scene.unitSize/4; // Radio para una forma redondeada
     canvasBullet.width = radiusBullet  * 2; // Doble del radio para la textura
     canvasBullet.height = radiusBullet  * 2; // Doble del radio para la textura
     const contextBullet  = canvasBullet.getContext('2d');
@@ -71,16 +72,16 @@ export class Bullet extends GameObject {
     
 
     const canvasLaser = document.createElement('canvas');
-    const widthLaser = 4;
-    const heightLaser = 50;
+    const widthLaser = scene.unitSize * 20;
+    const heightLaser = scene.unitSize * 1;
     canvasLaser.width = widthLaser;
     canvasLaser.height = heightLaser;
     const contextLaser = canvasLaser.getContext('2d');
 
     const gradientLaser = contextLaser.createLinearGradient(0, 0, 0, heightLaser);
-    gradientLaser.addColorStop(0, '#FF0000');
+    gradientLaser.addColorStop(0, '#FF0600');
     gradientLaser.addColorStop(0.5, '#FF6600');
-    gradientLaser.addColorStop(1, '#FFFF00');
+    gradientLaser.addColorStop(1, '#00FF00');
 
     contextLaser.fillStyle = gradientLaser;
     contextLaser.fillRect(0, 0, widthLaser, heightLaser);
@@ -91,6 +92,8 @@ export class Bullet extends GameObject {
   static common = {
     texture: 'bullet-texture',
     velocity: 800,
+    follow: true,
+    destroyAfterHit: true,
 
     afterInit: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
@@ -122,11 +125,12 @@ export class Bullet extends GameObject {
 
   static laser = {
     texture: 'laser-texture',
-    velocity: 50,
-    piercing: false, // No atraviesa enemigos
+    velocity: 1500,
+    follow: false,
+    destroyAfterHit: false,
 
     afterInit: (that) => {
-      const beamEffect = that.scene.add.particles(that.x, that.y, 'laser-texture', {
+      /*const beamEffect = that.scene.add.particles(that.x, that.y, 'laser-texture', {
         speed: { min: 1000, max: 1000 },
         angle: that.angle,
         lifespan: 100,
@@ -135,11 +139,11 @@ export class Bullet extends GameObject {
         blendMode: 'ADD'
       });
 
-      that.scene.time.delayedCall(100, () => beamEffect.destroy());
+      that.scene.time.delayedCall(100, () => beamEffect.destroy());*/
     },
 
     afterHit: (that, enemy) => {
-      const impactParticles = that.scene.add.particles(that.x, that.y, 'laser-texture', {
+      /*const impactParticles = that.scene.add.particles(that.x, that.y, 'laser-texture', {
         speed: { min: 50, max: 200 },
         angle: { min: 0, max: 360 },
         lifespan: 150,
@@ -148,7 +152,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD'
       });
 
-      that.scene.time.delayedCall(150, () => impactParticles.destroy());
+      that.scene.time.delayedCall(150, () => impactParticles.destroy());*/
     }
   };
 }

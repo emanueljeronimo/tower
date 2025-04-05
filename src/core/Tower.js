@@ -48,25 +48,27 @@ export class Tower extends GameObject {
   }
 
   shotWhenTargetIsClose(time, shotFn) {
-    if (this.target && time > this.lastTimeFired + this.attackVelocity) {
+    if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
         const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x+(this.scene.unitSize*0.8) , this.target.y);
-        let newPosition = this.unitsCloserToTarget ? Utils.calculatePositionTowardsTarget(this.x, this.y, this.target.x, this.target.y, this.scene.unitSize * this. unitsCloserToTarget )  : { x: this.x, y: this.y};
-        shotFn(this.scene, this.groupBullets, newPosition.x, newPosition.y, this.target, angle, this.damage, this.range);
+        shotFn(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
       }
       this.lastTimeFired = time;
     }
   }
-
-  update(time) {
-    this.updateTarget();
-    if(this.lastTimeUpdated > 200 && this.target) {
+  alignWithTarget(){
+    if (this.lastTimeUpdated > this.attackInterval && this.target) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
       this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
       this.lastTimeUpdated = 0;
     }
-    this.lastTimeUpdated += time;
+  }
+
+  update(time) {
     this.executeOnUpdate(this, time);
+    this.updateTarget();
+    this.alignWithTarget();
+    this.lastTimeUpdated += time;
   }
 
   static commonTower = {
@@ -76,12 +78,12 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.common, target);
+        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize * 2, scene.unitSize * 2, damage, range, Bullet.common, target);
       });
     }
   }
@@ -92,8 +94,8 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    unitsCloserToTarget: 5,
+    attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
@@ -110,7 +112,7 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Triple Tower',
     executeOnUpdate: (that, time) => {
@@ -129,29 +131,12 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 100,
+    attackInterval: 100,
     texture: 'towerTexture',
     description: 'Fast Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-      });
-    }
-  }
-
-  static laserTower = {
-    heightRatio: 1,
-    widthRatio: 1,
-    price: 250,
-    damage: 100,
-    rangeUnits: 150,
-    unitsCloserToTarget: 1.5,
-    attackVelocity: 500,
-    texture: 'towerTexture',
-    description: 'Laser',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize * 15, damage, range, Bullet.laser);
       });
     }
   }
@@ -163,7 +148,7 @@ export class Tower extends GameObject {
     damage: 100,
     rangeUnits: 150,
     unitsCloserToTarget: 1,
-    attackVelocity: 500,
+    attackInterval: 500,
     texture: 'towerTexture',
     description: 'light',
     executeOnUpdate: (that, time) => {
@@ -184,7 +169,7 @@ export class Tower extends GameObject {
     damage: 0,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Ice Plasma',
     executeOnUpdate: (that, time) => {
@@ -201,7 +186,7 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Bomb Tower',
     executeOnUpdate: (that, time) => {
@@ -218,7 +203,7 @@ export class Tower extends GameObject {
     damage: 1,
     rangeUnits: 8,
     unitsCloserToTarget: 2.3,
-    attackVelocity: 300,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Circle Tower',
     executeOnUpdate: (that, time) => {
@@ -235,7 +220,7 @@ export class Tower extends GameObject {
     damage: 0,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 1000,
+    attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Teleport Tower',
     executeOnUpdate: (that, time) => {
@@ -251,7 +236,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 5000,
     rangeUnits: 800,
-    attackVelocity: 500,
+    attackInterval: 500,
     texture: 'towerTexture',
     description: 'Mine Tower',
     executeOnUpdate: (that, time) => {
@@ -271,7 +256,7 @@ export class Tower extends GameObject {
     damage: 0,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 200,
+    attackInterval: 200,
     texture: 'towerTexture',
     description: 'Damage Tower',
     executeOnUpdate: (that, time) => {
@@ -288,7 +273,7 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackVelocity: 300,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Bouncing Tower',
     executeOnUpdate: (that, time) => {
@@ -297,6 +282,4 @@ export class Tower extends GameObject {
       });
     }
   }
-
-
 }
