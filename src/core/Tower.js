@@ -50,7 +50,7 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x+(this.scene.unitSize*0.8) , this.target.y);
+        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
         shotFn(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
       }
       this.lastTimeFired = time;
@@ -83,7 +83,7 @@ export class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize * 2, scene.unitSize * 2, damage, range, Bullet.common, target);
+        new Bullet(scene, groupBullets, x, y, angle, range, Bullet.common, target);
       });
     }
   }
@@ -95,12 +95,12 @@ export class Tower extends GameObject {
     damage: 2000,
     rangeUnits: 18,
     unitsCloserToTarget: 5,
-    attackInterval: 100,
+    attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 2, scene.unitSize / 2, damage, range, Bullet.laser, target);
+        new Bullet(scene, groupBullets, x, y, angle, range, Bullet.laser, target);
       });
     }
   }

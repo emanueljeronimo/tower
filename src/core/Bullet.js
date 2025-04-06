@@ -1,20 +1,19 @@
 import { GameObject } from './GameObject.js';
 
 export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, height, width, damage, range, config, target) {
-    super(scene, group, x, y, null, height, width);
+  constructor(scene, group, x, y, angle, range, config, target) {
+    super(scene, group, x, y, null, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     Object.assign(this, config);
     this.startX = x;
     this.startY = y;
-    this.damage = damage;
     this.range = range;
     this.angle = angle;
     this.scene = scene;
     this.target = target;
     this.visible = false;
     this.setTexture(config.texture);
+    this.setOrigin(0, 0.5); 
     this.setDirection(angle);
-    this.afterInit && this.afterInit(this);
   }
 
   hit(enemy) {
@@ -28,15 +27,16 @@ export class Bullet extends GameObject {
 
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-    //TODO: check this something is not working well
+   
     if (distance > this.unitsToDestroy * this.scene.unitSize) {
       this.destroy();
       this.group.remove(this);
       return;
     }
 
-    if (distance > this.unitsToSetVisible * this.scene.unitSize){
+    if (!this.visible && distance > this.unitsToSetVisible * this.scene.unitSize){
       this.visible = true;
+      this.afterVisible && this.afterVisible(this);
     }
 
     if (this.target && this.target.health > 0 && this.follow) {
@@ -56,7 +56,7 @@ export class Bullet extends GameObject {
   static initTextures(scene) {
     // Crear un lienzo HTML5
     const canvasBullet = document.createElement('canvas');
-    const radiusBullet  = scene.unitSize/4; // Radio para una forma redondeada
+    const radiusBullet  = scene.unitSize / 4; // Radio para una forma redondeada
     canvasBullet.width = radiusBullet  * 2; // Doble del radio para la textura
     canvasBullet.height = radiusBullet  * 2; // Doble del radio para la textura
     const contextBullet  = canvasBullet.getContext('2d');
@@ -73,28 +73,54 @@ export class Bullet extends GameObject {
     contextBullet.fill();
 
     // Crear una textura a partir del lienzo
-    scene.textures.addCanvas('bullet-texture', canvasBullet);
-    
+    scene.textures.addCanvas('bullet-texture', canvasBullet);  
 
     const canvasLaser = document.createElement('canvas');
-    const widthLaser = scene.unitSize * 20;
-    const heightLaser = scene.unitSize * 1;
+    const widthLaser = scene.unitSize * 25;
+    const heightLaser = scene.unitSize * 0.3;
     canvasLaser.width = widthLaser;
     canvasLaser.height = heightLaser;
     const contextLaser = canvasLaser.getContext('2d');
 
     const gradientLaser = contextLaser.createLinearGradient(0, 0, 0, heightLaser);
-    gradientLaser.addColorStop(0, '#FF0600');
-    gradientLaser.addColorStop(0.5, '#FF6600');
-    gradientLaser.addColorStop(1, '#00FF00');
+    gradientLaser.addColorStop(0, '#AAEEFF');  
+    gradientLaser.addColorStop(0.4, '#3399FF');
+    gradientLaser.addColorStop(1, '#001144');
 
     contextLaser.fillStyle = gradientLaser;
     contextLaser.fillRect(0, 0, widthLaser, heightLaser);
 
     scene.textures.addCanvas('laser-texture', canvasLaser);
+
+    // Crear textura para partículas redondas y brillantes (sparkle)
+    const canvasSparkle = document.createElement('canvas');
+    const sparkleSize = scene.unitSize; // Tamaño base
+    canvasSparkle.width = sparkleSize;
+    canvasSparkle.height = sparkleSize;
+    const ctxSparkle = canvasSparkle.getContext('2d');
+
+    // Degradado radial desde el centro
+    const gradientSparkle = ctxSparkle.createRadialGradient(
+      sparkleSize / 2, sparkleSize / 2, 0,
+      sparkleSize / 2, sparkleSize / 2, sparkleSize / 2
+    );
+    gradientSparkle.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradientSparkle.addColorStop(0.4, 'rgba(255, 255, 200, 0.8)');
+    gradientSparkle.addColorStop(1, 'rgba(255, 255, 200, 0)');
+
+    ctxSparkle.fillStyle = gradientSparkle;
+    ctxSparkle.beginPath();
+    ctxSparkle.arc(sparkleSize / 2, sparkleSize / 2, sparkleSize / 2, 0, Math.PI * 2);
+    ctxSparkle.fill();
+
+    // Registrar la textura
+    scene.textures.addCanvas('sparkle-texture', canvasSparkle);
   }
 
   static common = {
+    damage: 20,
+    heightUnits: 1,
+    widthUnits: 1,
     texture: 'bullet-texture',
     velocity: 800,
     follow: true,
@@ -102,10 +128,10 @@ export class Bullet extends GameObject {
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
 
-    afterInit: (that) => {
+    afterVisible: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
         speed: { min: 200, max: 400 },
-        angle: that.angle + 180, // Opuesto al disparo
+        //angle: that.angle + 180, // Opuesto al disparo
         lifespan: 100, // Desaparece rápido
         scale: { start: 0.5, end: 0 },
         tint: [0xffff00, 0xff5500], // Amarillo y naranja
@@ -131,37 +157,38 @@ export class Bullet extends GameObject {
   };
 
   static laser = {
+    damage: 20,
+    heightUnits: 1,
+    widthUnits: 1,
     texture: 'laser-texture',
     velocity: 1500,
     follow: false,
     destroyAfterHit: false,
-    unitsToSetVisible: 3.5,
+    unitsToSetVisible: 1,
     unitsToDestroy: 16,
 
-    afterInit: (that) => {
-      /*const beamEffect = that.scene.add.particles(that.x, that.y, 'laser-texture', {
-        speed: { min: 1000, max: 1000 },
-        angle: that.angle,
-        lifespan: 100,
-        scale: { start: 1, end: 0.5 },
-        tint: [0xff0000, 0xff6600, 0xffff00],
+    afterVisible: (that) => {
+      const sparkleEffect = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
+        speed: { min: 30, max: 80 },
+        angle: { min: 0, max: 360 },
+        lifespan: 250,
+        scale: { start: 0.5, end: 0 },
+        alpha: { start: 1, end: 0 },
         blendMode: 'ADD'
       });
-
-      that.scene.time.delayedCall(100, () => beamEffect.destroy());*/
+      that.scene.time.delayedCall(250, () => sparkleEffect.destroy());
     },
 
     afterHit: (that, enemy) => {
-      /*const impactParticles = that.scene.add.particles(that.x, that.y, 'laser-texture', {
-        speed: { min: 50, max: 200 },
+      const sparkleEffect = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
+        speed: { min: 30, max: 80 },
         angle: { min: 0, max: 360 },
-        lifespan: 150,
-        scale: { start: 0.6, end: 0 },
-        tint: [0xff0000, 0xff6600, 0xffff00],
+        lifespan: 250,
+        scale: { start: 0.5, end: 0 },
+        alpha: { start: 1, end: 0 },
         blendMode: 'ADD'
       });
-
-      that.scene.time.delayedCall(150, () => impactParticles.destroy());*/
+      that.scene.time.delayedCall(250, () => sparkleEffect.destroy());
     }
   };
 }
