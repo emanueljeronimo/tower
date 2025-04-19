@@ -1,19 +1,18 @@
 import { GameObject } from './GameObject.js';
 
 export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, range, config, target) {
-    super(scene, group, x, y, null, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
+  constructor(scene, group, x, y, angle, config, target, range) {
+    super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
+    this.target = target;
     Object.assign(this, config);
+    angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
+    this.angle = angle;
+    this.setDirection(angle);
     this.startX = x;
     this.startY = y;
     this.range = range;
-    this.angle = angle;
     this.scene = scene;
-    this.target = target;
-    this.visible = false;
-    this.setTexture(config.texture);
-    this.setOrigin(0, 0.5); 
-    this.setDirection(angle);
+    this.visible = false;   
   }
 
   hit(enemy) {
@@ -26,7 +25,7 @@ export class Bullet extends GameObject {
   }
 
   update(delta) {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
+    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.getCenter().x, this.getCenter().y);
    
     if (distance > this.unitsToDestroy * this.scene.unitSize) {
       this.destroy();
@@ -40,7 +39,7 @@ export class Bullet extends GameObject {
     }
 
     if (this.target && this.target.health > 0 && this.follow) {
-      const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
+      const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
       this.setDirection(angle);
     }
 
@@ -51,12 +50,339 @@ export class Bullet extends GameObject {
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
+    
+  }
+
+  static initTextures(scene) {
+    // Textura de bala original
+    const canvasBullet = document.createElement('canvas');
+    const radiusBullet  = scene.unitSize; 
+    canvasBullet.width = radiusBullet  * 2;
+    canvasBullet.height = radiusBullet  * 2;
+    const contextBullet  = canvasBullet.getContext('2d');
+
+    const gradientBullet = contextBullet.createLinearGradient(0, 0, 0, 30);
+    gradientBullet.addColorStop(0, '#FFFF00');
+    gradientBullet.addColorStop(1, '#FF5500');
+
+    contextBullet.fillStyle = gradientBullet;
+    contextBullet.beginPath();
+    contextBullet.arc(radiusBullet, radiusBullet, radiusBullet, 0, Math.PI * 2, false);
+    contextBullet.fill();
+
+    scene.textures.addCanvas('bullet-texture', canvasBullet);  
+
+    // Nueva textura para el orbe de energía
+    const canvasEnergyOrb = document.createElement('canvas');
+    const sizeOrb = scene.unitSize * 1.2;
+    canvasEnergyOrb.width = sizeOrb;
+    canvasEnergyOrb.height = sizeOrb;
+    const contextOrb = canvasEnergyOrb.getContext('2d');
+
+    // Crear un degradado radial para el orbe
+    const gradientOrb = contextOrb.createRadialGradient(
+      sizeOrb/2, sizeOrb/2, 0,
+      sizeOrb/2, sizeOrb/2, sizeOrb/2
+    );
+    
+    // Colores vibrantes para el centro del orbe
+    gradientOrb.addColorStop(0, '#FF00FF');    // Magenta brillante en el centro
+    gradientOrb.addColorStop(0.3, '#8A2BE2');  // Azul violeta
+    gradientOrb.addColorStop(0.6, '#4B0082');  // Índigo
+    gradientOrb.addColorStop(1, '#000066');    // Azul oscuro en el borde
+
+    contextOrb.fillStyle = gradientOrb;
+    contextOrb.beginPath();
+    contextOrb.arc(sizeOrb/2, sizeOrb/2, sizeOrb/2, 0, Math.PI * 2, false);
+    contextOrb.fill();
+
+    // Agregar un brillo alrededor
+    contextOrb.globalCompositeOperation = 'lighter';
+    const glowGradient = contextOrb.createRadialGradient(
+      sizeOrb/2, sizeOrb/2, sizeOrb*0.4,
+      sizeOrb/2, sizeOrb/2, sizeOrb*0.7
+    );
+    glowGradient.addColorStop(0, 'rgba(255, 0, 255, 0.5)');
+    glowGradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+    
+    contextOrb.fillStyle = glowGradient;
+    contextOrb.beginPath();
+    contextOrb.arc(sizeOrb/2, sizeOrb/2, sizeOrb/2, 0, Math.PI * 2, false);
+    contextOrb.fill();
+
+    scene.textures.addCanvas('energy-orb-texture', canvasEnergyOrb);
+
+    // Textura para partículas del orbe
+    const canvasOrbParticle = document.createElement('canvas');
+    const particleSize = scene.unitSize * 0.7; 
+    canvasOrbParticle.width = particleSize;
+    canvasOrbParticle.height = particleSize;
+    const ctxParticle = canvasOrbParticle.getContext('2d');
+
+    const gradientParticle = ctxParticle.createRadialGradient(
+      particleSize/2, particleSize/2, 0,
+      particleSize/2, particleSize/2, particleSize/2
+    );
+    
+    gradientParticle.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradientParticle.addColorStop(0.5, 'rgba(230, 0, 255, 0.7)');
+    gradientParticle.addColorStop(1, 'rgba(100, 0, 255, 0)');
+
+    ctxParticle.fillStyle = gradientParticle;
+    ctxParticle.beginPath();
+    ctxParticle.arc(particleSize/2, particleSize/2, particleSize/2, 0, Math.PI * 2);
+    ctxParticle.fill();
+
+    scene.textures.addCanvas('orb-particle-texture', canvasOrbParticle);
+
+    // Textura para chispas de impacto
+    const canvasSparkle = document.createElement('canvas');
+    const sparkleSize = scene.unitSize; 
+    canvasSparkle.width = sparkleSize;
+    canvasSparkle.height = sparkleSize;
+    const ctxSparkle = canvasSparkle.getContext('2d');
+
+    const gradientSparkle = ctxSparkle.createRadialGradient(
+      sparkleSize/2, sparkleSize/2, 0,
+      sparkleSize/2, sparkleSize/2, sparkleSize/2
+    );
+    gradientSparkle.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradientSparkle.addColorStop(0.4, 'rgba(255, 255, 200, 0.8)');
+    gradientSparkle.addColorStop(1, 'rgba(255, 255, 200, 0)');
+
+    ctxSparkle.fillStyle = gradientSparkle;
+    ctxSparkle.beginPath();
+    ctxSparkle.arc(sparkleSize/2, sparkleSize/2, sparkleSize/2, 0, Math.PI * 2);
+    ctxSparkle.fill();
+
+    scene.textures.addCanvas('sparkle-texture', canvasSparkle);
+  }
+
+  static common = {
+    damage: 20,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'bullet-texture',
+    velocity: 800,
+    follow: true,
+    destroyAfterHit: true,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+
+    afterVisible: (that) => {
+      const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
+        speed: { min: 200, max: 400 },
+        lifespan: 100,
+        scale: { start: 0.5, end: 0 },
+        tint: [0xffff00, 0xff5500],
+        blendMode: 'ADD'
+      });
+      that.scene.time.delayedCall(100, () => muzzleFlash.destroy());
+    },
+
+    afterHit: (that, enemy) => {
+      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
+        speed: { min: 50, max: 200 },
+        angle: { min: 0, max: 360 },
+        lifespan: 150,
+        scale: { start: 0.4, end: 0 },
+        tint: [0xffff00, 0xff5500],
+        blendMode: 'ADD'
+      });
+
+      that.scene.time.delayedCall(150, () => impactParticles.destroy());
+      that.destroy();
+      that.group.remove(that);
+    }
+  };
+
+  static energyOrb = {
+    damage: 20000,
+    heightUnits: 1.2,
+    widthUnits: 1.2,
+    texture: 'energy-orb-texture',
+    velocity: 1300,
+    follow: true,
+    destroyAfterHit: false,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+    
+    afterUpdate: (that, delta) => {
+      // Hacer que el orbe pulse ligeramente
+      const pulseFactor = 0.1;
+      const pulseSpeed = 0.003;
+      that.scaleX = 1 + Math.sin(that.scene.time.now * pulseSpeed) * pulseFactor;
+      that.scaleY = that.scaleX;
+      
+      // Rotar el orbe lentamente para efecto visual
+      that.angle += 1;
+    },
+
+    afterVisible: (that) => {
+      // Estela principal del orbe (colores vibrantes)
+      that.trailEmitter = that.scene.add.particles(0, 0, 'orb-particle-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 15,
+        quantity: 2,
+        scale: { start: 0.8, end: 0.2 },
+        alpha: { start: 0.8, end: 0 },
+        lifespan: 400,
+        speed: { min: 10, max: 30 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
+        rotate: { min: -180, max: 180 }
+      });
+      
+      // Partículas de energía dispersas
+      that.sparkleEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 40,
+        quantity: 1,
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 300,
+        speed: { min: 60, max: 120 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
+      });
+      
+      // Efecto de aura luminosa
+      that.auraEmitter = that.scene.add.particles(0, 0, 'orb-particle-texture', {
+        follow: that,
+        quantity: 1,
+        frequency: 60,
+        scale: { start: 1.5, end: 0.3 },
+        alpha: { start: 0.2, end: 0 },
+        lifespan: 200,
+        blendMode: 'ADD',
+        tint: 0x9400D3
+      });
+      
+      // Limpiar cuando se destruya el orbe
+      that.on('destroy', () => {
+        if (that.trailEmitter) that.trailEmitter.destroy();
+        if (that.sparkleEmitter) that.sparkleEmitter.destroy();
+        if (that.auraEmitter) that.auraEmitter.destroy();
+      });
+    },
+
+    afterHit: (that, enemy) => {
+      // Explosión de energía en el impacto
+      const impactBurst = that.scene.add.particles(that.x, that.y, 'orb-particle-texture', {
+        speed: { min: 100, max: 250 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.8, end: 0.1 },
+        alpha: { start: 0.8, end: 0 },
+        lifespan: 350,
+        blendMode: 'ADD',
+        tint: [0xFF00FF, 0x8A2BE2, 0x9400D3, 0xB31BE2],
+        quantity: 20,
+        emitting: false
+      });
+      
+      // Ondas de energía que se expanden
+      const energyWave = that.scene.add.particles(that.x, that.y, 'orb-particle-texture', {
+        speed: { min: 50, max: 150 },
+        scale: { start: 0.1, end: 2 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 400,
+        blendMode: 'ADD',
+        tint: 0xC71585,
+        quantity: 5,
+        emitting: false
+      });
+      
+      // Chispas brillantes
+      const sparkles = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
+        speed: { min: 150, max: 300 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 350,
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFF00FF],
+        quantity: 15,
+        emitting: false
+      });
+      
+      // Emitir todas las partículas a la vez para el efecto de explosión
+      impactBurst.explode();
+      energyWave.explode();
+      sparkles.explode();
+      
+      // Limpieza
+      that.scene.time.delayedCall(400, () => {
+        impactBurst.destroy();
+        energyWave.destroy();
+        sparkles.destroy();
+      });
+    }
+  };
+}
+
+/*import { GameObject } from './GameObject.js';
+
+export class Bullet extends GameObject {
+  constructor(scene, group, x, y, angle, config, target, range) {
+    super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
+    this.target = target;
+    Object.assign(this, config);
+    angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
+    this.angle = angle;
+    this.setDirection(angle);
+    this.startX = x;
+    this.startY = y;
+    this.range = range;
+    this.scene = scene;
+    this.visible = false;   
+  }
+
+  hit(enemy) {
+    enemy.takeDamage(this.damage);
+    this.afterHit && this.afterHit(this, enemy);
+    if (this.destroyAfterHit) {
+      this.destroy();
+      this.group.remove(this);
+    }
+  }
+
+  update(delta) {
+    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.getCenter().x, this.getCenter().y);
+   
+    if (distance > this.unitsToDestroy * this.scene.unitSize) {
+      this.destroy();
+      this.group.remove(this);
+      return;
+    }
+
+    if (!this.visible && distance > this.unitsToSetVisible * this.scene.unitSize){
+      this.visible = true;
+      this.afterVisible && this.afterVisible(this);
+    }
+
+    if (this.target && this.target.health > 0 && this.follow) {
+      const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
+      this.setDirection(angle);
+    }
+
+    this.afterUpdate && this.afterUpdate(this, delta);
+  }
+
+  setDirection(angle) {
+    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+    this.setVelocityX(Math.cos(angle) * this.velocity);
+    this.setVelocityY(Math.sin(angle) * this.velocity);
+    
   }
 
   static initTextures(scene) {
     // Crear un lienzo HTML5
     const canvasBullet = document.createElement('canvas');
-    const radiusBullet  = scene.unitSize / 4; // Radio para una forma redondeada
+    const radiusBullet  = scene.unitSize; // Radio para una forma redondeada
     canvasBullet.width = radiusBullet  * 2; // Doble del radio para la textura
     canvasBullet.height = radiusBullet  * 2; // Doble del radio para la textura
     const contextBullet  = canvasBullet.getContext('2d');
@@ -76,8 +402,8 @@ export class Bullet extends GameObject {
     scene.textures.addCanvas('bullet-texture', canvasBullet);  
 
     const canvasLaser = document.createElement('canvas');
-    const widthLaser = scene.unitSize * 25;
-    const heightLaser = scene.unitSize * 0.3;
+    const widthLaser = scene.unitSize * 1;
+    const heightLaser = scene.unitSize * 1;
     canvasLaser.width = widthLaser;
     canvasLaser.height = heightLaser;
     const contextLaser = canvasLaser.getContext('2d');
@@ -157,26 +483,50 @@ export class Bullet extends GameObject {
   };
 
   static laser = {
-    damage: 20,
-    heightUnits: 1,
-    widthUnits: 1,
+    damage: 20000,
+    heightUnits: 0.5,
+    widthUnits: 0.5,
     texture: 'laser-texture',
     velocity: 1500,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
-
+   
     afterVisible: (that) => {
-      const sparkleEffect = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
-        speed: { min: 30, max: 80 },
-        angle: { min: 0, max: 360 },
-        lifespan: 250,
-        scale: { start: 0.5, end: 0 },
-        alpha: { start: 1, end: 0 },
-        blendMode: 'ADD'
+      // Crear una estela luminosa mejorada
+      that.trailEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 20,
+        quantity: 25,
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 0.6, end: 0 },
+        lifespan: 300,
+        speed: { min: 10, max: 30 }, // Velocidad aleatoria para movimiento orgánico
+        angle: { min: 0, max: 360 }, // Dirección aleatoria
+        blendMode: 'ADD',
+        tint: [0x88CCFF, 0x00AAFF, 0x0066FF, 0xAAEEFF, 0x44FFFF], // Gama de azules
       });
-      that.scene.time.delayedCall(250, () => sparkleEffect.destroy());
+      
+      // Algunas partículas brillantes adicionales
+      that.sparkleEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 30,
+        quantity: 50,
+        scale: { start: 0.5, end: 0.1 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 350,
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xEEFFFF], // Partículas blancas brillantes
+      });
+      
+      // Limpiar cuando se destruya la bala
+      that.on('destroy', () => {
+        if (that.trailEmitter) that.trailEmitter.destroy();
+        if (that.sparkleEmitter) that.sparkleEmitter.destroy();
+      });
     },
 
     afterHit: (that, enemy) => {
@@ -191,7 +541,7 @@ export class Bullet extends GameObject {
       that.scene.time.delayedCall(250, () => sparkleEffect.destroy());
     }
   };
-}
+}*/
 
 
 /*import { GameObject } from './GameObject.js';

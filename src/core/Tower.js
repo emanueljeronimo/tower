@@ -17,6 +17,7 @@ export class Tower extends GameObject {
     this.groupBullets = groupBullets;
     this.groupEnemies = groupEnemies;
     this.rangeCircle = scene.add.circle(this.x, this.y, this.range, 0x0000ff, 0.2).setVisible(false);
+    this.setOrigin(0.5, 0.5);
     if (canSellIt) {
       this.setInteractive();
       this.on('pointerdown', this.click, this);
@@ -50,15 +51,14 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
-        shotFn(this.scene, this.groupBullets, this.x, this.y, this.target, angle, this.damage, this.range);
+        shotFn(this.scene, this.groupBullets, this.getCenter().x, this.getCenter().y, this.target, this.rangeUnits * this.scene.unitSize);
       }
       this.lastTimeFired = time;
     }
   }
   alignWithTarget(){
-    if (this.lastTimeUpdated > this.attackInterval && this.target) {
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
+    if (/*this.lastTimeUpdated > this.attackInterval &&*/ this.target) {
+      const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
       this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
       this.lastTimeUpdated = 0;
     }
@@ -82,8 +82,8 @@ export class Tower extends GameObject {
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, range, Bullet.common, target);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, range, Bullet.common, target, range);
       });
     }
   }
@@ -99,8 +99,8 @@ export class Tower extends GameObject {
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, range, Bullet.laser, target);
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, range, Bullet.energyOrb, target, range);
       });
     }
   }
