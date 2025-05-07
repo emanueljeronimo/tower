@@ -83,12 +83,12 @@ export class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, range, Bullet.common, target, range);
+        new Bullet(scene, groupBullets, x, y, Bullet.common, target, range);
       });
     }
   }
 
-  static laserTower = {
+  static energyOrbTower = {
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
@@ -100,7 +100,41 @@ export class Tower extends GameObject {
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, range, Bullet.energyOrb, target, range);
+        new Bullet(scene, groupBullets, x, y, Bullet.energyOrb, target, range);
+      });
+    }
+  }
+
+  static bouncerTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 2000,
+    rangeUnits: 18,
+    unitsCloserToTarget: 5,
+    attackInterval: 500,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {      
+        new Bullet(scene, groupBullets, x, y, Bullet.bouncer, target, range);
+      });
+    }
+  }
+
+  static bombTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
+    attackInterval: 100,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.bomb, target, range);
       });
     }
   }
@@ -179,23 +213,6 @@ export class Tower extends GameObject {
     }
   }
 
-  static bombTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 50,
-    rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
-    attackInterval: 300,
-    texture: 'towerTexture',
-    description: 'Bomb Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bomb);
-      });
-    }
-  }
-
   static circleTower = {
     heightRatio: 1,
     widthRatio: 2,
@@ -266,20 +283,5 @@ export class Tower extends GameObject {
     }
   }
 
-  static bouncerTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 50,
-    rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
-    attackInterval: 300,
-    texture: 'towerTexture',
-    description: 'Bouncing Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {      
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.bouncer);
-      });
-    }
-  }
+ 
 }

@@ -58,16 +58,7 @@ class Game extends Phaser.Scene {
 
     this.load.image('enemy', 'assets/enemy-3.png');
     this.load.image('towerTexture', 'assets/tower-2.png');
-
-    this.load.image('laser-tower', 'assets/laser-tower.png');
-    this.load.image('light-bulb', 'assets/light-bulb.png');
-    this.load.image('ice-plasma-shot', 'assets/ice-plasma-shot.png');
-    this.load.image('circle-shot', 'assets/circle-shot.png');
-
-    this.load.image('laser', 'assets/laser.png');
-    this.load.image('common-bullet', 'assets/common-bullet.png');
-    this.load.image('light-bulb-shot', 'assets/light-bulb-shot.png');
-    this.load.image('ice-plasma', 'assets/ice-plasma.png');
+    
     Bullet.initTextures(this);
   }
 
@@ -224,7 +215,7 @@ var config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 },
-      debug: true,
+      debug: false,
     },
   },
   scene: Game,

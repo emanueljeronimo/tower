@@ -1,13 +1,19 @@
 import { GameObject } from './GameObject.js';
+import { Utils } from './Utils.js';
 
 export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, config, target, range) {
+  constructor(scene, group, x, y, config, target, range, angle) {
     super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     this.target = target;
     Object.assign(this, config);
-    angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
-    this.angle = angle;
-    this.setDirection(angle);
+
+    if (this.target) {
+      this.angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
+      this.setDirection(this.angle);
+    } else if (angle) {
+      this.setDirection(angle);
+    }
+
     this.startX = x;
     this.startY = y;
     this.range = range;
@@ -156,10 +162,73 @@ export class Bullet extends GameObject {
     ctxSparkle.fill();
 
     scene.textures.addCanvas('sparkle-texture', canvasSparkle);
+
+    const bouncer = scene.add.graphics();
+    // Ejemplo: un cuadrado con borde y gradiente
+    bouncer.lineStyle(6, 0x00ffff, 1); // Color neón, sin relleno
+    bouncer.strokeRect(0, 0, scene.unitSize, scene.unitSize);
+    bouncer.generateTexture('bouncer-texture', 32, 32);
+    bouncer.destroy();
+
+    const canvasSplitProjectile = document.createElement('canvas');
+    const sizeSplit = scene.unitSize * 1.1;
+    canvasSplitProjectile.width = sizeSplit;
+    canvasSplitProjectile.height = sizeSplit;
+    const ctxSplit = canvasSplitProjectile.getContext('2d');
+    
+    // Paso 1: núcleo brillante
+    const coreGradient = ctxSplit.createRadialGradient(
+      sizeSplit/2, sizeSplit/2, 0,
+      sizeSplit/2, sizeSplit/2, sizeSplit/3
+    );
+    coreGradient.addColorStop(0, '#FF00FF'); // Centro puro
+    coreGradient.addColorStop(1, '#1900FF'); // Magenta vibrante
+    
+    ctxSplit.fillStyle = coreGradient;
+    ctxSplit.beginPath();
+    ctxSplit.arc(sizeSplit/2, sizeSplit/2, sizeSplit*0.3, 0, Math.PI * 2);
+    ctxSplit.fill();
+    
+    // Paso 2: halo energético
+    ctxSplit.globalCompositeOperation = 'lighter';
+    const haloGradient = ctxSplit.createRadialGradient(
+      sizeSplit/2, sizeSplit/2, sizeSplit*0.4,
+      sizeSplit/2, sizeSplit/2, sizeSplit*0.6
+    );
+    haloGradient.addColorStop(0, 'rgba(25, 0, 255, 0.4)');
+    haloGradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+    
+    ctxSplit.fillStyle = haloGradient;
+    ctxSplit.beginPath();
+    ctxSplit.arc(sizeSplit/2, sizeSplit/2, sizeSplit*0.6, 0, Math.PI * 2);
+    ctxSplit.fill();
+    
+    // Paso 3: fragmentos visuales (rayos o grietas)
+    ctxSplit.strokeStyle = 'rgba(25, 0, 255, 0.8)';
+    ctxSplit.lineWidth = 1.2;
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.3;
+      const length = sizeSplit * 0.4 + Math.random() * 4;
+      ctxSplit.beginPath();
+      ctxSplit.moveTo(sizeSplit / 2, sizeSplit / 2);
+      ctxSplit.lineTo(
+        sizeSplit / 2 + Math.cos(angle) * length,
+        sizeSplit / 2 + Math.sin(angle) * length
+      );
+      ctxSplit.stroke();
+    }
+    
+    scene.textures.addCanvas('void-sphere-texture', canvasSplitProjectile);
+    
+   //scene.textures.addCanvas('void-sphere-texture', canvasFloatCore);
+   
+
+  
+
   }
 
   static common = {
-    damage: 20,
+    damage: 1,
     heightUnits: 1,
     widthUnits: 1,
     texture: 'bullet-texture',
@@ -190,19 +259,19 @@ export class Bullet extends GameObject {
         blendMode: 'ADD'
       });
 
-      that.scene.time.delayedCall(150, () => impactParticles.destroy());
+      that.scene.time.delayedCall(350, () => impactParticles.destroy());
       that.destroy();
       that.group.remove(that);
     }
   };
 
   static energyOrb = {
-    damage: 20000,
+    damage: 1,
     heightUnits: 1.2,
     widthUnits: 1.2,
     texture: 'energy-orb-texture',
-    velocity: 1300,
-    follow: true,
+    velocity: 1500,
+    follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
@@ -322,435 +391,125 @@ export class Bullet extends GameObject {
       });
     }
   };
-}
 
-/*import { GameObject } from './GameObject.js';
+  static bouncer = {
 
-export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, config, target, range) {
-    super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
-    this.target = target;
-    Object.assign(this, config);
-    angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
-    this.angle = angle;
-    this.setDirection(angle);
-    this.startX = x;
-    this.startY = y;
-    this.range = range;
-    this.scene = scene;
-    this.visible = false;   
-  }
-
-  hit(enemy) {
-    enemy.takeDamage(this.damage);
-    this.afterHit && this.afterHit(this, enemy);
-    if (this.destroyAfterHit) {
-      this.destroy();
-      this.group.remove(this);
-    }
-  }
-
-  update(delta) {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.getCenter().x, this.getCenter().y);
-   
-    if (distance > this.unitsToDestroy * this.scene.unitSize) {
-      this.destroy();
-      this.group.remove(this);
-      return;
-    }
-
-    if (!this.visible && distance > this.unitsToSetVisible * this.scene.unitSize){
-      this.visible = true;
-      this.afterVisible && this.afterVisible(this);
-    }
-
-    if (this.target && this.target.health > 0 && this.follow) {
-      const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
-      this.setDirection(angle);
-    }
-
-    this.afterUpdate && this.afterUpdate(this, delta);
-  }
-
-  setDirection(angle) {
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * this.velocity);
-    this.setVelocityY(Math.sin(angle) * this.velocity);
-    
-  }
-
-  static initTextures(scene) {
-    // Crear un lienzo HTML5
-    const canvasBullet = document.createElement('canvas');
-    const radiusBullet  = scene.unitSize; // Radio para una forma redondeada
-    canvasBullet.width = radiusBullet  * 2; // Doble del radio para la textura
-    canvasBullet.height = radiusBullet  * 2; // Doble del radio para la textura
-    const contextBullet  = canvasBullet.getContext('2d');
-
-    // Crear un degradado de color amarillo a naranja
-    const gradientBullet = contextBullet.createLinearGradient(0, 0, 0, 30);
-    gradientBullet.addColorStop(0, '#FFFF00'); // Amarillo
-    gradientBullet.addColorStop(1, '#FF5500'); // Naranja
-
-    // Rellenar el círculo con el degradado
-    contextBullet.fillStyle = gradientBullet;
-    contextBullet.beginPath();
-    contextBullet.arc(radiusBullet, radiusBullet, radiusBullet, 0, Math.PI * 2, false); // Círculo
-    contextBullet.fill();
-
-    // Crear una textura a partir del lienzo
-    scene.textures.addCanvas('bullet-texture', canvasBullet);  
-
-    const canvasLaser = document.createElement('canvas');
-    const widthLaser = scene.unitSize * 1;
-    const heightLaser = scene.unitSize * 1;
-    canvasLaser.width = widthLaser;
-    canvasLaser.height = heightLaser;
-    const contextLaser = canvasLaser.getContext('2d');
-
-    const gradientLaser = contextLaser.createLinearGradient(0, 0, 0, heightLaser);
-    gradientLaser.addColorStop(0, '#AAEEFF');  
-    gradientLaser.addColorStop(0.4, '#3399FF');
-    gradientLaser.addColorStop(1, '#001144');
-
-    contextLaser.fillStyle = gradientLaser;
-    contextLaser.fillRect(0, 0, widthLaser, heightLaser);
-
-    scene.textures.addCanvas('laser-texture', canvasLaser);
-
-    // Crear textura para partículas redondas y brillantes (sparkle)
-    const canvasSparkle = document.createElement('canvas');
-    const sparkleSize = scene.unitSize; // Tamaño base
-    canvasSparkle.width = sparkleSize;
-    canvasSparkle.height = sparkleSize;
-    const ctxSparkle = canvasSparkle.getContext('2d');
-
-    // Degradado radial desde el centro
-    const gradientSparkle = ctxSparkle.createRadialGradient(
-      sparkleSize / 2, sparkleSize / 2, 0,
-      sparkleSize / 2, sparkleSize / 2, sparkleSize / 2
-    );
-    gradientSparkle.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradientSparkle.addColorStop(0.4, 'rgba(255, 255, 200, 0.8)');
-    gradientSparkle.addColorStop(1, 'rgba(255, 255, 200, 0)');
-
-    ctxSparkle.fillStyle = gradientSparkle;
-    ctxSparkle.beginPath();
-    ctxSparkle.arc(sparkleSize / 2, sparkleSize / 2, sparkleSize / 2, 0, Math.PI * 2);
-    ctxSparkle.fill();
-
-    // Registrar la textura
-    scene.textures.addCanvas('sparkle-texture', canvasSparkle);
-  }
-
-  static common = {
-    damage: 20,
+    damage: 1,
     heightUnits: 1,
     widthUnits: 1,
-    texture: 'bullet-texture',
+    texture: 'bouncer-texture',
+    velocity: 2300,
+    follow: true,
+    destroyAfterHit: false,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 15,
+
+    afterVisible: (that) => {
+      that.setAngularVelocity(1500);
+      const particles = that.scene.add.particles(0, 0, 'bouncer-texture', {
+        lifespan: 300,
+        speed: { min: -20, max: 20 },
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 0.3, end: 0 },
+        frequency: 100,
+        quantity: 1,
+        follow: that,
+        tint: [0xffaa00, 0xffff00]
+      });
+      that.once('destroy', () => particles.destroy());
+    },
+
+    afterHit: (that, enemy) => {
+
+      const burst = that.scene.add.particles(that.x, that.y, 'bouncer-texture', {
+        speed: { min: 50, max: 120 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.8, end: 0.2 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 600,
+        blendMode: 'SCREEN',
+        tint: [0xFFA500, 0xFF4500, 0xFFD700], // naranja, rojo fuego, dorado
+        rotate: { min: -90, max: 90 },
+        quantity: 8,
+        emitting: false
+      });
+      
+      burst.explode();
+      
+      that.scene.time.delayedCall(800, () => {
+        burst.destroy();
+      });
+  
+      that.follow = false;
+      if(!that.rebounds) that.rebounds = 1;
+      if(that.enemy !== enemy) {
+        that.enemy = enemy;
+        let nextEnemy =  Utils.getClosestEnemy(that.enemy, that.scene.enemies, that.x, that.y);
+        if(!nextEnemy) {
+          that.destroy();
+          that.group.remove(that);
+          return;
+        } else {
+          const distance = Phaser.Math.Distance.Between(that.startX, that.startY, nextEnemy.getCenter().x, nextEnemy.getCenter().y);
+          if (distance > that.unitsToDestroy * that.scene.unitSize) {
+            that.destroy();
+            that.group.remove(that);
+            return;
+          }
+        }
+        
+        const angle = Phaser.Math.Angle.Between(that.body.x, that.body.y, nextEnemy.x, nextEnemy.y);
+        that.setAngle(Phaser.Math.RAD_TO_DEG * angle);
+        that.setVelocityX(Math.cos(angle) * that.velocity);
+        that.setVelocityY(Math.sin(angle) * that.velocity); 
+        that.rebounds++;
+      } 
+
+      if(that.rebounds == 8) {
+        that.destroy();
+        that.group.remove(that);
+      }
+    }
+   
+  }
+
+  static bomb = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'void-sphere-texture',
     velocity: 800,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
-
-    afterVisible: (that) => {
-      const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 200, max: 400 },
-        //angle: that.angle + 180, // Opuesto al disparo
-        lifespan: 100, // Desaparece rápido
-        scale: { start: 0.5, end: 0 },
-        tint: [0xffff00, 0xff5500], // Amarillo y naranja
-        blendMode: 'ADD'
-      });
-      that.scene.time.delayedCall(100, () => muzzleFlash.destroy());
-    },
-
     afterHit: (that, enemy) => {
-      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 50, max: 200 },
-        angle: { min: 0, max: 360 },
-        lifespan: 150, // Se desvanecen rápido
-        scale: { start: 0.4, end: 0 },
-        tint: [0xffff00, 0xff5500], // Amarillo y naranja
-        blendMode: 'ADD'
-      });
-
-      that.scene.time.delayedCall(150, () => impactParticles.destroy());
-      that.destroy();
-      that.group.remove(that);
+        for (let i = 0; i < 360; i+=30) {
+            const angle = Phaser.Math.DegToRad(i);        
+            new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
+        }    
+        that.destroy();
+        that.group.remove(that);
     }
-  };
+  }
 
-  static laser = {
-    damage: 20000,
-    heightUnits: 0.5,
-    widthUnits: 0.5,
-    texture: 'laser-texture',
-    velocity: 1500,
-    follow: false,
-    destroyAfterHit: false,
+  static bomb_child = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'void-sphere-texture',
+    velocity: 800,
+    follow: true,
+    destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
-   
-    afterVisible: (that) => {
-      // Crear una estela luminosa mejorada
-      that.trailEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
-        follow: that,
-        followOffset: { x: 0, y: 0 },
-        frequency: 20,
-        quantity: 25,
-        scale: { start: 0.3, end: 0 },
-        alpha: { start: 0.6, end: 0 },
-        lifespan: 300,
-        speed: { min: 10, max: 30 }, // Velocidad aleatoria para movimiento orgánico
-        angle: { min: 0, max: 360 }, // Dirección aleatoria
-        blendMode: 'ADD',
-        tint: [0x88CCFF, 0x00AAFF, 0x0066FF, 0xAAEEFF, 0x44FFFF], // Gama de azules
-      });
-      
-      // Algunas partículas brillantes adicionales
-      that.sparkleEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
-        follow: that,
-        followOffset: { x: 0, y: 0 },
-        frequency: 30,
-        quantity: 50,
-        scale: { start: 0.5, end: 0.1 },
-        alpha: { start: 1, end: 0 },
-        lifespan: 350,
-        blendMode: 'ADD',
-        tint: [0xFFFFFF, 0xEEFFFF], // Partículas blancas brillantes
-      });
-      
-      // Limpiar cuando se destruya la bala
-      that.on('destroy', () => {
-        if (that.trailEmitter) that.trailEmitter.destroy();
-        if (that.sparkleEmitter) that.sparkleEmitter.destroy();
-      });
-    },
-
-    afterHit: (that, enemy) => {
-      const sparkleEffect = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
-        speed: { min: 30, max: 80 },
-        angle: { min: 0, max: 360 },
-        lifespan: 250,
-        scale: { start: 0.5, end: 0 },
-        alpha: { start: 1, end: 0 },
-        blendMode: 'ADD'
-      });
-      that.scene.time.delayedCall(250, () => sparkleEffect.destroy());
-    }
-  };
-}*/
-
-
-/*import { GameObject } from './GameObject.js';
-
-export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, height, width, damage, range, config, target) {
-    super(scene, group, x, y, null, height, width);
-    Object.assign(this, config);
-
-    this.startX = x;
-    this.startY = y;
-    this.damage = damage;
-    this.range = range;
-    this.angle = angle;
-    this.scene = scene;
-    this.target = target;
-
-    // Generar la textura del disparo si aún no existe
-    this.createBulletTexture(scene);
-    this.setTexture('bullet-texture');
-    this.setSize(10, 30);
-
-    this.setDirection(angle);
-
-    // Crear efecto de disparo (chispas al salir)
-    this.createMuzzleFlash();
-
-    this.afterInit && this.afterInit(this);
   }
 
-  createBulletTexture(scene) {
-    if (scene.textures.exists('bullet-texture')) return;
-
-    // Crear un lienzo HTML5
-    const canvas = document.createElement('canvas');
-    canvas.width = 10;
-    canvas.height = 30;
-    const context = canvas.getContext('2d');
-
-    // Crear un degradado de color amarillo a naranja
-    const gradient = context.createLinearGradient(0, 0, 0, 30);
-    gradient.addColorStop(0, '#FFFF00'); // Amarillo
-    gradient.addColorStop(1, '#FF5500'); // Naranja
-
-    // Rellenar el rectángulo con el degradado
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 10, 30);
-
-    // Crear una textura a partir del lienzo
-    scene.textures.addCanvas('bullet-texture', canvas);
-  }
-
-  createMuzzleFlash() {
-    const muzzleFlash = this.scene.add.particles(this.x, this.y, 'bullet-texture', {
-      speed: { min: 200, max: 400 },
-      angle: this.angle + 180, // Opuesto al disparo
-      lifespan: 100, // Desaparece rápido
-      scale: { start: 0.5, end: 0 },
-      tint: [0xffff00, 0xff5500], // Amarillo y naranja
-      blendMode: 'ADD'
-    });
-
-    // Eliminar el efecto después de su duración
-    this.scene.time.delayedCall(100, () => muzzleFlash.destroy());
-  }
-
-  hit(enemy) {
-    enemy.takeDamage(this.damage);
-    
-    // Partículas de impacto al colisionar
-    this.createImpactEffect();
-
-    this.afterHit && this.afterHit(this, enemy);
-    this.destroy();
-    this.group.remove(this);
-  }
-
-  createImpactEffect() {
-    const impactParticles = this.scene.add.particles(this.x, this.y, 'bullet-texture', {
-      speed: { min: 50, max: 200 },
-      angle: { min: 0, max: 360 },
-      lifespan: 150, // Se desvanecen rápido
-      scale: { start: 0.4, end: 0 },
-      tint: [0xffff00, 0xff5500], // Amarillo y naranja
-      blendMode: 'ADD'
-    });
-
-    // Eliminar el efecto después de su duración
-    this.scene.time.delayedCall(150, () => impactParticles.destroy());
-  }
-
-  update(delta) {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-    if (distance > this.range) {
-      this.destroy();
-      this.group.remove(this);
-      return;
-    }
-
-    if (this.target && this.target.health > 0) {
-      const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
-      this.setDirection(angle);
-    }
-
-    this.afterUpdate && this.afterUpdate(this, delta);
-  }
-
-  setDirection(angle) {
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * this.velocity);
-    this.setVelocityY(Math.sin(angle) * this.velocity);
-  }
-
-  static common = {
-    velocity: 800,
-    afterHit: (that, enemy) => {
-      that.destroy();
-      that.group.remove(that);
-    }
-  };
 }
-*/
 
+/*
 
-
-
-
-
-/*import { GameObject } from './GameObject.js';
-
-export class Bullet extends GameObject {
-  constructor(scene, group, x, y, angle, height, width, damage, range, config, target) {
-    super(scene, group, x, y, null, height, width);
-    Object.assign(this, config);
-
-    this.startX = x;
-    this.startY = y;
-    this.damage = damage;
-    this.range = range;
-    this.angle = angle;
-    this.scene = scene;
-    this.target = target;
-
-    // Generar la textura si aún no existe
-    this.createBulletGraphics(scene);
-
-    // Aplicar la textura generada
-    this.setTexture('bullet-texture');
-    this.setSize(10, 30);
-
-    this.setDirection(angle);
-    this.afterInit && this.afterInit(this);
-  }
-
-  createBulletGraphics(scene) {
-    // Evitar recrear la textura si ya existe
-    if (scene.textures.exists('bullet-texture')) return;
-
-    // Crear un gráfico temporal
-    const graphics = scene.add.graphics();
-
-    // Dibujar el disparo (forma alargada con gradiente amarillo-naranja)
-    graphics.fillStyle(0xffaa00, 1); // Amarillo anaranjado
-    graphics.fillRoundedRect(0, 0, 10, 30, 5); // Rectángulo con esquinas redondeadas
-
-    // Generar la textura y eliminar el gráfico temporal
-    graphics.generateTexture('bullet-texture', 10, 30);
-    graphics.destroy();
-  }
-
-  hit(enemy) {
-    enemy.takeDamage(this.damage);
-    this.afterHit && this.afterHit(this, enemy);
-  }
-
-  update(delta) {
-    const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
-    if (distance > this.range) {
-      this.destroy();
-      this.group.remove(this);
-      return;
-    }
-
-    if (this.target && this.target.health > 0) {
-      const angle = Phaser.Math.Angle.Between(this.body.x, this.body.y, this.target.x, this.target.y);
-      this.setDirection(angle);
-    }
-
-    this.afterUpdate && this.afterUpdate(this, delta);
-  }
-
-  setDirection(angle) {
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * this.velocity);
-    this.setVelocityY(Math.sin(angle) * this.velocity);
-  }
-
-  static common = {
-    velocity: 800,
-    afterHit: (that, enemy) => {
-      that.destroy();
-      that.group.remove(that);
-    }
-  };
-}*/
-
-
-
-/*import { Utils } from './Utils.js'
+import { Utils } from './Utils.js'
 import { GameObject } from './GameObject.js'
 
 export class Bullet extends GameObject {
@@ -977,4 +736,6 @@ export class Bullet extends GameObject {
       }
     }
   }
-}*/
+}
+
+*/

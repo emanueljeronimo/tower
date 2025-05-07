@@ -10,7 +10,7 @@ var config = {
 export class TowerMenuContainer extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
     super(scene, x, y);
-
+    this.selectedTower = null;
     this.scene = scene;
     this.enemies = scene.physics.add.group();
     this.bullets = scene.physics.add.group();
@@ -45,13 +45,14 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.laserTower, Tower.fastTower, Tower.laserTower, Tower.lightBulbTower,
+    this.arrTowerConfig = [Tower.commonTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.lightBulbTower,
                            Tower.icePlasma, Tower.bombTower, Tower.circleTower, Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.bouncerTower];
 
     let borderGraphics;
     for(let i=0; i<2; i++) {
       for(let j=0; j<6; j++) {
 
+        let tower = this.arrTowerConfig[j+(6*i)];
         let xoffset= this.scene.unitSize*3;
         let selectButton = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , 'buttonTower');
         selectButton.setSize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
@@ -59,21 +60,23 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
         selectButton.setInteractive();    
 
         selectButton.on('pointerdown', () => {
-            if (borderGraphics) {
-                borderGraphics.destroy();
-            }
-        
-            borderGraphics = this.scene.add.graphics();
-            borderGraphics.lineStyle(2, 0xffffff);
-            borderGraphics.strokeRect(
-                selectButton.x - selectButton.displayWidth / 2,
-                selectButton.y - selectButton.displayHeight / 2,
-                selectButton.displayWidth,
-                selectButton.displayHeight
-            );
+          if (borderGraphics) {
+              borderGraphics.destroy();
+          }
+      
+          borderGraphics = this.scene.add.graphics();
+          borderGraphics.lineStyle(2, 0xffffff);
+          borderGraphics.strokeRect(
+              selectButton.x - selectButton.displayWidth / 2,
+              selectButton.y - selectButton.displayHeight / 2,
+              selectButton.displayWidth,
+              selectButton.displayHeight
+          );
+          this.selectedTower = tower;
+          this.updateTower();
         });
 
-        let tower = this.arrTowerConfig[j+(6*i)];
+        
         let towerTexture = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , tower.texture);
         towerTexture.setSize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
         towerTexture.setDisplaySize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
@@ -137,9 +140,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     rectangle.setStrokeStyle(thickness, 0xffffff);
     */
 
-    this.updateTower();
     scene.add.existing(this);
-
   }
 
   updateTower() {
@@ -148,7 +149,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.towerRange.setText(`Range: ${this.arrTowerConfig[0].range}`);
     this.towerVelocity.setText(`Velocity: ${this.arrTowerConfig[0].attackVelocity}`);
     */
-    this.scene.setSelectedTowerConfig(this.arrTowerConfig[1]);
+    this.scene.setSelectedTowerConfig(this.selectedTower);
     this.buttonTower.destroyTower();
     if (this.enemy != null) this.enemy.destroy();
     let x = this.x + this.scene.unitSize * 8;

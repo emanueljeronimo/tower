@@ -14,7 +14,7 @@ export class Utils {
     
         let enemies = enemiesFromScene.getChildren();
         let closestEnemy = null;
-        let distanciaMinima = 99999999;
+        let distanciaMinima = 9999999999;
    
         enemies.forEach(enemy => {
             let distancia = Phaser.Math.Distance.Between(enemy.x, enemy.y, x, y);
