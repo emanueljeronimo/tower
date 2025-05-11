@@ -170,55 +170,26 @@ export class Bullet extends GameObject {
     bouncer.generateTexture('bouncer-texture', 32, 32);
     bouncer.destroy();
 
-    const canvasSplitProjectile = document.createElement('canvas');
-    const sizeSplit = scene.unitSize * 1.1;
-    canvasSplitProjectile.width = sizeSplit;
-    canvasSplitProjectile.height = sizeSplit;
-    const ctxSplit = canvasSplitProjectile.getContext('2d');
+    const canvasLaser = document.createElement('canvas');
+    const width = scene.unitSize * 1.2;
+    const height = scene.unitSize * 0.15;
     
-    // Paso 1: núcleo brillante
-    const coreGradient = ctxSplit.createRadialGradient(
-      sizeSplit/2, sizeSplit/2, 0,
-      sizeSplit/2, sizeSplit/2, sizeSplit/3
-    );
-    coreGradient.addColorStop(0, '#FF00FF'); // Centro puro
-    coreGradient.addColorStop(1, '#1900FF'); // Magenta vibrante
+    canvasLaser.width = width;
+    canvasLaser.height = height;
     
-    ctxSplit.fillStyle = coreGradient;
-    ctxSplit.beginPath();
-    ctxSplit.arc(sizeSplit/2, sizeSplit/2, sizeSplit*0.3, 0, Math.PI * 2);
-    ctxSplit.fill();
+    const ctxLaser = canvasLaser.getContext('2d');
     
-    // Paso 2: halo energético
-    ctxSplit.globalCompositeOperation = 'lighter';
-    const haloGradient = ctxSplit.createRadialGradient(
-      sizeSplit/2, sizeSplit/2, sizeSplit*0.4,
-      sizeSplit/2, sizeSplit/2, sizeSplit*0.6
-    );
-    haloGradient.addColorStop(0, 'rgba(25, 0, 255, 0.4)');
-    haloGradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+    // Línea blanca con leve desenfoque central
+    const gradient = ctxLaser.createLinearGradient(0, height / 2, width, height / 2);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.9)');
+    gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.9)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     
-    ctxSplit.fillStyle = haloGradient;
-    ctxSplit.beginPath();
-    ctxSplit.arc(sizeSplit/2, sizeSplit/2, sizeSplit*0.6, 0, Math.PI * 2);
-    ctxSplit.fill();
+    ctxLaser.fillStyle = gradient;
+    ctxLaser.fillRect(0, 0, width, height);
     
-    // Paso 3: fragmentos visuales (rayos o grietas)
-    ctxSplit.strokeStyle = 'rgba(25, 0, 255, 0.8)';
-    ctxSplit.lineWidth = 1.2;
-    for (let i = 0; i < 8; i++) {
-      const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.3;
-      const length = sizeSplit * 0.4 + Math.random() * 4;
-      ctxSplit.beginPath();
-      ctxSplit.moveTo(sizeSplit / 2, sizeSplit / 2);
-      ctxSplit.lineTo(
-        sizeSplit / 2 + Math.cos(angle) * length,
-        sizeSplit / 2 + Math.sin(angle) * length
-      );
-      ctxSplit.stroke();
-    }
-    
-    scene.textures.addCanvas('void-sphere-texture', canvasSplitProjectile);
+    scene.textures.addCanvas('void-sphere-texture', canvasLaser);
     
    //scene.textures.addCanvas('void-sphere-texture', canvasFloatCore);
    
@@ -475,7 +446,7 @@ export class Bullet extends GameObject {
 
   static bomb = {
     damage: 1,
-    heightUnits: 1,
+    heightUnits: 0.2,
     widthUnits: 1,
     texture: 'void-sphere-texture',
     velocity: 800,
@@ -483,19 +454,123 @@ export class Bullet extends GameObject {
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
+
+    afterVisible: (that) => {
+      // Estela principal del orbe (colores vibrantes)
+      that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 15,
+        quantity: 2,
+        scale: { start: 0.8, end: 0.2 },
+        alpha: { start: 0.8, end: 0 },
+        lifespan: 400,
+        speed: { min: 10, max: 30 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
+        rotate: { min: -180, max: 180 }
+      });
+      
+      // Partículas de energía dispersas
+      that.sparkleEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 40,
+        quantity: 1,
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 300,
+        speed: { min: 60, max: 120 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
+      });
+      
+      // Efecto de aura luminosa
+      that.auraEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        quantity: 1,
+        frequency: 60,
+        scale: { start: 1.5, end: 0.3 },
+        alpha: { start: 0.2, end: 0 },
+        lifespan: 200,
+        blendMode: 'ADD',
+        tint: 0x9400D3
+      });
+      
+      // Limpiar cuando se destruya el orbe
+      that.on('destroy', () => {
+        if (that.trailEmitter) that.trailEmitter.destroy();
+        if (that.sparkleEmitter) that.sparkleEmitter.destroy();
+        if (that.auraEmitter) that.auraEmitter.destroy();
+      });
+    },
+
     afterHit: (that, enemy) => {
-        for (let i = 0; i < 360; i+=30) {
-            const angle = Phaser.Math.DegToRad(i);        
-            new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
-        }    
-        that.destroy();
-        that.group.remove(that);
+
+      // Explosión de energía en el impacto
+      const impactBurst = that.scene.add.particles(that.x, that.y, 'void-sphere-texture', {
+        speed: { min: 100, max: 250 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.8, end: 0.1 },
+        alpha: { start: 0.8, end: 0 },
+        lifespan: 350,
+        blendMode: 'ADD',
+        tint: [0xFF00FF, 0x8A2BE2, 0x9400D3, 0xB31BE2],
+        quantity: 20,
+        emitting: false
+      });
+
+      // Ondas de energía que se expanden
+      const energyWave = that.scene.add.particles(that.x, that.y, 'void-sphere-texture', {
+        speed: { min: 50, max: 150 },
+        scale: { start: 0.1, end: 2 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 400,
+        blendMode: 'ADD',
+        tint: 0xC71585,
+        quantity: 5,
+        emitting: false
+      });
+
+      // Chispas brillantes
+      const sparkles = that.scene.add.particles(that.x, that.y, 'void-sphere-texture', {
+        speed: { min: 150, max: 300 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 350,
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFF00FF],
+        quantity: 15,
+        emitting: false
+      });
+
+      // Emitir todas las partículas a la vez para el efecto de explosión
+      impactBurst.explode();
+      energyWave.explode();
+      sparkles.explode();
+
+      // Limpieza
+      that.scene.time.delayedCall(400, () => {
+        impactBurst.destroy();
+        energyWave.destroy();
+        sparkles.destroy();
+      });
+
+      for (let i = 0; i < 360; i+=30) {
+          const angle = Phaser.Math.DegToRad(i) + that.angle;        
+          new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
+      }    
+      that.destroy();
+      that.group.remove(that);
     }
   }
 
   static bomb_child = {
     damage: 1,
-    heightUnits: 1,
+    heightUnits: 0.2,
     widthUnits: 1,
     texture: 'void-sphere-texture',
     velocity: 800,
@@ -503,6 +578,57 @@ export class Bullet extends GameObject {
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
+    afterVisible: (that) => {
+      // Estela principal del orbe (colores vibrantes)
+      that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 15,
+        quantity: 2,
+        scale: { start: 0.8, end: 0.2 },
+        alpha: { start: 0.8, end: 0 },
+        lifespan: 400,
+        speed: { min: 10, max: 30 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
+        rotate: { min: -180, max: 180 }
+      });
+      
+      // Partículas de energía dispersas
+      that.sparkleEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 40,
+        quantity: 1,
+        scale: { start: 0.3, end: 0 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 300,
+        speed: { min: 60, max: 120 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
+      });
+      
+      // Efecto de aura luminosa
+      that.auraEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
+        follow: that,
+        quantity: 1,
+        frequency: 60,
+        scale: { start: 1.5, end: 0.3 },
+        alpha: { start: 0.2, end: 0 },
+        lifespan: 200,
+        blendMode: 'ADD',
+        tint: 0x9400D3
+      });
+      
+      // Limpiar cuando se destruya el orbe
+      that.on('destroy', () => {
+        if (that.trailEmitter) that.trailEmitter.destroy();
+        if (that.sparkleEmitter) that.sparkleEmitter.destroy();
+        if (that.auraEmitter) that.auraEmitter.destroy();
+      });
+    }
   }
 
 }
