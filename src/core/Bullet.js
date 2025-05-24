@@ -8,9 +8,10 @@ export class Bullet extends GameObject {
     Object.assign(this, config);
 
     if (this.target) {
-      this.angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
-      this.setDirection(this.angle);
+      this.initAngle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
+      this.setDirection(this.initAngle);
     } else if (angle) {
+      this.initAngle = angle;
       this.setDirection(angle);
     }
 
@@ -57,6 +58,12 @@ export class Bullet extends GameObject {
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
     
+  }
+
+  setVelocity(velocity){
+    this.setAngle(0);
+    this.velocity = velocity;
+    this.setDirection(this.initAngle);
   }
 
   static initTextures(scene) {
@@ -190,12 +197,42 @@ export class Bullet extends GameObject {
     ctxLaser.fillRect(0, 0, width, height);
     
     scene.textures.addCanvas('void-sphere-texture', canvasLaser);
-    
-   //scene.textures.addCanvas('void-sphere-texture', canvasFloatCore);
-   
 
-  
 
+    // Textura de bala de ralentización (tipo hielo/copo de nieve)
+    const canvasSlow = document.createElement('canvas');
+    const radiusSlow = scene.unitSize;
+    canvasSlow.width = radiusSlow * 2;
+    canvasSlow.height = radiusSlow * 2;
+    const contextSlow = canvasSlow.getContext('2d');
+
+    // Fondo azul hielo con degradado radial
+    const gradientSlow = contextSlow.createRadialGradient(
+        radiusSlow, radiusSlow, radiusSlow * 0.2,
+        radiusSlow, radiusSlow, radiusSlow
+    );
+    gradientSlow.addColorStop(0, '#AAEEFF');
+    gradientSlow.addColorStop(1, '#004466');
+
+    contextSlow.fillStyle = gradientSlow;
+    contextSlow.beginPath();
+    contextSlow.arc(radiusSlow, radiusSlow, radiusSlow, 0, Math.PI * 2, false);
+    contextSlow.fill();
+
+    // Dibujar líneas en forma de copo de nieve simple (como una estrella de 6 puntas)
+    contextSlow.strokeStyle = '#FFFFFF';
+    contextSlow.lineWidth = 2;
+    contextSlow.translate(radiusSlow, radiusSlow);
+
+    for (let i = 0; i < 6; i++) {
+        contextSlow.beginPath();
+        contextSlow.moveTo(0, 0);
+        contextSlow.lineTo(0, -radiusSlow * 0.9);
+        contextSlow.stroke();
+        contextSlow.rotate(Math.PI / 3); // 60 grados
+    }
+
+    scene.textures.addCanvas('slow-bullet-texture', canvasSlow);
   }
 
   static common = {
@@ -517,7 +554,7 @@ export class Bullet extends GameObject {
         alpha: { start: 0.8, end: 0 },
         lifespan: 350,
         blendMode: 'ADD',
-        tint: [0xFF00FF, 0x8A2BE2, 0x9400D3, 0xB31BE2],
+        tint: [0xFF0000, 0xFF3300, 0xFF4444, 0xCC0000, 0xFF6666],
         quantity: 20,
         emitting: false
       });
@@ -529,7 +566,7 @@ export class Bullet extends GameObject {
         alpha: { start: 0.7, end: 0 },
         lifespan: 400,
         blendMode: 'ADD',
-        tint: 0xC71585,
+        tint: 0x990000,
         quantity: 5,
         emitting: false
       });
@@ -542,7 +579,7 @@ export class Bullet extends GameObject {
         alpha: { start: 1, end: 0 },
         lifespan: 350,
         blendMode: 'ADD',
-        tint: [0xFFFFFF, 0xFF00FF],
+        tint: [0xFFFFFF, 0xFF0000, 0xFF4444],
         quantity: 15,
         emitting: false
       });
@@ -591,7 +628,7 @@ export class Bullet extends GameObject {
         speed: { min: 10, max: 30 },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
-        tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
+        tint: [0xFF0000, 0xFF3300, 0xFF4444, 0xCC0000, 0xFF6666],
         rotate: { min: -180, max: 180 }
       });
       
@@ -607,7 +644,7 @@ export class Bullet extends GameObject {
         speed: { min: 60, max: 120 },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
-        tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
+        tint: [0xFFFFFF, 0xFF0000, 0xFF4444]
       });
       
       // Efecto de aura luminosa
@@ -619,7 +656,7 @@ export class Bullet extends GameObject {
         alpha: { start: 0.2, end: 0 },
         lifespan: 200,
         blendMode: 'ADD',
-        tint: 0x9400D3
+        tint: 0x990000
       });
       
       // Limpiar cuando se destruya el orbe
@@ -630,6 +667,45 @@ export class Bullet extends GameObject {
       });
     }
   }
+
+  static slower = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'slow-bullet-texture',
+    velocity: 1000,
+    follow: false,
+    destroyAfterHit: true,
+    unitsToSetVisible: 2,
+    unitsToDestroy: 16,
+
+    afterVisible: (that) => {
+      that.setVelocity(50);
+      const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
+        speed: { min: 200, max: 400 },
+        lifespan: 100,
+        scale: { start: 0.5, end: 0 },
+        tint: [0xffff00, 0xff5500],
+        blendMode: 'ADD'
+      });
+      that.scene.time.delayedCall(100, () => muzzleFlash.destroy());
+    },
+
+    afterHit: (that, enemy) => {
+      const impactParticles = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
+        speed: { min: 50, max: 200 },
+        angle: { min: 0, max: 360 },
+        lifespan: 150,
+        scale: { start: 0.4, end: 0 },
+        tint: [0xffff00, 0xff5500],
+        blendMode: 'ADD'
+      });
+
+      that.scene.time.delayedCall(350, () => impactParticles.destroy());
+      that.destroy();
+      that.group.remove(that);
+    }
+  };
 
 }
 
