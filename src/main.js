@@ -37,7 +37,7 @@ class Game extends Phaser.Scene {
     this.enemyGenerator = null;
     this.isDragging = false;
     this.lastPointerPosition = { x: 0, y: 0 };
-    this.gold = 1000;
+    this.gold = 10000000;
     this.selectedTowerConfig = null;
     this.buying = false;
   }

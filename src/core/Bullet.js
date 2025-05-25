@@ -19,7 +19,7 @@ export class Bullet extends GameObject {
     this.startY = y;
     this.range = range;
     this.scene = scene;
-    this.visible = false;   
+    this.visible = false;
   }
 
   hit(enemy) {
@@ -33,14 +33,14 @@ export class Bullet extends GameObject {
 
   update(delta) {
     const distance = Phaser.Math.Distance.Between(this.startX, this.startY, this.getCenter().x, this.getCenter().y);
-   
+
     if (distance > this.unitsToDestroy * this.scene.unitSize) {
       this.destroy();
       this.group.remove(this);
       return;
     }
 
-    if (!this.visible && distance > this.unitsToSetVisible * this.scene.unitSize){
+    if (!this.visible && distance > this.unitsToSetVisible * this.scene.unitSize) {
       this.visible = true;
       this.afterVisible && this.afterVisible(this);
     }
@@ -57,10 +57,10 @@ export class Bullet extends GameObject {
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
-    
+
   }
 
-  setVelocity(velocity){
+  setVelocity(velocity) {
     this.setAngle(0);
     this.velocity = velocity;
     this.setDirection(this.initAngle);
@@ -69,10 +69,10 @@ export class Bullet extends GameObject {
   static initTextures(scene) {
     // Textura de bala original
     const canvasBullet = document.createElement('canvas');
-    const radiusBullet  = scene.unitSize; 
-    canvasBullet.width = radiusBullet  * 2;
-    canvasBullet.height = radiusBullet  * 2;
-    const contextBullet  = canvasBullet.getContext('2d');
+    const radiusBullet = scene.unitSize;
+    canvasBullet.width = radiusBullet * 2;
+    canvasBullet.height = radiusBullet * 2;
+    const contextBullet = canvasBullet.getContext('2d');
 
     const gradientBullet = contextBullet.createLinearGradient(0, 0, 0, 30);
     gradientBullet.addColorStop(0, '#FFFF00');
@@ -83,7 +83,7 @@ export class Bullet extends GameObject {
     contextBullet.arc(radiusBullet, radiusBullet, radiusBullet, 0, Math.PI * 2, false);
     contextBullet.fill();
 
-    scene.textures.addCanvas('bullet-texture', canvasBullet);  
+    scene.textures.addCanvas('bullet-texture', canvasBullet);
 
     // Nueva textura para el orbe de energía
     const canvasEnergyOrb = document.createElement('canvas');
@@ -94,10 +94,10 @@ export class Bullet extends GameObject {
 
     // Crear un degradado radial para el orbe
     const gradientOrb = contextOrb.createRadialGradient(
-      sizeOrb/2, sizeOrb/2, 0,
-      sizeOrb/2, sizeOrb/2, sizeOrb/2
+      sizeOrb / 2, sizeOrb / 2, 0,
+      sizeOrb / 2, sizeOrb / 2, sizeOrb / 2
     );
-    
+
     // Colores vibrantes para el centro del orbe
     gradientOrb.addColorStop(0, '#FF00FF');    // Magenta brillante en el centro
     gradientOrb.addColorStop(0.3, '#8A2BE2');  // Azul violeta
@@ -106,58 +106,58 @@ export class Bullet extends GameObject {
 
     contextOrb.fillStyle = gradientOrb;
     contextOrb.beginPath();
-    contextOrb.arc(sizeOrb/2, sizeOrb/2, sizeOrb/2, 0, Math.PI * 2, false);
+    contextOrb.arc(sizeOrb / 2, sizeOrb / 2, sizeOrb / 2, 0, Math.PI * 2, false);
     contextOrb.fill();
 
     // Agregar un brillo alrededor
     contextOrb.globalCompositeOperation = 'lighter';
     const glowGradient = contextOrb.createRadialGradient(
-      sizeOrb/2, sizeOrb/2, sizeOrb*0.4,
-      sizeOrb/2, sizeOrb/2, sizeOrb*0.7
+      sizeOrb / 2, sizeOrb / 2, sizeOrb * 0.4,
+      sizeOrb / 2, sizeOrb / 2, sizeOrb * 0.7
     );
     glowGradient.addColorStop(0, 'rgba(255, 0, 255, 0.5)');
     glowGradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
-    
+
     contextOrb.fillStyle = glowGradient;
     contextOrb.beginPath();
-    contextOrb.arc(sizeOrb/2, sizeOrb/2, sizeOrb/2, 0, Math.PI * 2, false);
+    contextOrb.arc(sizeOrb / 2, sizeOrb / 2, sizeOrb / 2, 0, Math.PI * 2, false);
     contextOrb.fill();
 
     scene.textures.addCanvas('energy-orb-texture', canvasEnergyOrb);
 
     // Textura para partículas del orbe
     const canvasOrbParticle = document.createElement('canvas');
-    const particleSize = scene.unitSize * 0.7; 
+    const particleSize = scene.unitSize * 0.7;
     canvasOrbParticle.width = particleSize;
     canvasOrbParticle.height = particleSize;
     const ctxParticle = canvasOrbParticle.getContext('2d');
 
     const gradientParticle = ctxParticle.createRadialGradient(
-      particleSize/2, particleSize/2, 0,
-      particleSize/2, particleSize/2, particleSize/2
+      particleSize / 2, particleSize / 2, 0,
+      particleSize / 2, particleSize / 2, particleSize / 2
     );
-    
+
     gradientParticle.addColorStop(0, 'rgba(255, 255, 255, 1)');
     gradientParticle.addColorStop(0.5, 'rgba(230, 0, 255, 0.7)');
     gradientParticle.addColorStop(1, 'rgba(100, 0, 255, 0)');
 
     ctxParticle.fillStyle = gradientParticle;
     ctxParticle.beginPath();
-    ctxParticle.arc(particleSize/2, particleSize/2, particleSize/2, 0, Math.PI * 2);
+    ctxParticle.arc(particleSize / 2, particleSize / 2, particleSize / 2, 0, Math.PI * 2);
     ctxParticle.fill();
 
     scene.textures.addCanvas('orb-particle-texture', canvasOrbParticle);
 
     // Textura para chispas de impacto
     const canvasSparkle = document.createElement('canvas');
-    const sparkleSize = scene.unitSize; 
+    const sparkleSize = scene.unitSize;
     canvasSparkle.width = sparkleSize;
     canvasSparkle.height = sparkleSize;
     const ctxSparkle = canvasSparkle.getContext('2d');
 
     const gradientSparkle = ctxSparkle.createRadialGradient(
-      sparkleSize/2, sparkleSize/2, 0,
-      sparkleSize/2, sparkleSize/2, sparkleSize/2
+      sparkleSize / 2, sparkleSize / 2, 0,
+      sparkleSize / 2, sparkleSize / 2, sparkleSize / 2
     );
     gradientSparkle.addColorStop(0, 'rgba(255, 255, 255, 1)');
     gradientSparkle.addColorStop(0.4, 'rgba(255, 255, 200, 0.8)');
@@ -165,7 +165,7 @@ export class Bullet extends GameObject {
 
     ctxSparkle.fillStyle = gradientSparkle;
     ctxSparkle.beginPath();
-    ctxSparkle.arc(sparkleSize/2, sparkleSize/2, sparkleSize/2, 0, Math.PI * 2);
+    ctxSparkle.arc(sparkleSize / 2, sparkleSize / 2, sparkleSize / 2, 0, Math.PI * 2);
     ctxSparkle.fill();
 
     scene.textures.addCanvas('sparkle-texture', canvasSparkle);
@@ -180,56 +180,55 @@ export class Bullet extends GameObject {
     const canvasLaser = document.createElement('canvas');
     const width = scene.unitSize * 1.2;
     const height = scene.unitSize * 0.15;
-    
+
     canvasLaser.width = width;
     canvasLaser.height = height;
-    
+
     const ctxLaser = canvasLaser.getContext('2d');
-    
+
     // Línea blanca con leve desenfoque central
     const gradient = ctxLaser.createLinearGradient(0, height / 2, width, height / 2);
     gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
     gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.9)');
     gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.9)');
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    
+
     ctxLaser.fillStyle = gradient;
     ctxLaser.fillRect(0, 0, width, height);
-    
+
     scene.textures.addCanvas('void-sphere-texture', canvasLaser);
 
 
-    // Textura de bala de ralentización (tipo hielo/copo de nieve)
     const canvasSlow = document.createElement('canvas');
     const radiusSlow = scene.unitSize;
     canvasSlow.width = radiusSlow * 2;
     canvasSlow.height = radiusSlow * 2;
     const contextSlow = canvasSlow.getContext('2d');
 
-    // Fondo azul hielo con degradado radial
+    // Fondo azul hielo con degradado radial transparente
     const gradientSlow = contextSlow.createRadialGradient(
-        radiusSlow, radiusSlow, radiusSlow * 0.2,
-        radiusSlow, radiusSlow, radiusSlow
+      radiusSlow, radiusSlow, radiusSlow * 0.2,
+      radiusSlow, radiusSlow, radiusSlow
     );
-    gradientSlow.addColorStop(0, '#AAEEFF');
-    gradientSlow.addColorStop(1, '#004466');
+    gradientSlow.addColorStop(0, 'rgba(170, 238, 255, 1)');
+    gradientSlow.addColorStop(1, 'rgba(0, 68, 102, 0)');
 
     contextSlow.fillStyle = gradientSlow;
     contextSlow.beginPath();
     contextSlow.arc(radiusSlow, radiusSlow, radiusSlow, 0, Math.PI * 2, false);
     contextSlow.fill();
 
-    // Dibujar líneas en forma de copo de nieve simple (como una estrella de 6 puntas)
-    contextSlow.strokeStyle = '#FFFFFF';
+    // Dibujar líneas en forma de copo de nieve
+    contextSlow.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     contextSlow.lineWidth = 2;
     contextSlow.translate(radiusSlow, radiusSlow);
 
     for (let i = 0; i < 6; i++) {
-        contextSlow.beginPath();
-        contextSlow.moveTo(0, 0);
-        contextSlow.lineTo(0, -radiusSlow * 0.9);
-        contextSlow.stroke();
-        contextSlow.rotate(Math.PI / 3); // 60 grados
+      contextSlow.beginPath();
+      contextSlow.moveTo(0, 0);
+      contextSlow.lineTo(0, -radiusSlow * 0.9);
+      contextSlow.stroke();
+      contextSlow.rotate(Math.PI / 3);
     }
 
     scene.textures.addCanvas('slow-bullet-texture', canvasSlow);
@@ -283,14 +282,14 @@ export class Bullet extends GameObject {
     destroyAfterHit: false,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
-    
+
     afterUpdate: (that, delta) => {
       // Hacer que el orbe pulse ligeramente
       const pulseFactor = 0.1;
       const pulseSpeed = 0.003;
       that.scaleX = 1 + Math.sin(that.scene.time.now * pulseSpeed) * pulseFactor;
       that.scaleY = that.scaleX;
-      
+
       // Rotar el orbe lentamente para efecto visual
       that.angle += 1;
     },
@@ -311,7 +310,7 @@ export class Bullet extends GameObject {
         tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
         rotate: { min: -180, max: 180 }
       });
-      
+
       // Partículas de energía dispersas
       that.sparkleEmitter = that.scene.add.particles(0, 0, 'sparkle-texture', {
         follow: that,
@@ -326,7 +325,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
       });
-      
+
       // Efecto de aura luminosa
       that.auraEmitter = that.scene.add.particles(0, 0, 'orb-particle-texture', {
         follow: that,
@@ -338,7 +337,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: 0x9400D3
       });
-      
+
       // Limpiar cuando se destruya el orbe
       that.on('destroy', () => {
         if (that.trailEmitter) that.trailEmitter.destroy();
@@ -360,7 +359,7 @@ export class Bullet extends GameObject {
         quantity: 20,
         emitting: false
       });
-      
+
       // Ondas de energía que se expanden
       const energyWave = that.scene.add.particles(that.x, that.y, 'orb-particle-texture', {
         speed: { min: 50, max: 150 },
@@ -372,7 +371,7 @@ export class Bullet extends GameObject {
         quantity: 5,
         emitting: false
       });
-      
+
       // Chispas brillantes
       const sparkles = that.scene.add.particles(that.x, that.y, 'sparkle-texture', {
         speed: { min: 150, max: 300 },
@@ -385,12 +384,12 @@ export class Bullet extends GameObject {
         quantity: 15,
         emitting: false
       });
-      
+
       // Emitir todas las partículas a la vez para el efecto de explosión
       impactBurst.explode();
       energyWave.explode();
       sparkles.explode();
-      
+
       // Limpieza
       that.scene.time.delayedCall(400, () => {
         impactBurst.destroy();
@@ -441,19 +440,19 @@ export class Bullet extends GameObject {
         quantity: 8,
         emitting: false
       });
-      
+
       burst.explode();
-      
+
       that.scene.time.delayedCall(800, () => {
         burst.destroy();
       });
-  
+
       that.follow = false;
-      if(!that.rebounds) that.rebounds = 1;
-      if(that.enemy !== enemy) {
+      if (!that.rebounds) that.rebounds = 1;
+      if (that.enemy !== enemy) {
         that.enemy = enemy;
-        let nextEnemy =  Utils.getClosestEnemy(that.enemy, that.scene.enemies, that.x, that.y);
-        if(!nextEnemy) {
+        let nextEnemy = Utils.getClosestEnemy(that.enemy, that.scene.enemies, that.x, that.y);
+        if (!nextEnemy) {
           that.destroy();
           that.group.remove(that);
           return;
@@ -465,20 +464,20 @@ export class Bullet extends GameObject {
             return;
           }
         }
-        
+
         const angle = Phaser.Math.Angle.Between(that.body.x, that.body.y, nextEnemy.x, nextEnemy.y);
         that.setAngle(Phaser.Math.RAD_TO_DEG * angle);
         that.setVelocityX(Math.cos(angle) * that.velocity);
-        that.setVelocityY(Math.sin(angle) * that.velocity); 
+        that.setVelocityY(Math.sin(angle) * that.velocity);
         that.rebounds++;
-      } 
+      }
 
-      if(that.rebounds == 8) {
+      if (that.rebounds == 8) {
         that.destroy();
         that.group.remove(that);
       }
     }
-   
+
   }
 
   static bomb = {
@@ -508,7 +507,7 @@ export class Bullet extends GameObject {
         tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
         rotate: { min: -180, max: 180 }
       });
-      
+
       // Partículas de energía dispersas
       that.sparkleEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
@@ -523,7 +522,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
       });
-      
+
       // Efecto de aura luminosa
       that.auraEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
@@ -535,7 +534,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: 0x9400D3
       });
-      
+
       // Limpiar cuando se destruya el orbe
       that.on('destroy', () => {
         if (that.trailEmitter) that.trailEmitter.destroy();
@@ -596,10 +595,10 @@ export class Bullet extends GameObject {
         sparkles.destroy();
       });
 
-      for (let i = 0; i < 360; i+=30) {
-          const angle = Phaser.Math.DegToRad(i) + that.angle;        
-          new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
-      }    
+      for (let i = 0; i < 360; i += 30) {
+        const angle = Phaser.Math.DegToRad(i) + that.angle;
+        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
+      }
       that.destroy();
       that.group.remove(that);
     }
@@ -631,7 +630,7 @@ export class Bullet extends GameObject {
         tint: [0xFF0000, 0xFF3300, 0xFF4444, 0xCC0000, 0xFF6666],
         rotate: { min: -180, max: 180 }
       });
-      
+
       // Partículas de energía dispersas
       that.sparkleEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
@@ -646,7 +645,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: [0xFFFFFF, 0xFF0000, 0xFF4444]
       });
-      
+
       // Efecto de aura luminosa
       that.auraEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
@@ -658,7 +657,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD',
         tint: 0x990000
       });
-      
+
       // Limpiar cuando se destruya el orbe
       that.on('destroy', () => {
         if (that.trailEmitter) that.trailEmitter.destroy();
@@ -680,12 +679,13 @@ export class Bullet extends GameObject {
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
+      that.setAngularVelocity(150);
       that.setVelocity(50);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
         speed: { min: 200, max: 400 },
         lifespan: 100,
         scale: { start: 0.5, end: 0 },
-        tint: [0xffff00, 0xff5500],
+        //tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
       });
       that.scene.time.delayedCall(100, () => muzzleFlash.destroy());
@@ -697,9 +697,18 @@ export class Bullet extends GameObject {
         angle: { min: 0, max: 360 },
         lifespan: 150,
         scale: { start: 0.4, end: 0 },
-        tint: [0xffff00, 0xff5500],
+        //tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
       });
+
+      if (enemy.active) {
+        enemy.body.velocity.x *= 0.90;
+        enemy.body.velocity.y *= 0.90;
+        that.scene.time.delayedCall(1000, () => {
+          enemy.body.velocity.x *= 1.10;
+          enemy.body.velocity.y *= 1.10;
+        });
+      }
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
       that.destroy();
