@@ -232,6 +232,45 @@ export class Bullet extends GameObject {
     }
 
     scene.textures.addCanvas('slow-bullet-texture', canvasSlow);
+
+    // Crear canvas para textura de disparo tipo aro energético
+    const canvasBulletRing = document.createElement('canvas');
+    const outerRadiusBulletRing = scene.unitSize * 2;
+    const innerRadiusBulletRing = scene.unitSize * 1.2;
+
+    canvasBulletRing.width = outerRadiusBulletRing * 2;
+    canvasBulletRing.height = outerRadiusBulletRing * 2;
+
+    const ctxBulletRing = canvasBulletRing.getContext('2d');
+
+    // Gradiente radial desde el centro del aro hacia el borde
+    const gradientBulletRing = ctxBulletRing.createRadialGradient(
+      outerRadiusBulletRing, outerRadiusBulletRing, innerRadiusBulletRing * 0.5,
+      outerRadiusBulletRing, outerRadiusBulletRing, outerRadiusBulletRing
+    );
+
+    gradientBulletRing.addColorStop(0, 'rgba(255,255,100,0.8)');
+    gradientBulletRing.addColorStop(0.5, 'rgba(255,120,0,0.6)');
+    gradientBulletRing.addColorStop(1, 'rgba(255,50,0,0.2)');
+
+    // Dibujar círculo exterior con gradiente
+    ctxBulletRing.fillStyle = gradientBulletRing;
+    ctxBulletRing.beginPath();
+    ctxBulletRing.arc(outerRadiusBulletRing, outerRadiusBulletRing, outerRadiusBulletRing, 0, Math.PI * 2);
+    ctxBulletRing.fill();
+
+    // Recortar el centro para formar un aro
+    ctxBulletRing.globalCompositeOperation = 'destination-out';
+    ctxBulletRing.beginPath();
+    ctxBulletRing.arc(outerRadiusBulletRing, outerRadiusBulletRing, innerRadiusBulletRing, 0, Math.PI * 2);
+    ctxBulletRing.fill();
+
+    // Restaurar modo normal
+    ctxBulletRing.globalCompositeOperation = 'source-over';
+
+    // Registrar la textura en Phaser con nombre único
+    scene.textures.addCanvas('texture-bullet-energy-ring', canvasBulletRing);
+
   }
 
   static common = {
@@ -704,16 +743,39 @@ export class Bullet extends GameObject {
       if (enemy.active) {
         enemy.body.velocity.x *= 0.90;
         enemy.body.velocity.y *= 0.90;
-        that.scene.time.delayedCall(1000, () => {
-          enemy.body.velocity.x *= 1.10;
-          enemy.body.velocity.y *= 1.10;
-        });
+        /*that.scene.time.delayedCall(1000, () => {
+          if (enemy && enemy.body) {
+            enemy.body.velocity.x *= 1.05;
+            enemy.body.velocity.y *= 1.05;
+          }
+        });*/
       }
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
       that.destroy();
       that.group.remove(that);
     }
+  };
+
+  static circle = {
+    damage: 1,
+    heightUnits: 6,
+    widthUnits: 6,
+    texture: 'texture-bullet-energy-ring',
+    velocity: 800,
+    follow: false,
+    destroyAfterHit: false,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+
+    afterVisible: (that) => {
+      const diameter = that.scene.unitSize * that.widthUnits;
+      const radius = diameter / 2;
+      that.body.setCircle(radius, that.width / 2 - radius, that.height / 2 - radius);
+      that.setAngularVelocity(150);
+      that.setVelocity(150);
+    }
+   
   };
 
 }

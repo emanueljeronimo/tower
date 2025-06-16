@@ -5,7 +5,7 @@
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
 -que disparen dentro de la pantalla
--sacar animaciones que van a ser con p5.js
+-fecuencia del disparo
 */
 
 import { GameObject } from './core/GameObject.js'
@@ -215,7 +215,7 @@ var config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 },
-      debug: false,
+      debug: true,
     },
   },
   scene: Game,

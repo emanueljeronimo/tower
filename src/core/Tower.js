@@ -139,7 +139,7 @@ export class Tower extends GameObject {
     }
   }
 
-  static slowerTower = {
+  static slowerTower = {   
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
@@ -155,7 +155,6 @@ export class Tower extends GameObject {
       });
     }
   }
-
 
   static tripleShotTower = {
     heightRatio: 1,
@@ -281,6 +280,23 @@ export class Tower extends GameObject {
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
         new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.damage);
+      });
+    }
+  }
+
+  static circleTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
+    attackInterval: 100,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.circle, target, range);
       });
     }
   }

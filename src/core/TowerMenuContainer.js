@@ -45,14 +45,16 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
 
 
     // Create a description text
-    this.arrTowerConfig = [Tower.commonTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.slowerTower,
+    this.arrTowerConfig = [Tower.commonTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.slowerTower, Tower.circleTower
                            /*Tower.commonTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.slowerTower,*/];
 
     let borderGraphics;
-    for(let i=0; i<1; i++) {
+    for(let i=0; i<2; i++) {
       for(let j=0; j<5; j++) {
+        
+        if (!this.arrTowerConfig[j+(5*i)]) break;
 
-        let tower = this.arrTowerConfig[j+(6*i)];
+        let tower = this.arrTowerConfig[j+(5*i)];
         let xoffset= this.scene.unitSize*3;
         let selectButton = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , 'buttonTower');
         selectButton.setSize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
