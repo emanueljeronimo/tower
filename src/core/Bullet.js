@@ -271,6 +271,50 @@ export class Bullet extends GameObject {
     // Registrar la textura en Phaser con nombre único
     scene.textures.addCanvas('texture-bullet-energy-ring', canvasBulletRing);
 
+    const canvasRedCrosshair = document.createElement('canvas');
+    const sizeRedCrosshair = scene.unitSize * 2; // Más grande que la bala
+    canvasRedCrosshair.width = sizeRedCrosshair;
+    canvasRedCrosshair.height = sizeRedCrosshair;
+    const ctxRedCrosshair = canvasRedCrosshair.getContext('2d');
+
+    ctxRedCrosshair.clearRect(0, 0, sizeRedCrosshair, sizeRedCrosshair);
+
+    const centerX = sizeRedCrosshair / 2;
+    const centerY = sizeRedCrosshair / 2;
+    const lineLength = sizeRedCrosshair * 0.4; // Longitud de las líneas
+    const gapSize = sizeRedCrosshair * 0.1; // Espacio sin trazar en el centro
+    const lineThickness = 4; // Grosor de la cruz
+
+    ctxRedCrosshair.strokeStyle = '#FF0000';
+    ctxRedCrosshair.lineWidth = lineThickness;
+    ctxRedCrosshair.lineCap = 'round';
+
+    // Línea vertical (parte superior)
+    ctxRedCrosshair.beginPath();
+    ctxRedCrosshair.moveTo(centerX, centerY - gapSize - lineLength);
+    ctxRedCrosshair.lineTo(centerX, centerY - gapSize);
+    ctxRedCrosshair.stroke();
+
+    // Línea vertical (parte inferior)
+    ctxRedCrosshair.beginPath();
+    ctxRedCrosshair.moveTo(centerX, centerY + gapSize);
+    ctxRedCrosshair.lineTo(centerX, centerY + gapSize + lineLength);
+    ctxRedCrosshair.stroke();
+
+    // Línea horizontal (izquierda)
+    ctxRedCrosshair.beginPath();
+    ctxRedCrosshair.moveTo(centerX - gapSize - lineLength, centerY);
+    ctxRedCrosshair.lineTo(centerX - gapSize, centerY);
+    ctxRedCrosshair.stroke();
+
+    // Línea horizontal (derecha)
+    ctxRedCrosshair.beginPath();
+    ctxRedCrosshair.moveTo(centerX + gapSize, centerY);
+    ctxRedCrosshair.lineTo(centerX + gapSize + lineLength, centerY);
+    ctxRedCrosshair.stroke();
+
+    // Agregar la textura
+    scene.textures.addCanvas('scope-red-texture', canvasRedCrosshair);
   }
 
   static common = {
@@ -776,6 +820,40 @@ export class Bullet extends GameObject {
       that.setVelocity(150);
     }
    
+  };
+
+  static teleport = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'scope-red-texture',
+    velocity: 500,
+    follow: true,
+    destroyAfterHit: false,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+
+    afterVisible: (that) => {
+      if(that.target.active) {
+        that.x = that.target.x
+        that.y = that.target.y
+      }
+
+    },
+
+    afterHit: (that, enemy) => {
+      that.scene.time.delayedCall(500, () => {
+        enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
+        if(enemy.active){
+          enemy.x = enemy.path[enemy.currentPointIndex].x;
+          enemy.y = enemy.path[enemy.currentPointIndex].y;
+
+          enemy.startMoving();
+          that.destroy();
+          that.group.remove(that);
+        }
+      });
+    }
   };
 
 }

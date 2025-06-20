@@ -5,7 +5,9 @@
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
 -que disparen dentro de la pantalla
--fecuencia del disparo
+-torre que dispare helicópteros
+-torre que dispare un radio de electricidad 
+-el tema de la frecuencia de disparo 
 */
 
 import { GameObject } from './core/GameObject.js'
@@ -215,7 +217,7 @@ var config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 },
-      debug: true,
+      debug: false,
     },
   },
   scene: Game,

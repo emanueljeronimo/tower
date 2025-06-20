@@ -213,7 +213,6 @@ export class Tower extends GameObject {
     }
   }
 
-
   static circleTower = {
     heightRatio: 1,
     widthRatio: 2,
@@ -297,6 +296,23 @@ export class Tower extends GameObject {
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.circle, target, range);
+      });
+    }
+  }
+
+  static teleportTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
+    attackInterval: 100,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.teleport, target, range);
       });
     }
   }
