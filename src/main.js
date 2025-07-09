@@ -5,15 +5,19 @@
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
 -que disparen dentro de la pantalla
+
+-torre damage/sangrado
+
+aca tengo que hacer ese refactor de que no se necesita target para "disparar"
+-torre de minas
+-torre de oro
 -torre que dispare helicópteros
 -torre que dispare un radio de electricidad 
--el tema de la frecuencia de disparo 
+
+-el tema de la frecuencia de disparo //ya estaba esto je
 */
 
 import { GameObject } from './core/GameObject.js'
-import { Enemy } from './core/Enemy.js'
-import { Tower } from './core/Tower.js'
-import { ButtonTower } from './core/ButtonTower.js'
 import { Bullet } from './core/Bullet.js'
 import { TowerMenuContainer } from './core/TowerMenuContainer.js'
 import { SellPopUp } from './core/SellPopUp.js'
@@ -31,6 +35,7 @@ class Game extends Phaser.Scene {
       cols: 41,
     };
 
+    this.paths = null;
     this.mainTowers = null;
     this.enemies = null;
     this.bullets = null;
@@ -82,7 +87,7 @@ class Game extends Phaser.Scene {
     });
 
 
-    let paths = MapGenerator.generateMap(
+    this.paths = MapGenerator.generateMap(
       this,
       this.grid.rows,
       this.grid.cols
@@ -100,7 +105,7 @@ class Game extends Phaser.Scene {
     this.demoCamera.setPosition(this.unitSize*31, this.unitSize*21);
 
     this.sellPopUp = new SellPopUp(this);
-    this.enemyGenerator = new EnemyGenerator(this, paths, this.enemies);
+    this.enemyGenerator = new EnemyGenerator(this, this.paths, this.enemies);
 
     this.physics.add.overlap(this.enemies, this.bullets, function (enemy, bullet) {
       bullet.hit(enemy);

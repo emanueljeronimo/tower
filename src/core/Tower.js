@@ -56,6 +56,7 @@ export class Tower extends GameObject {
       this.lastTimeFired = time;
     }
   }
+
   alignWithTarget(){
     if (/*this.lastTimeUpdated > this.attackInterval &&*/ this.target) {
       const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
@@ -157,21 +158,22 @@ export class Tower extends GameObject {
   }
 
   static tripleShotTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 350,
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
     damage: 50,
     rangeUnits: 8,
     unitsCloserToTarget: 1.5,
-    attackInterval: 300,
+    attackInterval: 100,
     texture: 'towerTexture',
-    description: 'Triple Tower',
+    description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-        new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-      });
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        const angle = Phaser.Math.Angle.Between(that.getCenter().x, that.getCenter().y, target.getCenter().x, target.getCenter().y);
+        new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle - 0.2);
+        new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle);
+        new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle + 0.2);
+      });   
     }
   }
 
@@ -313,6 +315,25 @@ export class Tower extends GameObject {
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.teleport, target, range);
+      });
+    }
+  }
+
+
+  //antes de avanzar con esta torre y la del oro tengo que poder, "no seguir" y que se ejecute sin target
+  static mineTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToTarget: 1.5,
+    attackInterval: 100,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.mine, target, range);
       });
     }
   }

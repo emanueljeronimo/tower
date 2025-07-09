@@ -57,7 +57,6 @@ export class Bullet extends GameObject {
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * this.velocity);
     this.setVelocityY(Math.sin(angle) * this.velocity);
-
   }
 
   setVelocity(velocity) {
@@ -84,6 +83,26 @@ export class Bullet extends GameObject {
     contextBullet.fill();
 
     scene.textures.addCanvas('bullet-texture', canvasBullet);
+  
+    const canvasTripleArrow = document.createElement('canvas');
+    canvasTripleArrow.width = scene.unitSize * 2;
+    canvasTripleArrow.height = scene.unitSize * 2;
+    const ctxTripleArrow = canvasTripleArrow.getContext('2d');
+
+    // Gradiente azul cian -> violeta
+    const gradientTripleArrow = ctxTripleArrow.createLinearGradient(0, 0, 0, scene.unitSize * 2);
+    gradientTripleArrow.addColorStop(0, '#5500FF');
+    gradientTripleArrow.addColorStop(1, '#00FFFF');
+
+    ctxTripleArrow.fillStyle = gradientTripleArrow;
+    ctxTripleArrow.beginPath();
+    ctxTripleArrow.moveTo(-scene.unitSize, -scene.unitSize); // Punta superior
+    ctxTripleArrow.lineTo(-scene.unitSize, scene.unitSize * 2); // Esquina inferior izquierda
+    ctxTripleArrow.lineTo(scene.unitSize * 2, scene.unitSize); // Esquina inferior derecha
+    ctxTripleArrow.closePath();
+    ctxTripleArrow.fill();
+
+    scene.textures.addCanvas('bullet-triple-texture', canvasTripleArrow);
 
     // Nueva textura para el orbe de energía
     const canvasEnergyOrb = document.createElement('canvas');
@@ -350,6 +369,32 @@ export class Bullet extends GameObject {
       });
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
+      that.destroy();
+      that.group.remove(that);
+    }
+  };
+
+  static triple = {
+    damage: 0.7,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'bullet-triple-texture',
+    velocity: 850,
+    follow: true,
+    destroyAfterHit: true,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+    afterHit: (that, enemy) => {
+      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-triple-texture', {
+        speed: { min: 0, max: 550 },
+        angle: { min: 0, max: 360 },
+        lifespan: 180,
+        scale: { start: 0.3, end: 0 },
+        tint: [0x00ffff, 0x5500ff],
+        blendMode: 'ADD'
+      });
+
+      that.scene.time.delayedCall(300, () => impactParticles.destroy());
       that.destroy();
       that.group.remove(that);
     }
@@ -785,8 +830,9 @@ export class Bullet extends GameObject {
       });
 
       if (enemy.active) {
-        enemy.body.velocity.x *= 0.90;
-        enemy.body.velocity.y *= 0.90;
+        enemy.speed = enemy.speed * 0.8;
+        //enemy.body.velocity.x *= 0.90;
+        //enemy.body.velocity.y *= 0.90;
         /*that.scene.time.delayedCall(1000, () => {
           if (enemy && enemy.body) {
             enemy.body.velocity.x *= 1.05;
@@ -854,6 +900,27 @@ export class Bullet extends GameObject {
         }
       });
     }
+  };
+
+  static mine = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'bullet-texture',
+    velocity: 800,
+    follow: true,
+    destroyAfterHit: true,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+
+    afterVisible:(that) =>{
+      that.setVelocityX(0);
+      that.setVelocityY(0);
+      setTimeout(()=>{
+        that.destroy();
+        that.group.remove(that);
+      },500);
+    },
   };
 
 }
