@@ -6,6 +6,7 @@ export class Bullet extends GameObject {
     super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     this.target = target;
     Object.assign(this, config);
+    console.log('piu piu');
 
     if (this.target) {
       this.initAngle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
@@ -19,7 +20,7 @@ export class Bullet extends GameObject {
     this.startY = y;
     this.range = range;
     this.scene = scene;
-    this.visible = false;
+    this.visible = !this.unitsToSetVisible;
   }
 
   hit(enemy) {
@@ -910,7 +911,7 @@ export class Bullet extends GameObject {
     velocity: 800,
     follow: true,
     destroyAfterHit: true,
-    unitsToSetVisible: 1,
+    unitsToSetVisible: 0,
     unitsToDestroy: 16,
 
     afterVisible:(that) =>{

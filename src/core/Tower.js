@@ -57,6 +57,13 @@ export class Tower extends GameObject {
     }
   }
 
+  shotWhenIsTime(time, shotFn) {
+    if (time > this.lastTimeFired + this.attackInterval) {
+      shotFn(this.scene, this.groupBullets, this.getCenter().x, this.getCenter().y, this.rangeUnits * this.scene.unitSize);
+      this.lastTimeFired = time;
+    }
+  }
+
   alignWithTarget(){
     if (/*this.lastTimeUpdated > this.attackInterval &&*/ this.target) {
       const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
@@ -78,7 +85,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -95,7 +102,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 2000,
     rangeUnits: 18,
-    unitsCloserToTarget: 5,
+    unitsCloserToShowItSelf: 5,
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -112,7 +119,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 2000,
     rangeUnits: 18,
-    unitsCloserToTarget: 5,
+    unitsCloserToShowItSelf: 5,
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -129,7 +136,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -146,7 +153,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -163,7 +170,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -183,7 +190,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Fast Tower',
@@ -200,7 +207,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 100,
     rangeUnits: 150,
-    unitsCloserToTarget: 1,
+    unitsCloserToShowItSelf: 1,
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'light',
@@ -221,7 +228,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 1,
     rangeUnits: 8,
-    unitsCloserToTarget: 2.3,
+    unitsCloserToShowItSelf: 2.3,
     attackInterval: 300,
     texture: 'towerTexture',
     description: 'Circle Tower',
@@ -238,7 +245,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 0,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Teleport Tower',
@@ -274,7 +281,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 0,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 200,
     texture: 'towerTexture',
     description: 'Damage Tower',
@@ -291,7 +298,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -308,7 +315,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -320,20 +327,73 @@ export class Tower extends GameObject {
   }
 
 
-  //antes de avanzar con esta torre y la del oro tengo que poder, "no seguir" y que se ejecute sin target
   static mineTower = {
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
     damage: 50,
-    rangeUnits: 8,
-    unitsCloserToTarget: 1.5,
+    rangeUnits: 15,
+    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, Bullet.mine, target, range);
+      that.shotWhenIsTime(time, (scene, groupBullets, x, y, range) => {
+
+        function findRandomPointAlongPathInRange(path, towerX, towerY, range) {
+
+          function closestPointOnSegment(a, b, p) {
+            const ax = a.x, ay = a.y;
+            const bx = b.x, by = b.y;
+            const px = p.x, py = p.y;
+
+            const abx = bx - ax;
+            const aby = by - ay;
+            const apx = px - ax;
+            const apy = py - ay;
+
+            const abLenSq = abx * abx + aby * aby;
+            const dot = (apx * abx + apy * aby) / abLenSq;
+
+            const t = Phaser.Math.Clamp(dot, 0, 1);
+
+            return {
+              x: ax + abx * t,
+              y: ay + aby * t
+            };
+            }
+
+          const rangeSq = range * range;
+          const validSegments = [];
+
+          for (let i = 0; i < path.length - 1; i++) {
+            const p1 = path[i];
+            const p2 = path[i + 1];
+
+            const closest = closestPointOnSegment(p1, p2, { x: towerX, y: towerY });
+            const dx = closest.x - towerX;
+            const dy = closest.y - towerY;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq <= rangeSq) {
+              validSegments.push({ p1, p2 });
+            }
+          }
+
+          if (validSegments.length === 0) return null;
+
+          // Elegimos un segmento válido al azar
+          const { p1, p2 } = Phaser.Utils.Array.GetRandom(validSegments);
+          const t = Math.random(); // entre 0 y 1
+          const x = Phaser.Math.Linear(p1.x, p2.x, t);
+          const y = Phaser.Math.Linear(p1.y, p2.y, t);
+          return { x, y };
+        }
+
+        const path = scene.paths[Math.floor(Math.random() * scene.paths.length)];
+        const targetPoint = findRandomPointAlongPathInRange(path, x, y, that.rangeUnits * scene.unitSize);
+        targetPoint && new Bullet(scene, groupBullets, targetPoint.x, targetPoint.y, Bullet.mine, null, range);
+
       });
     }
   }
