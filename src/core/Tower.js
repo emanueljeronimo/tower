@@ -64,7 +64,7 @@ export class Tower extends GameObject {
     }
   }
 
-  alignWithTarget(){
+  alignWithTarget() {
     if (/*this.lastTimeUpdated > this.attackInterval &&*/ this.target) {
       const angle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
       this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
@@ -124,7 +124,7 @@ export class Tower extends GameObject {
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {      
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.bouncer, target, range);
       });
     }
@@ -147,7 +147,7 @@ export class Tower extends GameObject {
     }
   }
 
-  static slowerTower = {   
+  static slowerTower = {
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
@@ -180,7 +180,7 @@ export class Tower extends GameObject {
         new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle - 0.2);
         new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle);
         new Bullet(scene, groupBullets, x, y, Bullet.triple, null, range, angle + 0.2);
-      });   
+      });
     }
   }
 
@@ -267,9 +267,9 @@ export class Tower extends GameObject {
     description: 'Mine Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let randomPoint = Utils.getRandomNumber(0,target.path.length-1);
+        let randomPoint = Utils.getRandomNumber(0, target.path.length - 1);
         let point1 = target.path[randomPoint];
-        let point2 = target.path[randomPoint-1] ? target.path[randomPoint-1] : target.path[randomPoint+1];
+        let point2 = target.path[randomPoint - 1] ? target.path[randomPoint - 1] : target.path[randomPoint + 1];
         new Bullet(scene, groupBullets, Utils.getRandomNumber(point1.x, point2.x), Utils.getRandomNumber(point1.y, point2.y), angle, scene.unitSize, scene.unitSize, damage, range, Bullet.mine);
       });
     }
@@ -361,7 +361,7 @@ export class Tower extends GameObject {
               x: ax + abx * t,
               y: ay + aby * t
             };
-            }
+          }
 
           const rangeSq = range * range;
           const validSegments = [];
@@ -391,12 +391,34 @@ export class Tower extends GameObject {
         }
 
         const path = scene.paths[Math.floor(Math.random() * scene.paths.length)];
-        const targetPoint = findRandomPointAlongPathInRange(path, x, y, that.rangeUnits * scene.unitSize);
-        targetPoint && new Bullet(scene, groupBullets, targetPoint.x, targetPoint.y, Bullet.mine, null, range);
+        let targetPoint = findRandomPointAlongPathInRange(path, x, y, that.rangeUnits * scene.unitSize);
+        //lo reescribo con numeros mas randoms
+        if (targetPoint) {
+          const halfUnitSize = scene.unitSize / 2;
+          targetPoint = { x: Utils.getRandomNumber(targetPoint.x - halfUnitSize, targetPoint.x + halfUnitSize), y: Utils.getRandomNumber(targetPoint.y - halfUnitSize, targetPoint.y + halfUnitSize) };
+          new Bullet(scene, groupBullets, targetPoint.x, targetPoint.y, Bullet.mine, null, range);
+        }
 
       });
     }
   }
 
- 
+  static damageTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 8,
+    unitsCloserToShowItSelf: 1.5,
+    attackInterval: 100,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.damage, target, range);
+      });
+    }
+  }
+
+
 }

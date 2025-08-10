@@ -6,7 +6,6 @@ export class Bullet extends GameObject {
     super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     this.target = target;
     Object.assign(this, config);
-    console.log('piu piu');
 
     if (this.target) {
       this.initAngle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
@@ -84,7 +83,7 @@ export class Bullet extends GameObject {
     contextBullet.fill();
 
     scene.textures.addCanvas('bullet-texture', canvasBullet);
-  
+
     const canvasTripleArrow = document.createElement('canvas');
     canvasTripleArrow.width = scene.unitSize * 2;
     canvasTripleArrow.height = scene.unitSize * 2;
@@ -335,6 +334,70 @@ export class Bullet extends GameObject {
 
     // Agregar la textura
     scene.textures.addCanvas('scope-red-texture', canvasRedCrosshair);
+
+    // Textura de mina
+    const canvasMine = document.createElement('canvas');
+    const radiusMine = scene.unitSize;
+    canvasMine.width = radiusMine * 2;
+    canvasMine.height = radiusMine * 2;
+    const ctxMine = canvasMine.getContext('2d');
+
+    // Fondo circular (cuerpo de la mina)
+    ctxMine.fillStyle = '#333333'; // gris oscuro
+    ctxMine.beginPath();
+    ctxMine.arc(radiusMine, radiusMine, radiusMine, 0, Math.PI * 2);
+    ctxMine.fill();
+
+    // Borde metálico
+    ctxMine.lineWidth = 3;
+    ctxMine.strokeStyle = '#777777'; // gris claro
+    ctxMine.stroke();
+
+    // Picos alrededor (8 protuberancias)
+    ctxMine.fillStyle = '#555555';
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i;
+      const x = radiusMine + Math.cos(angle) * (radiusMine + 3);
+      const y = radiusMine + Math.sin(angle) * (radiusMine + 3);
+      ctxMine.beginPath();
+      ctxMine.arc(x, y, 3, 0, Math.PI * 2);
+      ctxMine.fill();
+    }
+
+    // Centro rojo brillante
+    const gradientCenter = ctxMine.createRadialGradient(
+      radiusMine, radiusMine, 0,
+      radiusMine, radiusMine, radiusMine / 2
+    );
+    gradientCenter.addColorStop(0, '#FF0000');
+    gradientCenter.addColorStop(1, '#800000');
+    ctxMine.fillStyle = gradientCenter;
+    ctxMine.beginPath();
+    ctxMine.arc(radiusMine, radiusMine, radiusMine / 3, 0, Math.PI * 2);
+    ctxMine.fill();
+
+    // Registrar textura
+    scene.textures.addCanvas('mine-texture', canvasMine);
+
+    // Crear textura para partículas de explosión
+    const canvasExplosion = document.createElement('canvas');
+    const r = scene.unitSize;
+    canvasExplosion.width = r * 2;
+    canvasExplosion.height = r * 2;
+    const ctxExplosion = canvasExplosion.getContext('2d');
+
+    const gradientExplosion = ctxExplosion.createRadialGradient(r, r, 0, r, r, r);
+    gradientExplosion.addColorStop(0, 'rgba(255,255,0,1)');   // amarillo brillante
+    gradientExplosion.addColorStop(0.3, 'rgba(255,165,0,0.9)'); // naranja
+    gradientExplosion.addColorStop(0.6, 'rgba(255,0,0,0.8)');   // rojo
+    gradientExplosion.addColorStop(1, 'rgba(50,50,50,0)');      // borde transparente (humo)
+    ctxExplosion.fillStyle = gradientExplosion;
+    ctxExplosion.beginPath();
+    ctxExplosion.arc(r, r, r, 0, Math.PI * 2);
+    ctxExplosion.fill();
+
+    scene.textures.addCanvas('mine-explosion-particle', canvasExplosion);
+
   }
 
   static common = {
@@ -866,7 +929,7 @@ export class Bullet extends GameObject {
       that.setAngularVelocity(150);
       that.setVelocity(150);
     }
-   
+
   };
 
   static teleport = {
@@ -881,7 +944,7 @@ export class Bullet extends GameObject {
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
-      if(that.target.active) {
+      if (that.target.active) {
         that.x = that.target.x
         that.y = that.target.y
       }
@@ -891,7 +954,7 @@ export class Bullet extends GameObject {
     afterHit: (that, enemy) => {
       that.scene.time.delayedCall(500, () => {
         enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
-        if(enemy.active){
+        if (enemy.active) {
           enemy.x = enemy.path[enemy.currentPointIndex].x;
           enemy.y = enemy.path[enemy.currentPointIndex].y;
 
@@ -907,22 +970,78 @@ export class Bullet extends GameObject {
     damage: 1,
     heightUnits: 1,
     widthUnits: 1,
-    texture: 'bullet-texture',
+    texture: 'mine-texture',
     velocity: 800,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 0,
     unitsToDestroy: 16,
 
-    afterVisible:(that) =>{
+    afterUpdate: (that, delta) => {
+      that.rotation += 0.2;
+    },
+
+    afterVisible: (that) => {
       that.setVelocityX(0);
       that.setVelocityY(0);
-      setTimeout(()=>{
+      setTimeout(() => {
         that.destroy();
         that.group.remove(that);
-      },500);
+      }, 500);
     },
+
+   afterHit: (that, enemy) => {
+      const explosion = that.scene.add.particles(that.x, that.y, 'mine-explosion-particle', {
+        speed: { min: 150, max: 350 }, // un poco más rápida
+        angle: { min: 0, max: 360 },
+        lifespan: { min: 50, max: 100 }, // más corta
+        scale: { start: 0.3, end: 0 }, // más pequeña
+        gravityY: 250, // que caiga un poco más rápido
+        alpha: { start: 1, end: 0 },
+        blendMode: 'ADD',
+        quantity: 10 // menos partículas
+      });
+
+      that.scene.time.delayedCall(350, () => explosion.destroy()); // menos tiempo en pantalla
+      that.destroy();
+      that.group.remove(that);
+    }
   };
+
+  static damage = {
+    damage: 1,
+    heightUnits: 1,
+    widthUnits: 1,
+    texture: 'bullet-texture',
+    velocity: 800,
+    follow: true,
+    destroyAfterHit: false,
+    unitsToSetVisible: 1,
+    unitsToDestroy: 16,
+
+    afterHit: (that, enemy) => {
+      that.glued = true;
+      that.enemy = enemy;
+    },
+
+    afterUpdate: (that, delta) => {
+      if (!that.increasedDamage && that.enemy) {
+        that.enemy.increasedDamagePercent += 10;
+        setTimeout(() => {
+          that.enemy.increasedDamagePercent -= 10;
+          that.destroy();
+          that.group.remove(that);
+        }, 2000)
+        that.increasedDamage = true;
+      }
+
+      if (that.glued && that.enemy.body) {
+        that.body.x = that.enemy.getCenter().x - that.body.width / 2;
+        that.body.y = that.enemy.getCenter().y - that.body.height / 2;
+      }
+    },
+  }
+
 
 }
 
