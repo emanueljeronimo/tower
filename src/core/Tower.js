@@ -410,7 +410,7 @@ export class Tower extends GameObject {
     damage: 50,
     rangeUnits: 8,
     unitsCloserToShowItSelf: 1.5,
-    attackInterval: 100,
+    attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {

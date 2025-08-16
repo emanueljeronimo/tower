@@ -61,7 +61,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
         selectButton.setDisplaySize(this.scene.buttonTowerSize, this.scene.buttonTowerSize);
         selectButton.setInteractive();    
 
-        selectButton.on('pointerdown', () => {
+        const pointerdown = ()=>{
           if (borderGraphics) {
               borderGraphics.destroy();
           }
@@ -76,12 +76,21 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
           );
           this.selectedTower = tower;
           this.updateTower();
+        }
+
+        selectButton.on('pointerdown', () => {
+          pointerdown();
         });
 
         
         let towerTexture = this.scene.add.sprite(this.x + xoffset + this.scene.buttonTowerSize * j , this.y - this.scene.unitSize/2 + this.scene.buttonTowerSize * i , tower.texture);
+        towerTexture.setInteractive();  
         towerTexture.setSize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
         towerTexture.setDisplaySize(this.scene.unitSize * tower.widthRatio, this.scene.unitSize * tower.heightRatio);
+        towerTexture.on('pointerdown', () => {
+          pointerdown();
+        });
+
       }
     }
 

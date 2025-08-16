@@ -398,6 +398,39 @@ export class Bullet extends GameObject {
 
     scene.textures.addCanvas('mine-explosion-particle', canvasExplosion);
 
+    // Textura de "sangrado" (señal de debuff)
+    const canvasBleed = document.createElement('canvas');
+    const radiusBleed = scene.unitSize;
+    canvasBleed.width = radiusBleed * 2;
+    canvasBleed.height = radiusBleed * 2;
+    const contextBleed = canvasBleed.getContext('2d');
+
+    // Degradado rojo a púrpura oscuro
+    const gradientBleed = contextBleed.createRadialGradient(
+      radiusBleed, radiusBleed, radiusBleed * 0.2,
+      radiusBleed, radiusBleed, radiusBleed
+    );
+    gradientBleed.addColorStop(0, '#FF0000');   // rojo intenso
+    gradientBleed.addColorStop(0.5, '#AA0033'); // sangre oscura
+    gradientBleed.addColorStop(1, '#550022');   // borde púrpura oscuro
+
+    contextBleed.fillStyle = gradientBleed;
+    contextBleed.beginPath();
+    contextBleed.arc(radiusBleed, radiusBleed, radiusBleed, 0, Math.PI * 2, false);
+    contextBleed.fill();
+
+    // Algunas gotas simuladas
+    contextBleed.fillStyle = '#880000';
+    for (let i = 0; i < 3; i++) {
+      const dx = radiusBleed + (Math.random() - 0.5) * radiusBleed * 1.2;
+      const dy = radiusBleed + (Math.random() - 0.5) * radiusBleed * 1.2;
+      contextBleed.beginPath();
+      contextBleed.arc(dx, dy, radiusBleed * 0.2, 0, Math.PI * 2, false);
+      contextBleed.fill();
+    }
+
+    scene.textures.addCanvas('bleed-texture', canvasBleed);
+
   }
 
   static common = {
@@ -985,12 +1018,13 @@ export class Bullet extends GameObject {
       that.setVelocityX(0);
       that.setVelocityY(0);
       setTimeout(() => {
+        console.log("destroy")
         that.destroy();
         that.group.remove(that);
       }, 500);
     },
 
-   afterHit: (that, enemy) => {
+    afterHit: (that, enemy) => {
       const explosion = that.scene.add.particles(that.x, that.y, 'mine-explosion-particle', {
         speed: { min: 150, max: 350 }, // un poco más rápida
         angle: { min: 0, max: 360 },
@@ -1002,18 +1036,18 @@ export class Bullet extends GameObject {
         quantity: 10 // menos partículas
       });
 
-      that.scene.time.delayedCall(350, () => explosion.destroy()); // menos tiempo en pantalla
+      that.scene.time.delayedCall(350, () => explosion.destroy());
       that.destroy();
       that.group.remove(that);
     }
   };
 
   static damage = {
-    damage: 1,
+    damage: 0,
     heightUnits: 1,
     widthUnits: 1,
-    texture: 'bullet-texture',
-    velocity: 800,
+    texture: 'bleed-texture',
+    velocity: 1500,
     follow: true,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
@@ -1022,6 +1056,22 @@ export class Bullet extends GameObject {
     afterHit: (that, enemy) => {
       that.glued = true;
       that.enemy = enemy;
+      const bleedParticles = that.scene.add.particles(that.x, that.y, 'bleed-texture', {
+        speed: { min: 30, max: 100 },
+        angle: { min: 0, max: 360 },
+        lifespan: 400,
+        scale: { start: 0.6, end: 0 },
+        alpha: { start: 1, end: 0 },
+        blendMode: 'ADD'
+      });
+
+      enemy.setTint(0xff2222);
+      that.scene.time.delayedCall(500, () => bleedParticles.destroy());
+      /*that.scene.time.delayedCall(500, () => {
+        that.destroy();
+        that.group.remove(that);
+      });*/
+      
     },
 
     afterUpdate: (that, delta) => {
@@ -1031,6 +1081,7 @@ export class Bullet extends GameObject {
           that.enemy.increasedDamagePercent -= 10;
           that.destroy();
           that.group.remove(that);
+          that.enemy.clearTint();
         }, 2000)
         that.increasedDamage = true;
       }
