@@ -26,8 +26,4 @@ export class Utils {
     
         return closestEnemy;
     }
-
-    static getRandomAngle() {
-      return Phaser.Math.FloatBetween(0, Math.PI * 2);
-    }
   }

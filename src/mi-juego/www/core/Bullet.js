@@ -2,7 +2,6 @@ import { GameObject } from './GameObject.js';
 import { Utils } from './Utils.js';
 
 export class Bullet extends GameObject {
-
   constructor(scene, group, x, y, config, target, range, angle) {
     super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     this.target = target;
@@ -437,41 +436,6 @@ export class Bullet extends GameObject {
 
     scene.textures.addCanvas('bleed-texture', canvasBleed);
 
-
-    const canvasElectricity = document.createElement('canvas');
-    canvasElectricity.width = scene.unitSize * 2 * 2;
-    canvasElectricity.height = scene.unitSize * 2;
-    const ctxElectricity = canvasElectricity.getContext('2d');
-
-    const centerElectricityX = scene.unitSize * 2;
-    const centerElectricityY = scene.unitSize * 2;
-
-    // Fondo glow
-    const gradientElectricity = ctxElectricity.createRadialGradient(centerElectricityX, centerElectricityY, 0, centerElectricityX, centerElectricityY, scene.unitSize);
-    gradientElectricity.addColorStop(0, 'rgba(100,200,255,1)');
-    gradientElectricity.addColorStop(1, 'rgba(0,0,50,0)');
-    ctxElectricity.fillStyle = gradientElectricity;
-    ctxElectricity.fillRect(0,0, scene.unitSize, scene.unitSize);
-
-    // Rayos eléctricos
-    ctxElectricity.strokeStyle = '#66ccff';
-    ctxElectricity.lineWidth = 2;
-    for (let i=0; i<8; i++) {
-      const angle = (Math.PI*2 / 8) * i;
-      ctxElectricity.beginPath();
-      ctxElectricity.moveTo(centerX, centerY);
-      // línea con un poco de “ruido”
-      const r = scene.unitSize;
-      for (let j=1; j<=3; j++) {
-        const rr = (r/3)*j;
-        const xx = centerX + Math.cos(angle + Math.random()*0.2 - 0.1) * rr;
-        const yy = centerY + Math.sin(angle + Math.random()*0.2 - 0.1) * rr;
-        ctxElectricity.lineTo(xx, yy);
-      }
-      ctxElectricity.stroke();
-    }
-
-    scene.textures.addCanvas('bullet-electric', canvasElectricity);
   }
 
   static common = {
@@ -1143,42 +1107,6 @@ export class Bullet extends GameObject {
     },
 
   }
-
-
-  static electricity = {
-    damage: 1,
-    heightUnits: 1,
-    widthUnits: 1,
-    texture: 'bullet-texture',
-    velocity: 500,
-    follow: false,
-    destroyAfterHit: false,
-    unitsToSetVisible: 0,
-    unitsToDestroy: 6,
-
-    afterUpdate: (that, delta) => {
-      if (!that.lastAngleChange) {
-        that.lastAngleChange = delta;
-      } else {
-        that.lastAngleChange += delta;
-        console.log(that.lastAngleChange);
-        if(that.lastAngleChange>50){
-          that.setDirection(Utils.getRandomAngle());
-          that.lastAngleChange=0;
-        }
-      }
-
-    },
-
-    afterVisible: (that) => {
-     
-    },
-
-    afterHit: (that, enemy) => {
-      
-    }
-
-  };
 
 
 }

@@ -46,11 +46,11 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
 
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.slowerTower, Tower.circleTower,
-                           Tower.teleportTower, Tower.mineTower, Tower.damageTower, Tower.electricityTower/*, Tower.slowerTower,*/];
+                           Tower.teleportTower, Tower.mineTower, Tower.damageTower /*Tower.bombTower, Tower.slowerTower,*/];
 
     let borderGraphics;
     for(let i=0; i<2; i++) {
-      for(let j=0; j<6; j++) {
+      for(let j=0; j<5; j++) {
         
         if (!this.arrTowerConfig[j+(5*i)]) break;
 
