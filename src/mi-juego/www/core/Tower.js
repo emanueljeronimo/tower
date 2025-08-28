@@ -85,7 +85,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -102,7 +101,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 2000,
     rangeUnits: 18,
-    unitsCloserToShowItSelf: 5,
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -119,7 +117,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 2000,
     rangeUnits: 18,
-    unitsCloserToShowItSelf: 5,
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -136,7 +133,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -153,7 +149,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -170,7 +165,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -184,121 +178,12 @@ export class Tower extends GameObject {
     }
   }
 
-  static fastTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 50,
-    rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
-    attackInterval: 100,
-    texture: 'towerTexture',
-    description: 'Fast Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.common);
-      });
-    }
-  }
-
-  static lightBulbTower = {
-    heightRatio: 1,
-    widthRatio: 1.2,
-    price: 250,
-    damage: 100,
-    rangeUnits: 150,
-    unitsCloserToShowItSelf: 1,
-    attackInterval: 500,
-    texture: 'towerTexture',
-    description: 'light',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle + 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, x, y, angle + 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, x, y, angle - 0.1, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-        new Bullet(scene, groupBullets, x, y, angle - 0.2, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.lightBulbShot);
-      });
-    }
-  }
-
-  static circleTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 1,
-    rangeUnits: 8,
-    unitsCloserToShowItSelf: 2.3,
-    attackInterval: 300,
-    texture: 'towerTexture',
-    description: 'Circle Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize * 3, scene.unitSize * 3, damage, range, Bullet.circleShot);
-      });
-    }
-  }
-
-  static teleportTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 0,
-    rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
-    attackInterval: 1000,
-    texture: 'towerTexture',
-    description: 'Teleport Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize, scene.unitSize, damage, range, Bullet.teleport);
-      });
-    }
-  }
-
-  static mineTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 5000,
-    rangeUnits: 800,
-    attackInterval: 500,
-    texture: 'towerTexture',
-    description: 'Mine Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        let randomPoint = Utils.getRandomNumber(0, target.path.length - 1);
-        let point1 = target.path[randomPoint];
-        let point2 = target.path[randomPoint - 1] ? target.path[randomPoint - 1] : target.path[randomPoint + 1];
-        new Bullet(scene, groupBullets, Utils.getRandomNumber(point1.x, point2.x), Utils.getRandomNumber(point1.y, point2.y), angle, scene.unitSize, scene.unitSize, damage, range, Bullet.mine);
-      });
-    }
-  }
-
-  static damageTower = {
-    heightRatio: 1,
-    widthRatio: 2,
-    price: 250,
-    damage: 0,
-    rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
-    attackInterval: 200,
-    texture: 'towerTexture',
-    description: 'Damage Tower',
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, angle, damage, range) => {
-        new Bullet(scene, groupBullets, x, y, angle, scene.unitSize / 3, scene.unitSize / 3, damage, range, Bullet.damage);
-      });
-    }
-  }
-
   static circleTower = {
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -315,7 +200,6 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -326,14 +210,12 @@ export class Tower extends GameObject {
     }
   }
 
-
   static mineTower = {
     heightRatio: 1.8,
     widthRatio: 4.2,
     price: 250,
     damage: 50,
     rangeUnits: 15,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
@@ -409,13 +291,42 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    unitsCloserToShowItSelf: 1.5,
     attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.damage, target, range);
+      });
+    }
+  }
+
+  static electricityTower = {
+    heightRatio: 1.8,
+    widthRatio: 4.2,
+    price: 250,
+    damage: 50,
+    rangeUnits: 15,
+    attackInterval: 1000,
+    texture: 'towerTexture',
+    description: 'Common Tower',
+    executeOnUpdate: (that, time) => {
+      that.shotWhenIsTime(time, (scene, groupBullets, x, y, range) => {
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
       });
     }
   }

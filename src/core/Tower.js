@@ -317,6 +317,16 @@ export class Tower extends GameObject {
         new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
         new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
         new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());
       });
     }
   }

@@ -43,6 +43,15 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
       this.scene.buy();
     });
 
+    this.reset = this.scene.add.text(this.scene.unitSize * 45, this.offset +  this.scene.unitSize * 3, 'Reset', {
+      fontSize: '24px',
+      fill: '#ffffff'
+    });
+    this.add(this.reset);
+    this.reset.setInteractive();
+    this.reset.on('pointerdown', () => {
+      window.location.reload();
+    });
 
     // Create a description text
     this.arrTowerConfig = [Tower.commonTower, Tower.tripleShotTower, Tower.energyOrbTower, Tower.bouncerTower, Tower.bombTower, Tower.slowerTower, Tower.circleTower,

@@ -2,6 +2,7 @@ import { GameObject } from './GameObject.js';
 import { Utils } from './Utils.js';
 
 export class Bullet extends GameObject {
+
   constructor(scene, group, x, y, config, target, range, angle) {
     super(scene, group, x, y, config.texture, config.heightUnits * scene.unitSize, config.widthUnits * scene.unitSize);
     this.target = target;
@@ -40,7 +41,7 @@ export class Bullet extends GameObject {
       return;
     }
 
-    if (!this.unitsToSetVisible && !this.afterVisibleWasForced){
+    if (!this.unitsToSetVisible && !this.afterVisibleWasForced) {
       this.afterVisible && this.afterVisible(this);
       this.afterVisibleWasForced = true;
     }
@@ -436,6 +437,43 @@ export class Bullet extends GameObject {
 
     scene.textures.addCanvas('bleed-texture', canvasBleed);
 
+    // Textura de bala eléctrica
+    const canvasBulletElectricity = document.createElement('canvas');
+    const radiusBulletElectricity = scene.unitSize;
+    canvasBulletElectricity.width = radiusBulletElectricity * 2;
+    canvasBulletElectricity.height = radiusBulletElectricity * 2;
+    const contextBulletElectricity = canvasBulletElectricity.getContext('2d');
+
+    // Fondo circular base
+    const gradientBulletElectricity = contextBulletElectricity.createRadialGradient(
+      radiusBulletElectricity, radiusBulletElectricity, 2,
+      radiusBulletElectricity, radiusBulletElectricity, radiusBulletElectricity
+    );
+    gradientBulletElectricity.addColorStop(0, '#FFFFFF');   // centro brillante
+    gradientBulletElectricity.addColorStop(0.3, '#00FFFF'); // cian intenso
+    gradientBulletElectricity.addColorStop(1, '#0033FF');   // azul eléctrico oscuro
+
+    contextBulletElectricity.fillStyle = gradientBulletElectricity;
+    contextBulletElectricity.beginPath();
+    contextBulletElectricity.arc(radiusBulletElectricity, radiusBulletElectricity, radiusBulletElectricity, 0, Math.PI * 2, false);
+    contextBulletElectricity.fill();
+
+    // Agregar algunas "chispas" aleatorias en la textura
+    for (let i = 0; i < 8; i++) {
+      const x = radiusBulletElectricity + (Math.random() - 0.5) * radiusBulletElectricity * 1.5;
+      const y = radiusBulletElectricity + (Math.random() - 0.5) * radiusBulletElectricity * 1.5;
+      contextBulletElectricity.strokeStyle = ['#FFFFFF', '#00FFFF', '#66CCFF'][Math.floor(Math.random() * 3)];
+      contextBulletElectricity.lineWidth = Math.random() * 2;
+      contextBulletElectricity.beginPath();
+      contextBulletElectricity.moveTo(x, y);
+      contextBulletElectricity.lineTo(
+        x + (Math.random() - 0.5) * 10,
+        y + (Math.random() - 0.5) * 10
+      );
+      contextBulletElectricity.stroke();
+    }
+
+    scene.textures.addCanvas('bullet-electric', canvasBulletElectricity);
   }
 
   static common = {
@@ -1022,7 +1060,7 @@ export class Bullet extends GameObject {
     afterVisible: (that) => {
       that.setVelocityX(0);
       that.setVelocityY(0);
-      that.scene.time.delayedCall(3500,() => {
+      that.scene.time.delayedCall(3500, () => {
         console.log("destroy");
         that.destroy();
         that.group.remove(that);
@@ -1058,7 +1096,7 @@ export class Bullet extends GameObject {
     unitsToSetVisible: 1,
     unitsToDestroy: 25,
 
-    
+
     afterVisible: (that) => {
 
       that.trailEmitter = that.scene.add.particles(0, 0, 'bleed-texture', {
@@ -1101,12 +1139,88 @@ export class Bullet extends GameObject {
 
     afterUpdate: (that, delta) => {
       if (that.glued && that.enemy.body) {
-        that.body.x = (that.enemy.getCenter().x - that.body.width / 2) + (that.body.width / 2) ;
+        that.body.x = (that.enemy.getCenter().x - that.body.width / 2) + (that.body.width / 2);
         that.body.y = that.enemy.getCenter().y - that.body.height / 2;
-      }    
+      }
     },
 
   }
+
+
+  static electricity = {
+    damage: 1,
+    heightUnits: 0.5,
+    widthUnits: 0.5,
+    texture: 'bullet-electric',
+    velocity: 1000,
+    follow: false,
+    destroyAfterHit: false,
+    unitsToSetVisible: 0,
+    unitsToDestroy: 6,
+
+    afterVisible: (that) => {
+      const sparks = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
+        speed: { min: 0, max: 0 },
+        angle: { min: 0, max: 0 }, // efecto "descarga adelante"
+        lifespan: 120,
+        alpha: { start: 1, end: 0 },
+        scale: { start: 0.3, end: 0 },
+        tint: [0x00ffff, 0xffffff, 0x3399ff],
+        blendMode: 'ADD'
+      });
+      that.scene.time.delayedCall(80, () => sparks.destroy());
+
+     that.trailEmitter = that.scene.add.particles(0, 0, 'bullet-electric', {
+        follow: that,
+        followOffset: { x: 0, y: 0 },
+        frequency: 35,
+        quantity: 6,
+        scale: { start: 0.2, end: 0.2 },
+        alpha: { start: 0.2, end: 0 },
+        lifespan: 600,
+        speed: { min: 10, max: 30 },
+        angle: { min: 0, max: 360 },
+        blendMode: 'ADD',
+        rotate: { min: -180, max: 180 }
+      });
+
+      that.on('destroy', () => {
+        if (that.trailEmitter) that.trailEmitter.destroy();
+      });
+
+    },
+
+    afterHit: (that, enemy) => {
+      const explosion = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
+        speed: { min: 100, max: 400 },
+        angle: { min: 0, max: 360 },
+        lifespan: { min: 80, max: 200 },
+        alpha: { start: 1, end: 0 },
+        scale: { start: 0.4, end: 0 },
+        tint: [0x00ffff, 0xffffff, 0x3399ff],
+        blendMode: 'ADD',
+        quantity: 12
+      });
+
+      that.scene.time.delayedCall(250, () => explosion.destroy());
+      that.destroy();
+      that.group.remove(that);
+    },
+
+    afterUpdate: (that, delta) => {
+      if (!that.lastAngleChange) {
+        that.lastAngleChange = delta;
+      } else {
+        that.lastAngleChange += delta;
+        console.log(that.lastAngleChange);
+        if (that.lastAngleChange > 50) {
+          that.setDirection(Utils.getRandomAngle());
+          that.lastAngleChange = 0;
+        }
+      }
+
+    },
+  };
 
 
 }
