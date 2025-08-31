@@ -23,12 +23,16 @@ export class Bullet extends GameObject {
     this.visible = !this.unitsToSetVisible;
   }
 
+  destroy() {
+    super.destroy();
+    this.group.remove(this);
+  }
+
   hit(enemy) {
     enemy.takeDamage(this.damage);
     this.afterHit && this.afterHit(this, enemy);
     if (this.destroyAfterHit) {
       this.destroy();
-      this.group.remove(this);
     }
   }
 
@@ -37,7 +41,6 @@ export class Bullet extends GameObject {
 
     if (distance > this.unitsToDestroy * this.scene.unitSize) {
       this.destroy();
-      this.group.remove(this);
       return;
     }
 
@@ -60,9 +63,10 @@ export class Bullet extends GameObject {
   }
 
   setDirection(angle) {
+    const realVelocity= this.velocity * this.scene.unitSize;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-    this.setVelocityX(Math.cos(angle) * this.velocity);
-    this.setVelocityY(Math.sin(angle) * this.velocity);
+    this.setVelocityX(Math.cos(angle) * realVelocity);
+    this.setVelocityY(Math.sin(angle) * realVelocity);
   }
 
   setVelocity(velocity) {
@@ -97,8 +101,8 @@ export class Bullet extends GameObject {
 
     // Gradiente azul cian -> violeta
     const gradientTripleArrow = ctxTripleArrow.createLinearGradient(0, 0, 0, scene.unitSize * 2);
-    gradientTripleArrow.addColorStop(0, '#5500FF');
-    gradientTripleArrow.addColorStop(1, '#00FFFF');
+    gradientTripleArrow.addColorStop(0, '#ff2121ff');
+    gradientTripleArrow.addColorStop(1, '#fa82f4ff');
 
     ctxTripleArrow.fillStyle = gradientTripleArrow;
     ctxTripleArrow.beginPath();
@@ -481,7 +485,7 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'bullet-texture',
-    velocity: 800,
+    velocity: 30,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
@@ -510,7 +514,6 @@ export class Bullet extends GameObject {
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
       that.destroy();
-      that.group.remove(that);
     }
   };
 
@@ -519,7 +522,7 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'bullet-triple-texture',
-    velocity: 850,
+    velocity: 40,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
@@ -536,7 +539,6 @@ export class Bullet extends GameObject {
 
       that.scene.time.delayedCall(300, () => impactParticles.destroy());
       that.destroy();
-      that.group.remove(that);
     }
   };
 
@@ -545,7 +547,7 @@ export class Bullet extends GameObject {
     heightUnits: 1.2,
     widthUnits: 1.2,
     texture: 'energy-orb-texture',
-    velocity: 1500,
+    velocity: 60,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
@@ -673,7 +675,7 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'bouncer-texture',
-    velocity: 2300,
+    velocity: 80,
     follow: true,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
@@ -722,27 +724,22 @@ export class Bullet extends GameObject {
         let nextEnemy = Utils.getClosestEnemy(that.enemy, that.scene.enemies, that.x, that.y);
         if (!nextEnemy) {
           that.destroy();
-          that.group.remove(that);
           return;
         } else {
           const distance = Phaser.Math.Distance.Between(that.startX, that.startY, nextEnemy.getCenter().x, nextEnemy.getCenter().y);
           if (distance > that.unitsToDestroy * that.scene.unitSize) {
             that.destroy();
-            that.group.remove(that);
             return;
           }
         }
 
         const angle = Phaser.Math.Angle.Between(that.body.x, that.body.y, nextEnemy.x, nextEnemy.y);
-        that.setAngle(Phaser.Math.RAD_TO_DEG * angle);
-        that.setVelocityX(Math.cos(angle) * that.velocity);
-        that.setVelocityY(Math.sin(angle) * that.velocity);
+        that.setDirection(angle);
         that.rebounds++;
       }
 
       if (that.rebounds == 8) {
         that.destroy();
-        that.group.remove(that);
       }
     }
 
@@ -753,7 +750,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.2,
     widthUnits: 1,
     texture: 'void-sphere-texture',
-    velocity: 800,
+    velocity: 60,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
@@ -868,7 +865,6 @@ export class Bullet extends GameObject {
         new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
       }
       that.destroy();
-      that.group.remove(that);
     }
   }
 
@@ -877,7 +873,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.2,
     widthUnits: 1,
     texture: 'void-sphere-texture',
-    velocity: 800,
+    velocity: 60,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
@@ -940,15 +936,15 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'slow-bullet-texture',
-    velocity: 1000,
+    velocity: 100,
     follow: false,
     destroyAfterHit: true,
-    unitsToSetVisible: 2,
+    unitsToSetVisible: 1,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
       that.setAngularVelocity(150);
-      that.setVelocity(50);
+      that.setVelocity(3);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
         speed: { min: 200, max: 400 },
         lifespan: 100,
@@ -983,7 +979,6 @@ export class Bullet extends GameObject {
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
       that.destroy();
-      that.group.remove(that);
     }
   };
 
@@ -992,18 +987,18 @@ export class Bullet extends GameObject {
     heightUnits: 6,
     widthUnits: 6,
     texture: 'texture-bullet-energy-ring',
-    velocity: 800,
+    velocity: 15,
     follow: false,
     destroyAfterHit: false,
-    unitsToSetVisible: 1,
+    unitsToSetVisible: 2,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
       const diameter = that.scene.unitSize * that.widthUnits;
       const radius = diameter / 2;
       that.body.setCircle(radius, that.width / 2 - radius, that.height / 2 - radius);
-      that.setAngularVelocity(150);
-      that.setVelocity(150);
+      that.setAngularVelocity(50);
+      that.setVelocity(20);
     }
 
   };
@@ -1013,7 +1008,7 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'scope-red-texture',
-    velocity: 500,
+    velocity: 20,
     follow: true,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
@@ -1028,15 +1023,19 @@ export class Bullet extends GameObject {
     },
 
     afterHit: (that, enemy) => {
+      if(that.alreadyHit) return;
+      that.alreadyHit = true;
+      enemy.setTintFill(0xFFFFFF);
+      that.scene.time.delayedCall(800, () => {
+        enemy.clearTint();
+      });
       that.scene.time.delayedCall(500, () => {
+        that.destroy();
         enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
         if (enemy.active) {
           enemy.x = enemy.path[enemy.currentPointIndex].x;
           enemy.y = enemy.path[enemy.currentPointIndex].y;
-
           enemy.startMoving();
-          that.destroy();
-          that.group.remove(that);
         }
       });
     }
@@ -1047,7 +1046,7 @@ export class Bullet extends GameObject {
     heightUnits: 1,
     widthUnits: 1,
     texture: 'mine-texture',
-    velocity: 800,
+    velocity: 25,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 0,
@@ -1061,9 +1060,7 @@ export class Bullet extends GameObject {
       that.setVelocityX(0);
       that.setVelocityY(0);
       that.scene.time.delayedCall(3500, () => {
-        console.log("destroy");
         that.destroy();
-        that.group.remove(that);
       });
     },
 
@@ -1080,8 +1077,6 @@ export class Bullet extends GameObject {
       });
 
       that.scene.time.delayedCall(350, () => explosion.destroy());
-      that.destroy();
-      that.group.remove(that);
     }
   };
 
@@ -1090,7 +1085,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.3,
     widthUnits: 0.3,
     texture: 'bleed-texture',
-    velocity: 1500,
+    velocity: 100,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
@@ -1130,7 +1125,6 @@ export class Bullet extends GameObject {
         setTimeout(() => {
           enemy.increasedDamagePercent -= 10;
           that.destroy();
-          that.group.remove(that);
           enemy.clearTint();
         }, 1000)
       }
@@ -1152,7 +1146,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.5,
     widthUnits: 0.5,
     texture: 'bullet-electric',
-    velocity: 1000,
+    velocity: 40,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 0,
@@ -1196,15 +1190,14 @@ export class Bullet extends GameObject {
         angle: { min: 0, max: 360 },
         lifespan: { min: 80, max: 200 },
         alpha: { start: 1, end: 0 },
-        scale: { start: 0.4, end: 0 },
+        scale: { start: 0.2, end: 0 },
         tint: [0x00ffff, 0xffffff, 0x3399ff],
         blendMode: 'ADD',
-        quantity: 12
+        quantity: 8
       });
 
       that.scene.time.delayedCall(250, () => explosion.destroy());
       that.destroy();
-      that.group.remove(that);
     },
 
     afterUpdate: (that, delta) => {
@@ -1212,7 +1205,6 @@ export class Bullet extends GameObject {
         that.lastAngleChange = delta;
       } else {
         that.lastAngleChange += delta;
-        console.log(that.lastAngleChange);
         if (that.lastAngleChange > 50) {
           that.setDirection(Utils.getRandomAngle());
           that.lastAngleChange = 0;

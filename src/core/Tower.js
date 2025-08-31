@@ -200,7 +200,7 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    attackInterval: 100,
+    attackInterval: 3000,
     texture: 'towerTexture',
     description: 'Common Tower',
     executeOnUpdate: (that, time) => {
