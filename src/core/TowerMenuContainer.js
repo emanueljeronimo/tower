@@ -1,11 +1,7 @@
 import { ButtonTower } from './ButtonTower.js'
 import { Tower } from './Tower.js'
 import { Enemy } from './Enemy.js'
-
-var config = {
-    width: window.innerWidth-4,
-    height: window.innerHeight-4,   
-  };
+import { config } from './config.js'
 
 export class TowerMenuContainer extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
