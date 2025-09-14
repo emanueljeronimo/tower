@@ -488,7 +488,7 @@ export class Bullet extends GameObject {
     velocity: 30,
     follow: true,
     destroyAfterHit: true,
-    unitsToSetVisible: 1,
+    unitsToSetVisible: 2,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {

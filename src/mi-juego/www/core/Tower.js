@@ -80,8 +80,8 @@ export class Tower extends GameObject {
   }
 
   static commonTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -96,8 +96,8 @@ export class Tower extends GameObject {
   }
 
   static energyOrbTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 2000,
     rangeUnits: 18,
@@ -112,8 +112,8 @@ export class Tower extends GameObject {
   }
 
   static bouncerTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 2000,
     rangeUnits: 18,
@@ -128,8 +128,8 @@ export class Tower extends GameObject {
   }
 
   static bombTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -144,8 +144,8 @@ export class Tower extends GameObject {
   }
 
   static slowerTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -160,8 +160,8 @@ export class Tower extends GameObject {
   }
 
   static tripleShotTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -179,8 +179,8 @@ export class Tower extends GameObject {
   }
 
   static circleTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -195,8 +195,8 @@ export class Tower extends GameObject {
   }
 
   static teleportTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -211,8 +211,8 @@ export class Tower extends GameObject {
   }
 
   static mineTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 15,
@@ -286,8 +286,8 @@ export class Tower extends GameObject {
   }
 
   static damageTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 8,
@@ -302,8 +302,8 @@ export class Tower extends GameObject {
   }
 
   static electricityTower = {
-    heightRatio: 1.8,
-    widthRatio: 4.2,
+    heightRatio: 1,
+    widthRatio: 4,
     price: 250,
     damage: 50,
     rangeUnits: 15,

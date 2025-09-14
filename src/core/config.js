@@ -1,11 +1,9 @@
-import { Game } from './Game.js';
-
 export const config = {
   type: Phaser.AUTO,
   width: window.innerWidth - 4,
   height: window.innerHeight - 4,
   pixelArt: true,
-  roundPixels: true,
+  roundPixels: false,
   render: {
     antialias: false,
     powerPreference: 'high-performance',
