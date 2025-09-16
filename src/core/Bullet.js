@@ -29,7 +29,7 @@ export class Bullet extends GameObject {
   }
 
   hit(enemy) {
-    enemy.takeDamage(this.damage);
+    enemy.takeDamage(this, this.damage);
     this.afterHit && this.afterHit(this, enemy);
     if (this.destroyAfterHit) {
       this.destroy();
@@ -86,6 +86,7 @@ export class Bullet extends GameObject {
     const gradientBullet = contextBullet.createLinearGradient(0, 0, 0, 30);
     gradientBullet.addColorStop(0, '#FFFF00');
     gradientBullet.addColorStop(1, '#FF5500');
+    
 
     contextBullet.fillStyle = gradientBullet;
     contextBullet.beginPath();
@@ -481,21 +482,21 @@ export class Bullet extends GameObject {
   }
 
   static common = {
-    damage: 1,
-    heightUnits: 1,
-    widthUnits: 1,
+    damage: 20,
+    heightUnits: 0.6,
+    widthUnits: 0.6,
     texture: 'bullet-texture',
     velocity: 30,
     follow: true,
     destroyAfterHit: true,
-    unitsToSetVisible: 2,
+    unitsToSetVisible: 1.5,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
         speed: { min: 200, max: 400 },
         lifespan: 100,
-        scale: { start: 0.5, end: 0 },
+        scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
       });
@@ -507,7 +508,7 @@ export class Bullet extends GameObject {
         speed: { min: 50, max: 200 },
         angle: { min: 0, max: 360 },
         lifespan: 150,
-        scale: { start: 0.4, end: 0 },
+        scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
       });

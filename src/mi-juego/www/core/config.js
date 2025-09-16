@@ -3,10 +3,10 @@ export const config = {
   width: window.innerWidth - 4,
   height: window.innerHeight - 4,
   pixelArt: true,
-  roundPixels: false,
+  roundPixels: true,
   render: {
-    antialias: false,
-    powerPreference: 'high-performance',
+    antialias: true,
+    /*powerPreference: 'high-performance',*/
   },
   physics: {
     default: 'arcade',

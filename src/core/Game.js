@@ -5,6 +5,7 @@ import { SellPopUp } from './SellPopUp.js'
 import { EnemyGenerator } from './EnemyGenerator.js'
 import { MapGenerator } from './MapGenerator.js'
 import { config } from './config.js'
+import { Enemy } from './Enemy.js'
  
 export class Game extends Phaser.Scene {
   constructor() {
@@ -33,7 +34,7 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background14.png');
-    this.load.image('buttonTower', 'assets/buttonTower8.png');
+    this.load.image('buttonTower', 'assets/buttonTower6.png');
     this.load.image('backgroundDemo', 'assets/backgroundDemo.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
@@ -46,9 +47,10 @@ export class Game extends Phaser.Scene {
     this.load.image('main-tower', 'assets/main-tower.png');
 
     this.load.image('enemy', 'assets/enemy-3.png');
-    this.load.image('towerTexture', 'assets/tower-7.png');
+    this.load.image('towerTexture', 'assets/tower-8.png');
     
     Bullet.initTextures(this);
+    Enemy.initTextures(this);
   }
 
   create() {
@@ -180,18 +182,15 @@ export class Game extends Phaser.Scene {
 
   pointerMove(pointer) {
     if (this.isDragging) {
-      const deltaX = this.lastPointerPosition.x - pointer.x;
-      // const deltaY = this.lastPointerPosition.y - pointer.y;
-
-      let aux = this.horizontalCamera.scrollX + deltaX;
-
+      const deltaX = Math.floor(this.lastPointerPosition.x - pointer.x); 
+      let aux = Math.floor(this.horizontalCamera.scrollX + deltaX);
       if (
         aux > 0 &&
         aux < this.grid.cols * this.buttonTowerSize - config.width
       ) {
-        this.horizontalCamera.scrollX += deltaX;
+        this.horizontalCamera.scrollX += deltaX;       
         this.milkyWay.x += deltaX/2;
-        // this.cameras.main.scrollY += deltaY;
+        console.log(`delta ${deltaX} this.horizontalCamera.scrollX ${this.horizontalCamera.scrollX} this.milkyWay.x ${this.milkyWay.x} `);
       }
 
       this.lastPointerPosition = { x: pointer.x, y: pointer.y };
