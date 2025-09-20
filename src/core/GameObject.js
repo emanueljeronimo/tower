@@ -6,8 +6,9 @@ export class GameObject extends Phaser.Physics.Arcade.Sprite {
       group.add(this);
       scene.add.existing(this);
       scene.physics.add.existing(this);
-      this.setSize(width, height);
+      //this.setSize(width, height);
       this.setDisplaySize(width, height);
+      //this.body.setSize(width,height);
       this.setOrigin(0.5);
     }
   }

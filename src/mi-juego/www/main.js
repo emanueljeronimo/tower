@@ -5,9 +5,9 @@
 
 -aplicar algun filtro de color por los niveles y el daño de las naves
 -sonidos
--la camara cuando vas y venis se va corriendo
 -torre de oro
--el tema de la frecuencia de disparo //ya estaba esto je
+-que cada clase cargue sus archivos
+
 */
 import { config } from './core/config.js';
 import { Game } from './core/Game.js';

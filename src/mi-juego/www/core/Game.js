@@ -34,7 +34,7 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background14.png');
-    this.load.image('buttonTower', 'assets/buttonTower6.png');
+    this.load.image('buttonTower', 'assets/buttonTower10.png');
     this.load.image('backgroundDemo', 'assets/backgroundDemo.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
@@ -46,8 +46,7 @@ export class Game extends Phaser.Scene {
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
-    this.load.image('enemy', 'assets/enemy-3.png');
-    this.load.image('towerTexture', 'assets/tower-8.png');
+    this.load.image('towerTexture', 'assets/tower-9.png');
     
     Bullet.initTextures(this);
     Enemy.initTextures(this);
