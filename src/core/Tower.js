@@ -1,6 +1,7 @@
 import { Utils } from './Utils.js'
 import { GameObject } from './GameObject.js'
 import { Bullet } from './Bullet.js'
+import { AudioManager } from './AudioManager.js';
 
 export class Tower extends GameObject {
   target = null;
@@ -51,6 +52,7 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
+        AudioManager.instance.play(this.sound);
         shotFn(this.scene, this.groupBullets, this.getCenter().x, this.getCenter().y, this.target, this.rangeUnits * this.scene.unitSize);
       }
       this.lastTimeFired = time;
@@ -88,6 +90,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
+    sound: AudioManager.sounds.shoot,
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.common, target, range);
