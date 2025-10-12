@@ -32,7 +32,7 @@ export class Enemy extends GameObject {
   takeDamage(bullet, damage) {
     this.health -= damage + (damage * this.increasedDamagePercent / 100);
     if (this.health <= 0) {
-      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1,3)}`);
+      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1,3)}`, {volume: 0.1});
       this.scene.changeGold(this.gold);
       let angle = Phaser.Math.RadToDeg(
         Phaser.Math.Angle.Between(

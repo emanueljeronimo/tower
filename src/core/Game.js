@@ -57,6 +57,7 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.audioManager.setup();
+    this.audioManager.play('music1');
     this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/3, this.grid.rows * this.buttonTowerSize/2, 'milkyway', this.grid.rows * this.buttonTowerSize, this.grid.cols * this.buttonTowerSize );
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
