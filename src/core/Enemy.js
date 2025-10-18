@@ -74,6 +74,30 @@ export class Enemy extends GameObject {
     }
   }
 
+  hitWithMainTower(mainTower) {
+    this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+    const angleToTower = Phaser.Math.RadToDeg(
+        Phaser.Math.Angle.Between(mainTower.x, mainTower.y, this.x, this.y)
+    );
+
+    let maxAngleSpread = 30;
+
+    const explosion = this.scene.add.particles(this.x, this.y, 'explosion-texture', {
+        speed: { min: 150, max: 350 },
+        angle: { min: angleToTower - maxAngleSpread, max: angleToTower + maxAngleSpread },
+        lifespan: { min: 400, max: 800 },
+        scale: { start: 0.6, end: 0 },
+        alpha: { start: 1, end: 0 },
+        quantity: 15,
+        blendMode: 'ADD',
+        tint: [0xffaa00, 0xff5500, 0xffffff]
+    });
+
+    explosion.explode(25);
+    this.scene.time.delayedCall(600, () => explosion.destroy());
+    this.destroy();
+}
+
   destroy() {
     this.scene.time.delayedCall(100, () => this.fireEmitter.destroy());
     this.group.remove(this);

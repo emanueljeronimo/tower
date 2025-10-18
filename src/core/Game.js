@@ -103,7 +103,7 @@ export class Game extends Phaser.Scene {
       mainTower,
       enemy
     ) {
-      enemy.destroy();
+      enemy.hitWithMainTower(mainTower);
       mainTower.health--;
     });
   
