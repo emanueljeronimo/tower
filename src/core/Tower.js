@@ -52,7 +52,7 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
-        AudioManager.instance.play(this.sound);
+        AudioManager.instance.play(this.sound.key, { volume: this.sound.volume});
         shotFn(this.scene, this.groupBullets, this.getCenter().x, this.getCenter().y, this.target, this.rangeUnits * this.scene.unitSize);
       }
       this.lastTimeFired = time;
@@ -87,10 +87,10 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    attackInterval: 200,
+    attackInterval: 300,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 0.5 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.common, target, range);
@@ -107,7 +107,7 @@ export class Tower extends GameObject {
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.energyOrb, target, range);
@@ -124,7 +124,7 @@ export class Tower extends GameObject {
     attackInterval: 500,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.bouncer, target, range);
@@ -141,7 +141,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.bomb, target, range);
@@ -158,7 +158,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.slower, target, range);
@@ -175,7 +175,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         const angle = Phaser.Math.Angle.Between(that.getCenter().x, that.getCenter().y, target.getCenter().x, target.getCenter().y);
@@ -195,7 +195,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.circle, target, range);
@@ -212,7 +212,7 @@ export class Tower extends GameObject {
     attackInterval: 3000,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.teleport, target, range);
@@ -229,7 +229,7 @@ export class Tower extends GameObject {
     attackInterval: 100,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenIsTime(time, (scene, groupBullets, x, y, range) => {
 
@@ -305,7 +305,7 @@ export class Tower extends GameObject {
     attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.damage, target, range);
@@ -322,7 +322,7 @@ export class Tower extends GameObject {
     attackInterval: 1000,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: AudioManager.sounds.shoot,
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
       that.shotWhenIsTime(time, (scene, groupBullets, x, y, range) => {
         new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.electricity, null, range, Utils.getRandomAngle());

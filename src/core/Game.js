@@ -48,7 +48,7 @@ export class Game extends Phaser.Scene {
 
     this.load.image('main-tower', 'assets/main-tower.png');
 
-    this.load.image('towerTexture', 'assets/tower-9.png');
+    this.load.image('towerTexture', 'assets/tower-10.png');
 
     Bullet.initTextures(this);
     Enemy.initTextures(this);

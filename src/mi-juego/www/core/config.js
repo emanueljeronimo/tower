@@ -2,7 +2,6 @@ export const config = {
   type: Phaser.AUTO,
   width: window.innerWidth - 4,
   height: window.innerHeight - 4,
-
   // 🔑 Esto fuerza el look pixelado
   pixelArt: true,
   roundPixels: true,

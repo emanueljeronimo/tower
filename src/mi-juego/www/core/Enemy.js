@@ -1,87 +1,121 @@
-import { GameObject } from './GameObject.js'
+import { GameObject } from './GameObject.js';
 import { Utils } from './Utils.js';
 
 export class Enemy extends GameObject {
-  constructor(scene, group, x = -10, y = 100, height, width, enemyConfig) {
+  constructor(scene, group, x = -50, y = 150, height, width, enemyConfig) {
     super(scene, group, x, y, enemyConfig.texture, height, width);
     Object.assign(this, enemyConfig);
+
+    this.speed = Utils.getRandomNumber(this.speed * 0.85, this.speed * 1.15);
     this.scene = scene;
     this.currentPointIndex = 0;
     this.increasedDamagePercent = 0;
 
+    // Posición actual del fuego (para suavizado)
+    this.fireX = x;
+    this.fireY = y;
 
+    // === Efecto de fuego trasero ===
     this.fireEmitter = scene.add.particles(0, 0, 'fire-texture', {
-      speed: { min: 100, max: 100 },
+      speed: { min: 40, max: 100 },
       angle: { min: 0, max: 0 },
-      lifespan: 300,
+      lifespan: 600,
       scale: { start: 0.5, end: 0 },
       alpha: { start: 1, end: 0 },
-      frequency: 50,
+      frequency: 80,
       quantity: 1,
       blendMode: 'ADD'
-    }); 
+    });
+
     this.setDepth(10);
     this.fireEmitter.setDepth(5);
   }
 
   setPath(path) {
-    this.path = path;
+    const halfUnitSize = this.scene.unitSize / 2;
+    this.path = path.map(point => ({
+      x: point.x + Utils.getRandomNumber(-halfUnitSize, halfUnitSize),
+      y: point.y + Utils.getRandomNumber(-halfUnitSize, halfUnitSize)
+    }));
     this.startMoving();
   }
 
   takeDamage(bullet, damage) {
     this.health -= damage + (damage * this.increasedDamagePercent / 100);
     if (this.health <= 0) {
-      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1,3)}`);
+      // Sonido de explosión
+      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+
+      // Recompensa de oro
       this.scene.changeGold(this.gold);
-      let angle = Phaser.Math.RadToDeg(
+
+      // Efecto de explosión direccional
+      const angle = Phaser.Math.RadToDeg(
         Phaser.Math.Angle.Between(
           bullet.getCenter().x, bullet.getCenter().y, this.getCenter().x, this.getCenter().y
         )
       );
-      const explosion = this.scene.add.particles(this.x, this.y,'explosion-texture', {
-          speed: { min: 100, max: 400 },
-          angle: { min: angle - 30, max: angle + 30 },
-          lifespan: { min: 300, max: 600 },
-          scale: { start: 0.5, end: 0 },
-          alpha: { start: 1, end: 0 },
-          quantity: 10,
-          blendMode: 'ADD',
-          tint: [0xffaa00, 0xff5500, 0xffffff]
-        });  
-      explosion.explode(20);  
 
+      const explosion = this.scene.add.particles(this.x, this.y, 'explosion-texture', {
+        speed: { min: 100, max: 400 },
+        angle: { min: angle - 30, max: angle + 30 },
+        lifespan: { min: 300, max: 600 },
+        scale: { start: 0.5, end: 0 },
+        alpha: { start: 1, end: 0 },
+        quantity: 10,
+        blendMode: 'ADD',
+        tint: [0xffaa00, 0xff5500, 0xffffff]
+      });
+
+      explosion.explode(20);
       this.scene.time.delayedCall(600, () => explosion.destroy());
-      this.fireEmitter.destroy();
+      this.scene.time.delayedCall(100, () => this.fireEmitter.destroy());
+
       this.destroy();
       this.group.remove(this);
     }
   }
 
   update() {
+    if (!this.path || this.currentPointIndex >= this.path.length) return;
+
     const targetPoint = this.path[this.currentPointIndex];
-    if(this.x - this.scene.unitSize < targetPoint.x && this.x + this.scene.unitSize > targetPoint.x &&
-      this.y - this.scene.unitSize < targetPoint.y && this.y + this.scene.unitSize > targetPoint.y  ) {
+    const distance = Phaser.Math.Distance.Between(this.x, this.y, targetPoint.x, targetPoint.y);
+
+    // Cambiar al siguiente punto si está lo suficientemente cerca
+    if (distance < this.scene.unitSize * 0.5) {
       this.currentPointIndex++;
       if (this.currentPointIndex < this.path.length) {
         this.startMoving();
       }
     }
-    const tailOffset = this.scene.unitSize/2; // distancia desde el centro hacia atrás
-    const tailX = this.x + Math.cos(this.rotation + Math.PI) * tailOffset;
-    const tailY = this.y + Math.sin(this.rotation + Math.PI) * tailOffset;
-    this.fireEmitter.setPosition(tailX, tailY);
-  
-  
-    const emitterAngle = Phaser.Math.RadToDeg(this.rotation) + 180;
-    this.fireEmitter.setAngle(emitterAngle);
+
+    // === Actualización del fuego trasero (suavizado manual) ===
+    const tailOffset = this.scene.unitSize / 2;
+    const targetTailX = this.x + Math.cos(this.rotation + Math.PI) * tailOffset;
+    const targetTailY = this.y + Math.sin(this.rotation + Math.PI) * tailOffset;
+
+    // Interpolación suave de la posición del fuego
+    this.fireX = Phaser.Math.Linear(this.fireX, targetTailX, 0.2);
+    this.fireY = Phaser.Math.Linear(this.fireY, targetTailY, 0.2);
+    this.fireEmitter.setPosition(this.fireX, this.fireY);
+
+    // Interpolación suave del ángulo del fuego
+    const desiredAngle = Phaser.Math.RadToDeg(this.rotation) + 180;
+    this.fireAngle = this.fireAngle ?? desiredAngle; // inicializa si no existe
+    this.fireAngle = Phaser.Math.Linear(this.fireAngle, desiredAngle, 0.25);
+    this.fireEmitter.setAngle(this.fireAngle);
+
+    // Activar partículas solo si se está moviendo
+    this.fireEmitter.active = this.body && this.body.speed > 0;
   }
 
   startMoving() {
     const targetPoint = this.path[this.currentPointIndex];
     const angleToTarget = Phaser.Math.Angle.Between(this.x, this.y, targetPoint.x, targetPoint.y);
+
     this.rotation = angleToTarget;
-    this.setAngle(Phaser.Math.RAD_TO_DEG * angleToTarget);
+    this.setAngle(Phaser.Math.RadToDeg(angleToTarget));
     this.setVelocityX(Math.cos(angleToTarget) * (this.speed * this.scene.unitSize));
     this.setVelocityY(Math.sin(angleToTarget) * (this.speed * this.scene.unitSize));
   }
@@ -89,40 +123,39 @@ export class Enemy extends GameObject {
   static initTextures(scene) {
     scene.load.image('enemy', 'assets/enemy-7.png');
 
-    const graphics = scene.make.graphics({ x: 0, y: 0, add: false });
-    graphics.fillStyle(0xffffff, 1);
-    graphics.fillCircle(scene.unitSize/2, scene.unitSize/2, scene.unitSize/2); // (x, y, radio)
-    graphics.generateTexture('explosion-texture', 16, 16);
-    graphics.destroy();
+    // === Textura de explosión ===
+    const g1 = scene.make.graphics({ x: 0, y: 0, add: false });
+    g1.fillStyle(0xffffff, 1);
+    g1.fillCircle(scene.unitSize / 2, scene.unitSize / 2, scene.unitSize / 2);
+    g1.generateTexture('explosion-texture', 16, 16);
+    g1.destroy();
 
-    const graphics2 = scene.make.graphics({ x: 0, y: 0, add: false });
+    // === Textura del fuego ===
+    const g2 = scene.make.graphics({ x: 0, y: 0, add: false });
+    g2.fillStyle(0x00ffff, 1);
+    g2.fillCircle(8, 8, 8);
+    g2.fillStyle(0xffffff, 1);
+    g2.fillCircle(8, 8, 4);
+    g2.fillStyle(0x00ffff, 0.3);
+    g2.fillCircle(8, 8, 12);
+    g2.generateTexture('fire-texture', 16, 16);
+    g2.destroy();
 
-    // capa externa azul celeste
-    graphics2.fillStyle(0x00ffff, 1); // azul celeste
-    graphics2.fillCircle(8, 8, 8);
-
-    // capa interna blanca brillante
-    graphics2.fillStyle(0xffffff, 1);
-    graphics2.fillCircle(8, 8, 4);
-
-    graphics2.fillStyle(0x00ffff, 0.3); // azul celeste translúcido
-    graphics2.fillCircle(8, 8, 12);     // un halo más grande
-
-    graphics2.generateTexture('fire-texture', 16, 16);
-    graphics2.destroy();
+    // Suavizar texturas
+    scene.textures.get('fire-texture').setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
 
   static commonEnemy = {
     texture: 'enemy',
     health: 100,
     speed: 8,
-    gold: 15
-  }
+    gold: 15,
+  };
 
   static dummyEnemy = {
     texture: 'enemy',
     health: 100,
     speed: 10,
     gold: 0
-  }
+  };
 }
