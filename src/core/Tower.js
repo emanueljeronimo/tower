@@ -172,8 +172,8 @@ export class Tower extends GameObject {
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    attackInterval: 100,
-    texture: 'towerTexture',
+    attackInterval: 300,
+    texture: 'towerTriple',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

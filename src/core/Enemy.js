@@ -17,7 +17,7 @@ export class Enemy extends GameObject {
 
     // === Efecto de fuego trasero ===
     this.fireEmitter = scene.add.particles(0, 0, 'fire-texture', {
-      speed: { min: 40, max: 100 },
+      speed: { min: 20, max: 60 },
       angle: { min: 0, max: 0 },
       lifespan: 600,
       scale: { start: 0.5, end: 0 },
@@ -99,6 +99,7 @@ export class Enemy extends GameObject {
 }
 
   destroy() {
+    if (!this.scene) return;
     this.scene.time.delayedCall(100, () => this.fireEmitter.destroy());
     this.group.remove(this);
     super.destroy();
