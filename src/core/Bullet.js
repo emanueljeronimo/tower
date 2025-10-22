@@ -498,7 +498,7 @@ export class Bullet extends GameObject {
     afterVisible: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
         speed: { min: 200, max: 400 },
-        lifespan: 100,
+        lifespan: 50,
         scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
@@ -508,9 +508,10 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 50, max: 200 },
+        speed: { min: 100, max: 200 },
         angle: { min: 0, max: 360 },
-        lifespan: 150,
+        lifespan: 100,
+        frequency: 30,
         scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
@@ -536,6 +537,7 @@ export class Bullet extends GameObject {
         speed: { min: 100, max: 200 },
         angle: { min: 0, max: 360 },
         lifespan: 300,
+        frequency: 30,
         scale: { start: 0.3, end: 0 },
         tint: [0x00ffff, 0x5500ff],
         blendMode: 'ADD'
