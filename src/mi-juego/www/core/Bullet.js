@@ -95,25 +95,28 @@ export class Bullet extends GameObject {
 
     scene.textures.addCanvas('bullet-texture', canvasBullet);
 
-    const canvasTripleArrow = document.createElement('canvas');
-    canvasTripleArrow.width = scene.unitSize * 2;
-    canvasTripleArrow.height = scene.unitSize * 2;
-    const ctxTripleArrow = canvasTripleArrow.getContext('2d');
+    const canvasEnergyBullet = document.createElement('canvas');
+    canvasEnergyBullet.width = scene.unitSize * 2;
+    canvasEnergyBullet.height = scene.unitSize * 2;
+    const ctxEnergyBullet = canvasEnergyBullet.getContext('2d');
 
-    // Gradiente azul cian -> violeta
-    const gradientTripleArrow = ctxTripleArrow.createLinearGradient(0, 0, 0, scene.unitSize * 2);
-    gradientTripleArrow.addColorStop(0, '#ff2121ff');
-    gradientTripleArrow.addColorStop(1, '#fa82f4ff');
+    // Gradiente radial: azul claro en el centro -> cian -> transparente
+    const gradientTripleShoot = ctxEnergyBullet.createRadialGradient(
+      scene.unitSize, scene.unitSize, scene.unitSize * 0.2,
+      scene.unitSize, scene.unitSize, scene.unitSize
+    );
+    gradientTripleShoot.addColorStop(0, '#00ffff');
+    gradientTripleShoot.addColorStop(0.3, '#0099ff');
+    gradientTripleShoot.addColorStop(0.6, '#0055ff');
+    gradientTripleShoot.addColorStop(1, 'transparent');
 
-    ctxTripleArrow.fillStyle = gradientTripleArrow;
-    ctxTripleArrow.beginPath();
-    ctxTripleArrow.moveTo(-scene.unitSize, -scene.unitSize); // Punta superior
-    ctxTripleArrow.lineTo(-scene.unitSize, scene.unitSize * 2); // Esquina inferior izquierda
-    ctxTripleArrow.lineTo(scene.unitSize * 2, scene.unitSize); // Esquina inferior derecha
-    ctxTripleArrow.closePath();
-    ctxTripleArrow.fill();
+    ctxEnergyBullet.fillStyle = gradientTripleShoot;
+    ctxEnergyBullet.beginPath();
+    ctxEnergyBullet.arc(scene.unitSize, scene.unitSize, scene.unitSize * 0.9, 0, Math.PI * 2);
+    ctxEnergyBullet.fill();
 
-    scene.textures.addCanvas('bullet-triple-texture', canvasTripleArrow);
+    // Añadir la textura
+    scene.textures.addCanvas('bullet-energy-blue', canvasEnergyBullet);
 
     // Nueva textura para el orbe de energía
     const canvasEnergyOrb = document.createElement('canvas');
@@ -495,7 +498,7 @@ export class Bullet extends GameObject {
     afterVisible: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
         speed: { min: 200, max: 400 },
-        lifespan: 100,
+        lifespan: 50,
         scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
@@ -505,9 +508,10 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 50, max: 200 },
+        speed: { min: 100, max: 200 },
         angle: { min: 0, max: 360 },
-        lifespan: 150,
+        lifespan: 100,
+        frequency: 30,
         scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
@@ -519,20 +523,21 @@ export class Bullet extends GameObject {
   };
 
   static triple = {
-    damage: 0.7,
+    damage: 20,
     heightUnits: 1,
     widthUnits: 1,
-    texture: 'bullet-triple-texture',
+    texture: 'bullet-energy-blue',
     velocity: 40,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
     afterHit: (that, enemy) => {
-      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-triple-texture', {
-        speed: { min: 0, max: 550 },
+      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-energy-blue', {
+        speed: { min: 100, max: 200 },
         angle: { min: 0, max: 360 },
-        lifespan: 180,
+        lifespan: 300,
+        frequency: 30,
         scale: { start: 0.3, end: 0 },
         tint: [0x00ffff, 0x5500ff],
         blendMode: 'ADD'

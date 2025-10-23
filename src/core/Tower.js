@@ -81,6 +81,15 @@ export class Tower extends GameObject {
     this.lastTimeUpdated += time;
   }
 
+  static initTextures(scene) {
+    scene.load.image('towerTexture', 'assets/tower-10.png');
+    scene.load.image('towerBouncer', 'assets/tower-11.png');
+    scene.load.image('towerTriple', 'assets/tower-12.png');
+    scene.load.image('towerPlasma', 'assets/tower-13.png');
+    scene.load.image('towerExplosion', 'assets/tower-14.png');
+    scene.load.image('towerIce', 'assets/tower-15.png');
+  }
+
   static commonTower = {
     heightRatio: 2,
     widthRatio: 3.3,
@@ -117,12 +126,12 @@ export class Tower extends GameObject {
 
   static bouncerTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.8,
     price: 250,
     damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
-    texture: 'towerTexture',
+    texture: 'towerBouncer',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -134,12 +143,12 @@ export class Tower extends GameObject {
 
   static bombTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.8,
     price: 250,
     damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerExplosion',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -151,12 +160,12 @@ export class Tower extends GameObject {
 
   static slowerTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.5,
     price: 250,
     damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerIce',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

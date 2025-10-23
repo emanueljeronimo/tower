@@ -100,12 +100,12 @@ export class Tower extends GameObject {
 
   static energyOrbTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.4,
     price: 250,
     damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
-    texture: 'towerTexture',
+    texture: 'towerPlasma',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -167,13 +167,13 @@ export class Tower extends GameObject {
   }
 
   static tripleShotTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 1.8,
+    widthRatio: 3,
     price: 250,
     damage: 50,
     rangeUnits: 8,
-    attackInterval: 100,
-    texture: 'towerTexture',
+    attackInterval: 300,
+    texture: 'towerTriple',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

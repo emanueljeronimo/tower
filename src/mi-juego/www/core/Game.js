@@ -49,6 +49,8 @@ export class Game extends Phaser.Scene {
     this.load.image('main-tower', 'assets/main-tower.png');
 
     this.load.image('towerTexture', 'assets/tower-10.png');
+    this.load.image('towerTriple', 'assets/tower-12.png');
+    this.load.image('towerPlasma', 'assets/tower-13.png');
 
     Bullet.initTextures(this);
     Enemy.initTextures(this);
@@ -103,7 +105,7 @@ export class Game extends Phaser.Scene {
       mainTower,
       enemy
     ) {
-      enemy.destroy();
+      enemy.hitWithMainTower(mainTower);
       mainTower.health--;
     });
   
