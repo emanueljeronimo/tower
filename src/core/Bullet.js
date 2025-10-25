@@ -989,14 +989,14 @@ export class Bullet extends GameObject {
   };
 
   static circle = {
-    damage: 1,
-    heightUnits: 6,
-    widthUnits: 6,
+    damage: 500,
+    heightUnits: 0.3,
+    widthUnits: 0.3,
     texture: 'texture-bullet-energy-ring',
-    velocity: 15,
+    velocity: 8,
     follow: false,
     destroyAfterHit: false,
-    unitsToSetVisible: 2,
+    unitsToSetVisible: 0,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
@@ -1005,8 +1005,24 @@ export class Bullet extends GameObject {
       that.body.setCircle(radius, that.width / 2 - radius, that.height / 2 - radius);
       that.setAngularVelocity(50);
       that.setVelocity(20);
-    }
+    },
 
+    afterUpdate: (that, delta) => {
+      if (!that.lastGrowUp) {
+        that.growUpCounter=0;
+        that.lastGrowUp = delta;
+      } else {
+        that.lastGrowUp += delta;
+        if (that.lastGrowUp > 50) {
+          that.lastGrowUp = 1;
+          that.growUpCounter++;
+          that.setDisplaySize(
+          that.growUpCounter * (that.scene.unitSize / 5),
+          that.growUpCounter * (that.scene.unitSize / 5));
+          that.body.setSize(that.displayWidth, that.displayHeight, true);
+        }
+      }
+    }
   };
 
   static teleport = {

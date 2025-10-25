@@ -179,10 +179,10 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     this.towers.getChildren().forEach(function (tower) {
       tower.update(time);
     });
-
     this.bullets.getChildren().forEach(function (bullet) {
       bullet.update(delta);
     });
+    this.enemy && this.enemy.update();
   }
 
 }

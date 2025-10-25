@@ -88,13 +88,13 @@ export class Tower extends GameObject {
     scene.load.image('towerPlasma', 'assets/tower-13.png');
     scene.load.image('towerExplosion', 'assets/tower-14.png');
     scene.load.image('towerIce', 'assets/tower-15.png');
+    scene.load.image('towerCircle', 'assets/tower-16.png');
   }
 
   static commonTower = {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 300,
     texture: 'towerTexture',
@@ -111,7 +111,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 2.4,
     price: 250,
-    damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
     texture: 'towerPlasma',
@@ -125,10 +124,9 @@ export class Tower extends GameObject {
   }
 
   static bouncerTower = {
-    heightRatio: 2,
-    widthRatio: 2.8,
+    heightRatio: 2.2,
+    widthRatio: 3,
     price: 250,
-    damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
     texture: 'towerBouncer',
@@ -145,7 +143,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 2.8,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
     texture: 'towerExplosion',
@@ -162,7 +159,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 2.5,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
     texture: 'towerIce',
@@ -179,7 +175,6 @@ export class Tower extends GameObject {
     heightRatio: 1.8,
     widthRatio: 3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 300,
     texture: 'towerTriple',
@@ -197,12 +192,11 @@ export class Tower extends GameObject {
 
   static circleTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerCircle',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -216,7 +210,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 3000,
     texture: 'towerTexture',
@@ -233,7 +226,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 15,
     attackInterval: 100,
     texture: 'towerTexture',
@@ -309,7 +301,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 1000,
     texture: 'towerTexture',
