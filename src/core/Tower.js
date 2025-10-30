@@ -125,7 +125,7 @@ export class Tower extends GameObject {
 
   static bouncerTower = {
     heightRatio: 2.2,
-    widthRatio: 3,
+    widthRatio: 2.7,
     price: 250,
     rangeUnits: 18,
     attackInterval: 500,
