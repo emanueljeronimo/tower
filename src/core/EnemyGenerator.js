@@ -17,7 +17,7 @@ export class EnemyGenerator {
 
   update(time) {
     if (this.enemiesQuatity > this.counter && time > this.lastEnemyCreated + this.frequency) {
-      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, this.scene.unitSize*1.8, this.scene.unitSize*1.8, Enemy.commonEnemy);
+      let enemy = new Enemy(this.scene, this.groupEnemies, 0, 0, Enemy.commonEnemy);
       enemy.setPath(this.paths[Utils.getRandomNumber(0,1)]);
       this.lastEnemyCreated = time;
       this.counter++;

@@ -497,7 +497,7 @@ export class Bullet extends GameObject {
 
     afterVisible: (that) => {
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 200, max: 400 },
+        speed: { min: 20 * that.scene.unitSize, max: 40 * that.scene.unitSize },
         lifespan: 50,
         scale: { start: 0.2, end: 0 },
         tint: [0xffff00, 0xff5500],
@@ -508,7 +508,7 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 100, max: 200 },
+        speed: { min: 10 * that.scene.unitSize , max: 20 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 100,
         frequency: 30,
@@ -534,7 +534,7 @@ export class Bullet extends GameObject {
     unitsToDestroy: 16,
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-energy-blue', {
-        speed: { min: 100, max: 200 },
+        speed: { min: 10 * that.scene.unitSize, max: 20 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 300,
         frequency: 30,
@@ -580,7 +580,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
         lifespan: 400,
-        speed: { min: 10, max: 30 },
+        speed: { min: 1 * that.scene.unitSize, max: 3 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
@@ -596,7 +596,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.3, end: 0 },
         alpha: { start: 0.7, end: 0 },
         lifespan: 300,
-        speed: { min: 60, max: 120 },
+        speed: { min: 6 * that.scene.unitSize, max: 12 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         tint: [0xFFFFFF, 0xFF00FF, 0xEE82EE]
@@ -691,7 +691,7 @@ export class Bullet extends GameObject {
       that.setAngularVelocity(1500);
       const particles = that.scene.add.particles(0, 0, 'bouncer-texture', {
         lifespan: 300,
-        speed: { min: -20, max: 20 },
+        speed: { min: -2 * that.scene.unitSize, max: 2 * that.scene.unitSize },
         scale: { start: 0.3, end: 0 },
         alpha: { start: 0.3, end: 0 },
         frequency: 100,
@@ -705,7 +705,7 @@ export class Bullet extends GameObject {
     afterHit: (that, enemy) => {
 
       const burst = that.scene.add.particles(that.x, that.y, 'bouncer-texture', {
-        speed: { min: 50, max: 120 },
+        speed: { min: 5 * that.scene.unitSize, max: 12 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 1, end: 0 },
@@ -831,7 +831,7 @@ export class Bullet extends GameObject {
 
       // Ondas de energía que se expanden
       const energyWave = that.scene.add.particles(that.x, that.y, 'void-sphere-texture', {
-        speed: { min: 50, max: 150 },
+        speed: { min: 5 * that.scene.unitSize, max: 15 * that.scene.unitSize },
         scale: { start: 0.1, end: 2 },
         alpha: { start: 0.7, end: 0 },
         lifespan: 400,
@@ -843,7 +843,7 @@ export class Bullet extends GameObject {
 
       // Chispas brillantes
       const sparkles = that.scene.add.particles(that.x, that.y, 'void-sphere-texture', {
-        speed: { min: 150, max: 300 },
+        speed: { min: 15 * that.scene.unitSize, max: 30 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         scale: { start: 0.3, end: 0 },
         alpha: { start: 1, end: 0 },
@@ -894,7 +894,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
         lifespan: 400,
-        speed: { min: 10, max: 30 },
+        speed: { min: 1 * that.scene.unitSize, max: 3 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         tint: [0xFF0000, 0xFF3300, 0xFF4444, 0xCC0000, 0xFF6666],
@@ -910,7 +910,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.3, end: 0 },
         alpha: { start: 0.7, end: 0 },
         lifespan: 300,
-        speed: { min: 60, max: 120 },
+        speed: { min: 6 * that.scene.unitSize, max: 12 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         tint: [0xFFFFFF, 0xFF0000, 0xFF4444]
@@ -952,7 +952,7 @@ export class Bullet extends GameObject {
       that.setAngularVelocity(150);
       that.setVelocity(3);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
-        speed: { min: 200, max: 400 },
+        speed: { min: 20 * that.scene.unitSize , max: 40 * that.scene.unitSize },
         lifespan: 100,
         scale: { start: 0.5, end: 0 },
         //tint: [0xffff00, 0xff5500],
@@ -963,7 +963,7 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
-        speed: { min: 50, max: 200 },
+        speed: { min: 5 * that.scene.unitSize , max: 20 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 150,
         scale: { start: 0.4, end: 0 },
@@ -989,14 +989,14 @@ export class Bullet extends GameObject {
   };
 
   static circle = {
-    damage: 1,
-    heightUnits: 6,
-    widthUnits: 6,
+    damage: 500,
+    heightUnits: 0.3,
+    widthUnits: 0.3,
     texture: 'texture-bullet-energy-ring',
-    velocity: 15,
+    velocity: 8,
     follow: false,
     destroyAfterHit: false,
-    unitsToSetVisible: 2,
+    unitsToSetVisible: 0,
     unitsToDestroy: 16,
 
     afterVisible: (that) => {
@@ -1005,8 +1005,24 @@ export class Bullet extends GameObject {
       that.body.setCircle(radius, that.width / 2 - radius, that.height / 2 - radius);
       that.setAngularVelocity(50);
       that.setVelocity(20);
-    }
+    },
 
+    afterUpdate: (that, delta) => {
+      if (!that.lastGrowUp) {
+        that.growUpCounter=0;
+        that.lastGrowUp = delta;
+      } else {
+        that.lastGrowUp += delta;
+        if (that.lastGrowUp > 50) {
+          that.lastGrowUp = 1;
+          that.growUpCounter++;
+          that.setDisplaySize(
+          that.growUpCounter * (that.scene.unitSize / 3),
+          that.growUpCounter * (that.scene.unitSize / 3));
+          that.body.setSize(that.displayWidth, that.displayHeight, true);
+        }
+      }
+    }
   };
 
   static teleport = {
@@ -1072,7 +1088,7 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const explosion = that.scene.add.particles(that.x, that.y, 'mine-explosion-particle', {
-        speed: { min: 150, max: 350 }, // un poco más rápida
+        speed: { min: 15 * that.scene.unitSize, max: 35 * that.scene.unitSize }, // un poco más rápida
         angle: { min: 0, max: 360 },
         lifespan: { min: 50, max: 100 }, // más corta
         scale: { start: 0.3, end: 0 }, // más pequeña
@@ -1108,7 +1124,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
         lifespan: 400,
-        speed: { min: 10, max: 30 },
+        speed: { min: 1 * that.scene.unitSize, max: 3 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         tint: [0xFF00FF, 0x8A2BE2, 0x4B0082, 0xB31BE2, 0xC71585],
@@ -1152,7 +1168,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.5,
     widthUnits: 0.5,
     texture: 'bullet-electric',
-    velocity: 40,
+    velocity: 10,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 0,
@@ -1162,7 +1178,8 @@ export class Bullet extends GameObject {
       const sparks = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
         speed: { min: 0, max: 0 },
         angle: { min: 0, max: 0 }, // efecto "descarga adelante"
-        lifespan: 120,
+        lifespan: 200,
+        frequency: 30,
         alpha: { start: 1, end: 0 },
         scale: { start: 0.3, end: 0 },
         tint: [0x00ffff, 0xffffff, 0x3399ff],
@@ -1178,7 +1195,7 @@ export class Bullet extends GameObject {
         scale: { start: 0.2, end: 0.2 },
         alpha: { start: 0.2, end: 0 },
         lifespan: 600,
-        speed: { min: 10, max: 30 },
+        speed: { min: 1 * that.scene.unitSize, max: 3 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         blendMode: 'ADD',
         rotate: { min: -180, max: 180 }
@@ -1192,9 +1209,10 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const explosion = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
-        speed: { min: 100, max: 400 },
+        speed: { min: 5 * that.scene.unitSize, max: 10 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
-        lifespan: { min: 80, max: 200 },
+        lifespan: 100,
+        frequency: 100,
         alpha: { start: 1, end: 0 },
         scale: { start: 0.2, end: 0 },
         tint: [0x00ffff, 0xffffff, 0x3399ff],
@@ -1203,7 +1221,6 @@ export class Bullet extends GameObject {
       });
 
       that.scene.time.delayedCall(250, () => explosion.destroy());
-      that.destroy();
     },
 
     afterUpdate: (that, delta) => {

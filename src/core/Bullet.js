@@ -1168,7 +1168,7 @@ export class Bullet extends GameObject {
     heightUnits: 0.5,
     widthUnits: 0.5,
     texture: 'bullet-electric',
-    velocity: 40,
+    velocity: 10,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 0,
@@ -1178,7 +1178,8 @@ export class Bullet extends GameObject {
       const sparks = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
         speed: { min: 0, max: 0 },
         angle: { min: 0, max: 0 }, // efecto "descarga adelante"
-        lifespan: 120,
+        lifespan: 200,
+        frequency: 30,
         alpha: { start: 1, end: 0 },
         scale: { start: 0.3, end: 0 },
         tint: [0x00ffff, 0xffffff, 0x3399ff],
@@ -1208,9 +1209,10 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const explosion = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
-        speed: { min: 10 * that.scene.unitSize, max: 40 * that.scene.unitSize },
+        speed: { min: 5 * that.scene.unitSize, max: 10 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
-        lifespan: { min: 80, max: 200 },
+        lifespan: 100,
+        frequency: 100,
         alpha: { start: 1, end: 0 },
         scale: { start: 0.2, end: 0 },
         tint: [0x00ffff, 0xffffff, 0x3399ff],
@@ -1219,7 +1221,6 @@ export class Bullet extends GameObject {
       });
 
       that.scene.time.delayedCall(250, () => explosion.destroy());
-      that.destroy();
     },
 
     afterUpdate: (that, delta) => {

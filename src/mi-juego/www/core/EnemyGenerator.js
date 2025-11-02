@@ -6,7 +6,7 @@ export class EnemyGenerator {
   path = null;
   groupEnemies = null;
   counter = 0;
-  enemiesQuatity = 25;
+  enemiesQuatity = 35;
   scene = null;
   lastEnemyCreated = 0;
   constructor(scene, paths, groupEnemies) {

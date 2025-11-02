@@ -81,11 +81,22 @@ export class Tower extends GameObject {
     this.lastTimeUpdated += time;
   }
 
+  static initTextures(scene) {
+    scene.load.image('towerTexture', 'assets/tower-10.png');
+    scene.load.image('towerBouncer', 'assets/tower-11.png');
+    scene.load.image('towerTriple', 'assets/tower-12.png');
+    scene.load.image('towerPlasma', 'assets/tower-13.png');
+    scene.load.image('towerExplosion', 'assets/tower-14.png');
+    scene.load.image('towerIce', 'assets/tower-15.png');
+    scene.load.image('towerCircle', 'assets/tower-16.png');
+    scene.load.image('towerDamage', 'assets/tower-17.png');
+    scene.load.image('towerElectricity', 'assets/tower-18.png');
+  }
+
   static commonTower = {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 300,
     texture: 'towerTexture',
@@ -102,7 +113,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 2.4,
     price: 250,
-    damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
     texture: 'towerPlasma',
@@ -116,13 +126,12 @@ export class Tower extends GameObject {
   }
 
   static bouncerTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 2.2,
+    widthRatio: 2.7,
     price: 250,
-    damage: 2000,
     rangeUnits: 18,
     attackInterval: 500,
-    texture: 'towerTexture',
+    texture: 'towerBouncer',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -134,12 +143,11 @@ export class Tower extends GameObject {
 
   static bombTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.8,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerExplosion',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -151,12 +159,11 @@ export class Tower extends GameObject {
 
   static slowerTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.5,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerIce',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -170,7 +177,6 @@ export class Tower extends GameObject {
     heightRatio: 1.8,
     widthRatio: 3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 300,
     texture: 'towerTriple',
@@ -188,12 +194,11 @@ export class Tower extends GameObject {
 
   static circleTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerCircle',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -207,7 +212,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 3000,
     texture: 'towerTexture',
@@ -224,7 +228,6 @@ export class Tower extends GameObject {
     heightRatio: 2,
     widthRatio: 3.3,
     price: 250,
-    damage: 50,
     rangeUnits: 15,
     attackInterval: 100,
     texture: 'towerTexture',
@@ -297,13 +300,12 @@ export class Tower extends GameObject {
   }
 
   static damageTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 1.8,
+    widthRatio: 2.5,
     price: 250,
-    damage: 50,
     rangeUnits: 8,
     attackInterval: 1000,
-    texture: 'towerTexture',
+    texture: 'towerDamage',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -315,12 +317,12 @@ export class Tower extends GameObject {
 
   static electricityTower = {
     heightRatio: 2,
-    widthRatio: 3.3,
+    widthRatio: 2,
     price: 250,
     damage: 50,
     rangeUnits: 15,
-    attackInterval: 1000,
-    texture: 'towerTexture',
+    attackInterval: 7000,
+    texture: 'towerElectricity',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

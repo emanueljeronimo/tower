@@ -106,6 +106,7 @@ export class Enemy extends GameObject {
   }
 
   update() {
+    if (!this.active) return;
     if (!this.path || this.currentPointIndex >= this.path.length) return;
 
     const targetPoint = this.path[this.currentPointIndex];

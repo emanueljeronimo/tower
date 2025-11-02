@@ -170,7 +170,7 @@ export class TowerMenuContainer extends Phaser.GameObjects.Container {
     if (this.enemy != null) this.enemy.destroy();
     let x = this.x + this.scene.unitSize * 8;
     let y = this.scene.unitSize * 83
-    this.enemy = new Enemy(this.scene, this.enemies, x, y, this.scene.unitSize, this.scene.unitSize, Enemy.dummyEnemy);
+    this.enemy = new Enemy(this.scene, this.enemies, x, y, Enemy.dummyEnemy);
     this.enemy.setPath([{x:x+this.scene.unitSize*20,y:y},{x:x+this.scene.unitSize*10,y:y},{x:x,y:y}]);
     this.buttonTower.createTower(false);
   }

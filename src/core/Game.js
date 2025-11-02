@@ -37,7 +37,8 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background14.png');
-    this.load.image('buttonTower', 'assets/buttonTower10.png');
+    //this.load.image('buttonTower', 'assets/buttonTower10.png');
+    this.load.svg('buttonTower', 'assets/buttonTower11.svg', { width: this.buttonTowerSize, height: this.buttonTowerSize });
     this.load.image('backgroundDemo', 'assets/backgroundDemo.png');
     this.load.image('up', 'assets/up.png');
     this.load.image('left', 'assets/left.png');
