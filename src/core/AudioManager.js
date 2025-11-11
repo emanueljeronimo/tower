@@ -11,6 +11,7 @@ export class AudioManager {
     this.sounds = {};
     AudioManager.instance = this;
 
+    // Carga de audios
     scene.load.audio('shoot', 'assets/audio/shoot.mp3');
     scene.load.audio('explosion1', 'assets/audio/explosion1.mp3');
     scene.load.audio('explosion2', 'assets/audio/explosion2.mp3');
@@ -20,6 +21,7 @@ export class AudioManager {
   }
 
   setup() {
+    // Agrega los sonidos al sistema de audio
     this.sounds['shoot'] = this.scene.sound.add('shoot');
     this.sounds['explosion1'] = this.scene.sound.add('explosion1');
     this.sounds['explosion2'] = this.scene.sound.add('explosion2');
@@ -27,26 +29,51 @@ export class AudioManager {
     this.sounds['music1'] = this.scene.sound.add('music1');
     this.sounds['music2'] = this.scene.sound.add('music2');
 
+    // Reproducción alternada entre músicas
     this.sounds['music1'].once('complete', () => {
-      this.sounds['music2'].play();
+      this.sounds['music2'].play({ volume: 0.5 });
     });
 
     this.sounds['music2'].once('complete', () => {
-      this.sounds['music1'].play();
+      this.sounds['music1'].play({ volume: 0.5 });
     });
-
   }
 
-  play(key, opt) {
-    this.sounds[key].play(opt);
+  play(key, opt = {}) {
+    const sound = this.sounds[key];
+    if (!sound) return;
+
+    if (opt.volume !== undefined) sound.setVolume(opt.volume);
+    if (opt.loop !== undefined) sound.setLoop(opt.loop);
+    if (opt.rate !== undefined) sound.setRate(opt.rate);
+
+    sound.play();
   }
 
   stop(key) {
-    this.sounds[key].stop();
+    const sound = this.sounds[key];
+    if (sound && sound.isPlaying) {
+      sound.stop();
+    }
   }
 
-  static sounds =
-    {
-      shoot: 'shoot'
-    }
+  stopAll() {
+    Object.values(this.sounds).forEach(sound => {
+      if (sound.isPlaying) sound.stop();
+    });
+  }
+
+  // ejemplo de volumen global si lo querés usar más adelante
+  setGlobalVolume(volume) {
+    this.scene.sound.volume = Phaser.Math.Clamp(volume, 0, 1);
+  }
+
+  static sounds = {
+    shoot: 'shoot',
+    explosion1: 'explosion1',
+    explosion2: 'explosion2',
+    explosion3: 'explosion3',
+    music1: 'music1',
+    music2: 'music2'
+  };
 }

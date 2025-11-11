@@ -2,8 +2,8 @@ import { GameObject } from './GameObject.js';
 import { Utils } from './Utils.js';
 
 export class Enemy extends GameObject {
-  constructor(scene, group, x = -50, y = 150, height, width, enemyConfig) {
-    super(scene, group, x, y, enemyConfig.texture, height, width);
+  constructor(scene, group, x = -50, y = 150, enemyConfig) {
+    super(scene, group, x, y, enemyConfig.texture, scene.unitSize * enemyConfig.height, scene.unitSize * enemyConfig.width);
     Object.assign(this, enemyConfig);
 
     this.speed = Utils.getRandomNumber(this.speed * 0.85, this.speed * 1.15);
@@ -44,7 +44,7 @@ export class Enemy extends GameObject {
     this.health -= damage + (damage * this.increasedDamagePercent / 100);
     if (this.health <= 0) {
       // Sonido de explosión
-      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1, 2)}`, { volume: 0.3 });
 
       // Recompensa de oro
       this.scene.changeGold(this.gold);
@@ -75,7 +75,7 @@ export class Enemy extends GameObject {
   }
 
   hitWithMainTower(mainTower) {
-    this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+    this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1, 2)}`, { volume: 0.3 });
     const angleToTower = Phaser.Math.RadToDeg(
         Phaser.Math.Angle.Between(mainTower.x, mainTower.y, this.x, this.y)
     );
@@ -151,7 +151,8 @@ export class Enemy extends GameObject {
   }
 
   static initTextures(scene) {
-    scene.load.image('enemy', 'assets/enemy-7.png');
+    scene.load.svg('enemy', 'assets/enemy-7.svg', {height: Enemy.commonEnemy.height * scene.unitSize, width: Enemy.commonEnemy.width * scene.unitSize });
+    //scene.load.image('enemy', 'assets/enemy-7.png');
 
     // === Textura de explosión ===
     const g1 = scene.make.graphics({ x: 0, y: 0, add: false });
@@ -177,6 +178,8 @@ export class Enemy extends GameObject {
 
   static commonEnemy = {
     texture: 'enemy',
+    height: 1.8,
+    width: 1.8,
     health: 100,
     speed: 8,
     gold: 15,
@@ -184,6 +187,8 @@ export class Enemy extends GameObject {
 
   static dummyEnemy = {
     texture: 'enemy',
+    height: 1,
+    width:1,
     health: 100,
     speed: 10,
     gold: 0

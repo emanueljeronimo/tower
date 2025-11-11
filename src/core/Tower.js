@@ -82,7 +82,7 @@ export class Tower extends GameObject {
   }
 
   static initTextures(scene) {
-    scene.load.image('towerTexture', 'assets/tower-10.png');
+    scene.load.image('towerTexture', 'assets/tower-10.png', {height: Tower.commonTower.heightRatio * scene.unitSize, width: Tower.commonTower.widthRatio * scene.unitSize});
     //scene.load.image('towerBouncer', 'assets/tower-11.png');
     scene.load.svg('towerBouncer', 'assets/tower-11.svg', {height: Tower.bouncerTower.heightRatio * scene.unitSize, width: Tower.bouncerTower.widthRatio * scene.unitSize});
     scene.load.image('towerTriple', 'assets/tower-12.png');
@@ -102,7 +102,7 @@ export class Tower extends GameObject {
     attackInterval: 300,
     texture: 'towerTexture',
     description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 0.5 },
+    sound: { key: AudioManager.sounds.shoot, volume: 0 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         new Bullet(scene, groupBullets, x, y, Bullet.common, target, range);
@@ -127,8 +127,8 @@ export class Tower extends GameObject {
   }
 
   static bouncerTower = {
-    heightRatio: 2,
-    widthRatio: 2.9,
+    heightRatio: 2.1,
+    widthRatio: 3.2,
     price: 250,
     rangeUnits: 18,
     attackInterval: 500,
@@ -182,7 +182,7 @@ export class Tower extends GameObject {
     attackInterval: 300,
     texture: 'towerTriple',
     description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    sound: { key: AudioManager.sounds.shoot, volume: 0.3 },
     executeOnUpdate: (that, time) => {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         const angle = Phaser.Math.Angle.Between(that.getCenter().x, that.getCenter().y, target.getCenter().x, target.getCenter().y);

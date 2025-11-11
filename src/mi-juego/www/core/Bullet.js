@@ -63,7 +63,7 @@ export class Bullet extends GameObject {
   }
 
   setDirection(angle) {
-    const realVelocity= this.velocity * this.scene.unitSize;
+    const realVelocity = this.velocity * this.scene.unitSize;
     this.setAngle(Phaser.Math.RAD_TO_DEG * angle);
     this.setVelocityX(Math.cos(angle) * realVelocity);
     this.setVelocityY(Math.sin(angle) * realVelocity);
@@ -86,7 +86,7 @@ export class Bullet extends GameObject {
     const gradientBullet = contextBullet.createLinearGradient(0, 0, 0, 30);
     gradientBullet.addColorStop(0, '#FFFF00');
     gradientBullet.addColorStop(1, '#FF5500');
-    
+
 
     contextBullet.fillStyle = gradientBullet;
     contextBullet.beginPath();
@@ -508,7 +508,7 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 10 * that.scene.unitSize , max: 20 * that.scene.unitSize },
+        speed: { min: 10 * that.scene.unitSize, max: 20 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 100,
         frequency: 30,
@@ -952,7 +952,7 @@ export class Bullet extends GameObject {
       that.setAngularVelocity(150);
       that.setVelocity(3);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
-        speed: { min: 20 * that.scene.unitSize , max: 40 * that.scene.unitSize },
+        speed: { min: 20 * that.scene.unitSize, max: 40 * that.scene.unitSize },
         lifespan: 100,
         scale: { start: 0.5, end: 0 },
         //tint: [0xffff00, 0xff5500],
@@ -963,7 +963,7 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
-        speed: { min: 5 * that.scene.unitSize , max: 20 * that.scene.unitSize },
+        speed: { min: 5 * that.scene.unitSize, max: 20 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 150,
         scale: { start: 0.4, end: 0 },
@@ -1009,7 +1009,7 @@ export class Bullet extends GameObject {
 
     afterUpdate: (that, delta) => {
       if (!that.lastGrowUp) {
-        that.growUpCounter=0;
+        that.growUpCounter = 0;
         that.lastGrowUp = delta;
       } else {
         that.lastGrowUp += delta;
@@ -1017,8 +1017,8 @@ export class Bullet extends GameObject {
           that.lastGrowUp = 1;
           that.growUpCounter++;
           that.setDisplaySize(
-          that.growUpCounter * (that.scene.unitSize / 3),
-          that.growUpCounter * (that.scene.unitSize / 3));
+            that.growUpCounter * (that.scene.unitSize / 3),
+            that.growUpCounter * (that.scene.unitSize / 3));
           that.body.setSize(that.displayWidth, that.displayHeight, true);
         }
       }
@@ -1045,7 +1045,7 @@ export class Bullet extends GameObject {
     },
 
     afterHit: (that, enemy) => {
-      if(that.alreadyHit) return;
+      if (that.alreadyHit) return;
       that.alreadyHit = true;
       enemy.setTintFill(0xFFFFFF);
       that.scene.time.delayedCall(800, () => {
@@ -1168,29 +1168,17 @@ export class Bullet extends GameObject {
     heightUnits: 0.5,
     widthUnits: 0.5,
     texture: 'bullet-electric',
-    velocity: 10,
+    velocity: 20,
     follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 0,
     unitsToDestroy: 6,
 
     afterVisible: (that) => {
-      const sparks = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
-        speed: { min: 0, max: 0 },
-        angle: { min: 0, max: 0 }, // efecto "descarga adelante"
-        lifespan: 200,
-        frequency: 30,
-        alpha: { start: 1, end: 0 },
-        scale: { start: 0.3, end: 0 },
-        tint: [0x00ffff, 0xffffff, 0x3399ff],
-        blendMode: 'ADD'
-      });
-      that.scene.time.delayedCall(80, () => sparks.destroy());
-
-     that.trailEmitter = that.scene.add.particles(0, 0, 'bullet-electric', {
+      that.trailEmitter = that.scene.add.particles(0, 0, 'bullet-electric', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 35,
+        frequency: 100,
         quantity: 6,
         scale: { start: 0.2, end: 0.2 },
         alpha: { start: 0.2, end: 0 },
@@ -1207,33 +1195,23 @@ export class Bullet extends GameObject {
 
     },
 
-    afterHit: (that, enemy) => {
-      const explosion = that.scene.add.particles(that.x, that.y, 'bullet-electric', {
-        speed: { min: 5 * that.scene.unitSize, max: 10 * that.scene.unitSize },
-        angle: { min: 0, max: 360 },
-        lifespan: 100,
-        frequency: 100,
-        alpha: { start: 1, end: 0 },
-        scale: { start: 0.2, end: 0 },
-        tint: [0x00ffff, 0xffffff, 0x3399ff],
-        blendMode: 'ADD',
-        quantity: 8
-      });
-
-      that.scene.time.delayedCall(250, () => explosion.destroy());
-    },
-
     afterUpdate: (that, delta) => {
       if (!that.lastAngleChange) {
         that.lastAngleChange = delta;
+        that.destroyCounter = delta;
       } else {
         that.lastAngleChange += delta;
+        that.destroyCounter += delta
         if (that.lastAngleChange > 50) {
           that.setDirection(Utils.getRandomAngle());
           that.lastAngleChange = 0;
         }
-      }
 
+       if (that.destroyCounter > 250) {
+          that.destroy();
+        }
+
+      }
     },
   };
 

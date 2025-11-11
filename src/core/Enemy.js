@@ -44,7 +44,7 @@ export class Enemy extends GameObject {
     this.health -= damage + (damage * this.increasedDamagePercent / 100);
     if (this.health <= 0) {
       // Sonido de explosión
-      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+      this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1, 2)}`, { volume: 0.3 });
 
       // Recompensa de oro
       this.scene.changeGold(this.gold);
@@ -64,7 +64,7 @@ export class Enemy extends GameObject {
         alpha: { start: 1, end: 0 },
         quantity: 10,
         blendMode: 'ADD',
-        tint: [0xffaa00, 0xff5500, 0xffffff]
+        tint: [...this.fuselageColors]
       });
 
       explosion.explode(20);
@@ -75,7 +75,7 @@ export class Enemy extends GameObject {
   }
 
   hitWithMainTower(mainTower) {
-    this.scene.audioManager.play(`explosion${Utils.getRandomNumber(2, 3)}`, { volume: 0.4 });
+    this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1, 2)}`, { volume: 0.3 });
     const angleToTower = Phaser.Math.RadToDeg(
         Phaser.Math.Angle.Between(mainTower.x, mainTower.y, this.x, this.y)
     );
@@ -90,7 +90,7 @@ export class Enemy extends GameObject {
         alpha: { start: 1, end: 0 },
         quantity: 15,
         blendMode: 'ADD',
-        tint: [0xffaa00, 0xff5500, 0xffffff]
+        tint: [...this.fuselageColors]
     });
 
     explosion.explode(25);
@@ -183,6 +183,7 @@ export class Enemy extends GameObject {
     health: 100,
     speed: 8,
     gold: 15,
+    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
   };
 
   static dummyEnemy = {
@@ -191,6 +192,7 @@ export class Enemy extends GameObject {
     width:1,
     health: 100,
     speed: 10,
-    gold: 0
+    gold: 0,
+    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
   };
 }

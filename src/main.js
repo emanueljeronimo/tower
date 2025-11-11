@@ -7,7 +7,7 @@
 -sonidos
 -torre de oro
 -que cada clase cargue sus archivos
--https://www.freeconvert.com/png-to-svg/download cambiar todo a svg
+-particulas del color de las naves cuando explotan
 */
 import { config } from './core/config.js';
 import { Game } from './core/Game.js';

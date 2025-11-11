@@ -37,7 +37,6 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('milkyway', 'assets/background14.png');
-    //this.load.image('buttonTower', 'assets/buttonTower10.png');
     this.load.svg('buttonTower', 'assets/buttonTower11.svg', { width: this.buttonTowerSize, height: this.buttonTowerSize });
     this.load.image('backgroundDemo', 'assets/backgroundDemo.png');
     this.load.image('up', 'assets/up.png');
@@ -59,7 +58,7 @@ export class Game extends Phaser.Scene {
 
   create() {
     this.audioManager.setup();
-    //this.audioManager.play('music1');
+    this.audioManager.play('music1');
     this.milkyWay = new GameObject(this,this.physics.add.group(), this.grid.cols * this.buttonTowerSize/3, this.grid.rows * this.buttonTowerSize/2, 'milkyway', this.grid.rows * this.buttonTowerSize, this.grid.cols * this.buttonTowerSize );
     this.mainTowers = this.physics.add.group();
     this.enemies = this.physics.add.group();
@@ -145,6 +144,19 @@ export class Game extends Phaser.Scene {
 
     this.enemyGenerator.update(time);
     this.towerMenuContainer.update(time, delta);
+
+
+    this.events.on('hidden', () => {
+      this.sound.pauseAll();
+    });
+
+    this.events.on('visible', () => {
+      if (this.sound.context.state === 'suspended') {
+        this.sound.context.resume();
+      }
+      this.sound.resumeAll();
+    });
+
 
   }
 
