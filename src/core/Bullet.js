@@ -489,48 +489,20 @@ export class Bullet extends GameObject {
     heightUnits: 0.6,
     widthUnits: 0.6,
     texture: 'bullet-texture',
-    velocity: 30,
+    velocity: 40,
     follow: true,
     destroyAfterHit: true,
     unitsToSetVisible: 1.5,
     unitsToDestroy: 16,
 
-    afterVisible: (that) => {
-      const muzzleFlash = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 20 * that.scene.unitSize, max: 40 * that.scene.unitSize },
-        lifespan: 50,
-        scale: { start: 0.2, end: 0 },
-        tint: [0xffff00, 0xff5500],
-        blendMode: 'ADD'
-      });
-      that.scene.time.delayedCall(100, () => muzzleFlash.destroy());
-    },
-
     afterHit: (that, enemy) => {
-      /*const angle = Phaser.Math.RadToDeg(
-        Phaser.Math.Angle.Between(that.body.x, that.body.y, enemy.x, enemy.y)
-      );
-
-      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 10 * that.scene.unitSize, max: 20 * that.scene.unitSize },
-        angle: { min: angle - 10, max: angle + 10 },
-        lifespan: 100,
-        frequency: 30,
-        scale: { start: 0.2, end: 0 },
-        tint: [...enemy.fuselageColors],
-        blendMode: 'ADD'
-      });
-
-      that.scene.time.delayedCall(350, () => impactParticles.destroy());
-      */
-
       const angleRad = Phaser.Math.Angle.Between(that.body.x, that.body.y, enemy.x, enemy.y);
       const shardAngle = Phaser.Math.RadToDeg(angleRad);
 
       const shard = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
-        speed: { min: 100, max: 200 },
+        speed: { min: 500, max: 700 },
         angle: { min: shardAngle - 10, max: shardAngle + 10 },
-        lifespan: 300,
+        lifespan: 100,
         quantity: 2,
         scale: { start: 0.3, end: 0 },
         gravityY: 400, // hace que caiga un poco
