@@ -494,6 +494,18 @@ export class Bullet extends GameObject {
     destroyAfterHit: true,
     unitsToSetVisible: 1.5,
     unitsToDestroy: 16,
+    afterVisible: (that) => {
+     const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
+        speed: { min: 10 * that.scene.unitSize, max: 15 * that.scene.unitSize },
+        angle: { min: 0, max: 360 },
+        lifespan: 50,
+        frequency: 60,
+        scale: { start: 0.3, end: 0 },
+        blendMode: 'ADD'
+      });
+      impactParticles.explode(3);
+      that.scene.time.delayedCall(300, () => impactParticles.destroy());    
+    },
 
     afterHit: (that, enemy) => {
       const angleRad = Phaser.Math.Angle.Between(that.body.x, that.body.y, enemy.x, enemy.y);
@@ -530,16 +542,16 @@ export class Bullet extends GameObject {
     unitsToDestroy: 16,
     afterHit: (that, enemy) => {
       const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-energy-blue', {
-        speed: { min: 10 * that.scene.unitSize, max: 20 * that.scene.unitSize },
+        speed: { min: 10 * that.scene.unitSize, max: 15 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
-        lifespan: 300,
+        lifespan: 50,
         frequency: 30,
         scale: { start: 0.3, end: 0 },
         tint: [0x00ffff, 0x5500ff],
         blendMode: 'ADD'
       });
 
-      that.scene.time.delayedCall(300, () => impactParticles.destroy());
+      that.scene.time.delayedCall(100, () => impactParticles.destroy());
       that.destroy();
     }
   };
@@ -672,7 +684,6 @@ export class Bullet extends GameObject {
   };
 
   static bouncer = {
-
     damage: 1,
     heightUnits: 1,
     widthUnits: 1,
@@ -700,10 +711,13 @@ export class Bullet extends GameObject {
 
     afterHit: (that, enemy) => {
 
+      const angleRad = Phaser.Math.Angle.Between(that.body.x, that.body.y, enemy.x, enemy.y);
+      const shardAngle = Phaser.Math.RadToDeg(angleRad);
+
       const burst = that.scene.add.particles(that.x, that.y, 'bouncer-texture', {
         speed: { min: 5 * that.scene.unitSize, max: 12 * that.scene.unitSize },
-        angle: { min: 0, max: 360 },
-        scale: { start: 0.8, end: 0.2 },
+        angle: { min: shardAngle - 10, max: shardAngle + 10 },
+        scale: { start: 0.3, end: 0.5 },
         alpha: { start: 1, end: 0 },
         lifespan: 600,
         blendMode: 'SCREEN',
@@ -862,9 +876,8 @@ export class Bullet extends GameObject {
         sparkles.destroy();
       });
 
-      for (let i = 0; i < 360; i += 30) {
-        const angle = Phaser.Math.DegToRad(i) + that.angle;
-        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, angle);
+      for (let i = 0; i < 6; i++) {
+        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, 0);
       }
       that.destroy();
     }
@@ -880,6 +893,29 @@ export class Bullet extends GameObject {
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
+
+    afterUpdate: (that, delta) => {
+      if (!that.lastAngleChange) {
+        that.lastAngleChange = delta;
+        that.destroyCounter = delta;
+        that.bomb_child_angle = Utils.getRandomNumber(0,360);
+      } else {
+        that.lastAngleChange += delta;
+        that.destroyCounter += delta
+        if (that.lastAngleChange > 10) {
+          that.bomb_child_angle+=20;
+          that.setDirection(Phaser.Math.DegToRad(that.bomb_child_angle));
+          that.lastAngleChange = 1;
+        }
+
+        if (that.destroyCounter > 250) {
+          that.destroy();
+        }
+
+      }
+    },
+
+
     afterVisible: (that) => {
       // Estela principal del orbe (colores vibrantes)
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
@@ -942,11 +978,11 @@ export class Bullet extends GameObject {
     follow: false,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
-    unitsToDestroy: 16,
+    unitsToDestroy: 30,
 
     afterVisible: (that) => {
       that.setAngularVelocity(150);
-      that.setVelocity(3);
+      that.setVelocity(Utils.getRandomNumber(300,500)/100);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
         speed: { min: 20 * that.scene.unitSize, max: 40 * that.scene.unitSize },
         lifespan: 100,
@@ -963,20 +999,18 @@ export class Bullet extends GameObject {
         angle: { min: 0, max: 360 },
         lifespan: 150,
         scale: { start: 0.4, end: 0 },
-        //tint: [0xffff00, 0xff5500],
         blendMode: 'ADD'
       });
 
       if (enemy.active) {
+        if(!enemy.originalSpeed) {
+          enemy.originalSpeed = enemy.speed;
+        }
         enemy.speed = enemy.speed * 0.8;
-        //enemy.body.velocity.x *= 0.90;
-        //enemy.body.velocity.y *= 0.90;
-        /*that.scene.time.delayedCall(1000, () => {
+        that.scene.time.delayedCall(300, () => {
           if (enemy && enemy.body) {
-            enemy.body.velocity.x *= 1.05;
-            enemy.body.velocity.y *= 1.05;
-          }
-        });*/
+            enemy.speed = enemy.originalSpeed;
+        }});
       }
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
@@ -1194,15 +1228,14 @@ export class Bullet extends GameObject {
     afterUpdate: (that, delta) => {
       if (!that.lastAngleChange) {
         that.lastAngleChange = delta;
-        that.destroyCounter = delta;
+        that.destroyCounter = 1
       } else {
         that.lastAngleChange += delta;
-        that.destroyCounter += delta
-        if (that.lastAngleChange > 50) {
+        that.destroyCounter ++;
+        if (that.lastAngleChange > 100) {
           that.setDirection(Utils.getRandomAngle());
-          that.lastAngleChange = 0;
+          that.lastAngleChange = 1;
         }
-
         if (that.destroyCounter > 250) {
           that.destroy();
         }
