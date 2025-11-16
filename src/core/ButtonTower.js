@@ -16,6 +16,7 @@ export class ButtonTower extends GameObject {
     this.groupBullets = groupBullets;
     this.setInteractive();
     this.on('pointerdown', this.buyTower, this);
+   this.setDisplaySize(scene.buttonTowerSize * 0.90, scene.buttonTowerSize * 0.90);
   }
 
   createTower(sellable) {

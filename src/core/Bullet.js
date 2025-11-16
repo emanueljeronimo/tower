@@ -1084,7 +1084,7 @@ export class Bullet extends GameObject {
       that.scene.time.delayedCall(500, () => {
         that.destroy();
         enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
-        if (enemy.active) {
+        if (enemy.active && enemy.path[enemy.currentPointIndex]) {
           enemy.x = enemy.path[enemy.currentPointIndex].x;
           enemy.y = enemy.path[enemy.currentPointIndex].y;
           enemy.startMoving();
@@ -1166,21 +1166,18 @@ export class Bullet extends GameObject {
       });
     },
 
-
     afterHit: (that, enemy) => {
       that.glued = true;
       that.enemy = enemy;
       enemy.setTint(0xff2222);
-
       if (enemy) {
         enemy.increasedDamagePercent += 10;
-        setTimeout(() => {
-          enemy.increasedDamagePercent -= 10;
-          that.destroy();
-          enemy.clearTint();
-        }, 1000)
+        that.scene.time.delayedCall(1000, () => {
+            enemy.increasedDamagePercent -= 10;
+            that.destroy();
+            enemy.clearTint();
+        });
       }
-
     },
 
     afterUpdate: (that, delta) => {

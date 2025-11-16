@@ -71,6 +71,20 @@ export class Enemy extends GameObject {
       this.scene.time.delayedCall(600, () => explosion.destroy());
       this.destroy();
 
+    } else {
+
+      if (damage == 0 || this.isFlashing) return;
+      this.isFlashing = true;
+      let lastTint = this.tintTopLeft;
+      this.setTintFill(0xffffff);
+      this.scene.time.delayedCall(50, () => {
+        this.clearTint();
+        if (lastTint) {
+          this.setTint(lastTint);
+          console.log(lastTint);
+          this.isFlashing = false;
+        }
+      });
     }
   }
 
