@@ -31,11 +31,11 @@ export class AudioManager {
 
     // Reproducción alternada entre músicas
     this.sounds['music1'].once('complete', () => {
-      this.sounds['music2'].play({ volume: 0.5 });
+      this.scene.time.delayedCall(15000, () => this.sounds['music2'].play({ volume: 0.5 }));
     });
 
     this.sounds['music2'].once('complete', () => {
-      this.sounds['music1'].play({ volume: 0.5 });
+      this.scene.time.delayedCall(15000, () => this.sounds['music1'].play({ volume: 0.5 }));
     });
   }
 

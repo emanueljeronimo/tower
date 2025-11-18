@@ -64,13 +64,27 @@ export class Enemy extends GameObject {
         alpha: { start: 1, end: 0 },
         quantity: 10,
         blendMode: 'ADD',
-        tint: [0xffaa00, 0xff5500, 0xffffff]
+        tint: [...this.fuselageColors]
       });
 
       explosion.explode(20);
       this.scene.time.delayedCall(600, () => explosion.destroy());
       this.destroy();
 
+    } else {
+
+      if (damage == 0 || this.isFlashing) return;
+      this.isFlashing = true;
+      let lastTint = this.tintTopLeft;
+      this.setTintFill(0xffffff);
+      this.scene.time.delayedCall(50, () => {
+        this.clearTint();
+        if (lastTint) {
+          this.setTint(lastTint);
+          console.log(lastTint);
+          this.isFlashing = false;
+        }
+      });
     }
   }
 
@@ -90,7 +104,7 @@ export class Enemy extends GameObject {
         alpha: { start: 1, end: 0 },
         quantity: 15,
         blendMode: 'ADD',
-        tint: [0xffaa00, 0xff5500, 0xffffff]
+        tint: [...this.fuselageColors]
     });
 
     explosion.explode(25);
@@ -183,6 +197,7 @@ export class Enemy extends GameObject {
     health: 100,
     speed: 8,
     gold: 15,
+    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
   };
 
   static dummyEnemy = {
@@ -191,6 +206,7 @@ export class Enemy extends GameObject {
     width:1,
     health: 100,
     speed: 10,
-    gold: 0
+    gold: 0,
+    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
   };
 }

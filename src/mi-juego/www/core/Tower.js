@@ -82,21 +82,21 @@ export class Tower extends GameObject {
   }
 
   static initTextures(scene) {
-    scene.load.image('towerTexture', 'assets/tower-10.png');
-    //scene.load.image('towerBouncer', 'assets/tower-11.png');
+    scene.load.svg('towerTexture', 'assets/tower-10.svg', {height: Tower.commonTower.heightRatio * scene.unitSize, width: Tower.commonTower.widthRatio * scene.unitSize});
+    scene.load.svg('towerTriple', 'assets/tower-12.svg', {height: Tower.tripleShotTower.heightRatio * scene.unitSize, width: Tower.tripleShotTower.widthRatio * scene.unitSize});   
+    scene.load.svg('towerPlasma', 'assets/tower-13.svg', {height: Tower.energyOrbTower.heightRatio * scene.unitSize, width: Tower.energyOrbTower.widthRatio * scene.unitSize});
     scene.load.svg('towerBouncer', 'assets/tower-11.svg', {height: Tower.bouncerTower.heightRatio * scene.unitSize, width: Tower.bouncerTower.widthRatio * scene.unitSize});
-    scene.load.image('towerTriple', 'assets/tower-12.png');
-    scene.load.image('towerPlasma', 'assets/tower-13.png');
-    scene.load.image('towerExplosion', 'assets/tower-14.png');
-    scene.load.image('towerIce', 'assets/tower-15.png');
+    scene.load.svg('towerExplosion', 'assets/tower-14.svg', {height: Tower.bombTower.heightRatio * scene.unitSize, width: Tower.bombTower.widthRatio * scene.unitSize});
+    scene.load.svg('towerIce', 'assets/tower-15.svg', {height: Tower.slowerTower.heightRatio * scene.unitSize, width: Tower.slowerTower.widthRatio * scene.unitSize});
+
     scene.load.image('towerCircle', 'assets/tower-16.png');
     scene.load.image('towerDamage', 'assets/tower-17.png');
     scene.load.image('towerElectricity', 'assets/tower-18.png');
   }
 
   static commonTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 2.3,
+    widthRatio: 3.7,
     price: 250,
     rangeUnits: 8,
     attackInterval: 300,
@@ -110,73 +110,9 @@ export class Tower extends GameObject {
     }
   }
 
-  static energyOrbTower = {
-    heightRatio: 2,
-    widthRatio: 2.4,
-    price: 250,
-    rangeUnits: 18,
-    attackInterval: 500,
-    texture: 'towerPlasma',
-    description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 1 },
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, Bullet.energyOrb, target, range);
-      });
-    }
-  }
-
-  static bouncerTower = {
-    heightRatio: 2.1,
-    widthRatio: 3.2,
-    price: 250,
-    rangeUnits: 18,
-    attackInterval: 500,
-    texture: 'towerBouncer',
-    description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 1 },
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, Bullet.bouncer, target, range);
-      });
-    }
-  }
-
-  static bombTower = {
-    heightRatio: 2,
-    widthRatio: 2.8,
-    price: 250,
-    rangeUnits: 8,
-    attackInterval: 100,
-    texture: 'towerExplosion',
-    description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 1 },
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, Bullet.bomb, target, range);
-      });
-    }
-  }
-
-  static slowerTower = {
-    heightRatio: 2,
-    widthRatio: 2.5,
-    price: 250,
-    rangeUnits: 8,
-    attackInterval: 100,
-    texture: 'towerIce',
-    description: 'Common Tower',
-    sound: { key: AudioManager.sounds.shoot, volume: 1 },
-    executeOnUpdate: (that, time) => {
-      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
-        new Bullet(scene, groupBullets, x, y, Bullet.slower, target, range);
-      });
-    }
-  }
-
   static tripleShotTower = {
-    heightRatio: 1.8,
-    widthRatio: 3,
+    heightRatio: 2.5,
+    widthRatio: 3.8,
     price: 250,
     rangeUnits: 8,
     attackInterval: 300,
@@ -193,9 +129,76 @@ export class Tower extends GameObject {
     }
   }
 
+  static energyOrbTower = {
+    heightRatio: 2.4,
+    widthRatio: 2.6,
+    price: 250,
+    rangeUnits: 18,
+    attackInterval: 500,
+    texture: 'towerPlasma',
+    description: 'Common Tower',
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.energyOrb, target, range);
+      });
+    }
+  }
+
+  static bouncerTower = {
+    heightRatio: 2.6,
+    widthRatio: 3.8,
+    price: 250,
+    rangeUnits: 18,
+    attackInterval: 500,
+    texture: 'towerBouncer',
+    description: 'Common Tower',
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.bouncer, target, range);
+      });
+    }
+  }
+
+  static bombTower = {
+    heightRatio: 2.5,
+    widthRatio: 3.1,
+    price: 250,
+    rangeUnits: 8,
+    attackInterval: 100,
+    texture: 'towerExplosion',
+    description: 'Common Tower',
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        new Bullet(scene, groupBullets, x, y, Bullet.bomb, target, range);
+      });
+    }
+  }
+
+  static slowerTower = {
+    heightRatio: 2.5,
+    widthRatio: 3,
+    price: 250,
+    rangeUnits: 17,
+    attackInterval: 3500,
+    texture: 'towerIce',
+    description: 'Common Tower',
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    executeOnUpdate: (that, time) => {
+      that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
+        const angle = Phaser.Math.Angle.Between(that.getCenter().x, that.getCenter().y, target.getCenter().x, target.getCenter().y);
+        for (let i = 0; i < 15; i++) {
+          new Bullet(scene, groupBullets, x, y, Bullet.slower, null, range, angle + Utils.getRandomNumber(-300,300)/1000);
+        }
+      });
+    }
+  }
+
   static circleTower = {
-    heightRatio: 2,
-    widthRatio: 2.3,
+    heightRatio: 2.5,
+    widthRatio: 2.8,
     price: 250,
     rangeUnits: 8,
     attackInterval: 100,
@@ -210,8 +213,8 @@ export class Tower extends GameObject {
   }
 
   static teleportTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 2.3,
+    widthRatio: 3.7,
     price: 250,
     rangeUnits: 8,
     attackInterval: 3000,
@@ -226,8 +229,8 @@ export class Tower extends GameObject {
   }
 
   static mineTower = {
-    heightRatio: 2,
-    widthRatio: 3.3,
+    heightRatio: 2.3,
+    widthRatio: 3.7,
     price: 250,
     rangeUnits: 15,
     attackInterval: 100,
@@ -301,8 +304,8 @@ export class Tower extends GameObject {
   }
 
   static damageTower = {
-    heightRatio: 1.8,
-    widthRatio: 2.5,
+    heightRatio: 2.3,
+    widthRatio: 3,
     price: 250,
     rangeUnits: 8,
     attackInterval: 1000,
@@ -317,8 +320,8 @@ export class Tower extends GameObject {
   }
 
   static electricityTower = {
-    heightRatio: 2,
-    widthRatio: 2,
+    heightRatio: 2.3,
+    widthRatio: 2.3,
     price: 250,
     damage: 50,
     rangeUnits: 15,

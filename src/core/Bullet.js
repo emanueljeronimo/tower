@@ -777,7 +777,7 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 15,
+        frequency: 60,
         quantity: 2,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
@@ -921,7 +921,7 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 15,
+        frequency: 60,
         quantity: 2,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
@@ -1057,8 +1057,8 @@ export class Bullet extends GameObject {
 
   static teleport = {
     damage: 1,
-    heightUnits: 1,
-    widthUnits: 1,
+    heightUnits: 3,
+    widthUnits: 3,
     texture: 'scope-red-texture',
     velocity: 20,
     follow: true,
