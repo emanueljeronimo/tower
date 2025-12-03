@@ -83,11 +83,12 @@ export class Tower extends GameObject {
 
   static initTextures(scene) {
     scene.load.svg('towerTexture', 'assets/tower-10.svg', {height: Tower.commonTower.heightRatio * scene.unitSize, width: Tower.commonTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerTriple', 'assets/tower-12.svg', {height: Tower.tripleShotTower.heightRatio * scene.unitSize, width: Tower.tripleShotTower.widthRatio * scene.unitSize});   
-    scene.load.svg('towerPlasma', 'assets/tower-13.svg', {height: Tower.energyOrbTower.heightRatio * scene.unitSize, width: Tower.energyOrbTower.widthRatio * scene.unitSize});
+    scene.load.svg('towerTriple', 'assets/tower-12-b.svg', {height: Tower.tripleShotTower.heightRatio * scene.unitSize, width: Tower.tripleShotTower.widthRatio * scene.unitSize});   
+    scene.load.svg('towerPlasma', 'assets/tower-13-b.svg', {height: Tower.energyOrbTower.heightRatio * scene.unitSize, width: Tower.energyOrbTower.widthRatio * scene.unitSize});
     scene.load.svg('towerBouncer', 'assets/tower-11.svg', {height: Tower.bouncerTower.heightRatio * scene.unitSize, width: Tower.bouncerTower.widthRatio * scene.unitSize});
     scene.load.svg('towerExplosion', 'assets/tower-14.svg', {height: Tower.bombTower.heightRatio * scene.unitSize, width: Tower.bombTower.widthRatio * scene.unitSize});
     scene.load.svg('towerIce', 'assets/tower-15.svg', {height: Tower.slowerTower.heightRatio * scene.unitSize, width: Tower.slowerTower.widthRatio * scene.unitSize});
+    scene.load.svg('towerTeleport', 'assets/tower-19.svg', {height: Tower.teleportTower.heightRatio * scene.unitSize, width: Tower.teleportTower.widthRatio * scene.unitSize});
 
     scene.load.image('towerCircle', 'assets/tower-16.png');
     scene.load.image('towerDamage', 'assets/tower-17.png');
@@ -112,7 +113,7 @@ export class Tower extends GameObject {
 
   static tripleShotTower = {
     heightRatio: 2.5,
-    widthRatio: 3.8,
+    widthRatio: 3,
     price: 250,
     rangeUnits: 8,
     attackInterval: 300,
@@ -130,8 +131,8 @@ export class Tower extends GameObject {
   }
 
   static energyOrbTower = {
-    heightRatio: 2.4,
-    widthRatio: 2.6,
+    heightRatio: 2.8,
+    widthRatio: 2.8,
     price: 250,
     rangeUnits: 18,
     attackInterval: 500,
@@ -218,7 +219,7 @@ export class Tower extends GameObject {
     price: 250,
     rangeUnits: 8,
     attackInterval: 3000,
-    texture: 'towerTexture',
+    texture: 'towerTeleport',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

@@ -59,6 +59,10 @@ export class Bullet extends GameObject {
       this.setDirection(angle);
     }
 
+    if((!this.target || !this.target.active) && this.destroyIfHasNoTarget) {
+      this.destroy();
+    }
+
     this.afterUpdate && this.afterUpdate(this, delta);
   }
 
@@ -305,7 +309,7 @@ export class Bullet extends GameObject {
     scene.textures.addCanvas('texture-bullet-energy-ring', canvasBulletRing);
 
     const canvasRedCrosshair = document.createElement('canvas');
-    const sizeRedCrosshair = scene.unitSize * 2; // Más grande que la bala
+    const sizeRedCrosshair = scene.unitSize * 2;
     canvasRedCrosshair.width = sizeRedCrosshair;
     canvasRedCrosshair.height = sizeRedCrosshair;
     const ctxRedCrosshair = canvasRedCrosshair.getContext('2d');
@@ -314,39 +318,26 @@ export class Bullet extends GameObject {
 
     const centerX = sizeRedCrosshair / 2;
     const centerY = sizeRedCrosshair / 2;
-    const lineLength = sizeRedCrosshair * 0.4; // Longitud de las líneas
-    const gapSize = sizeRedCrosshair * 0.1; // Espacio sin trazar en el centro
-    const lineThickness = 4; // Grosor de la cruz
 
+    // Radios para el borde doble
+    const outerRadius = sizeRedCrosshair * 0.45; // círculo grande
+    const innerRadius = sizeRedCrosshair * 0.32; // círculo interno
+
+    // --- CÍRCULO EXTERIOR ---
+    ctxRedCrosshair.beginPath();
+    ctxRedCrosshair.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = lineThickness;
-    ctxRedCrosshair.lineCap = 'round';
-
-    // Línea vertical (parte superior)
-    ctxRedCrosshair.beginPath();
-    ctxRedCrosshair.moveTo(centerX, centerY - gapSize - lineLength);
-    ctxRedCrosshair.lineTo(centerX, centerY - gapSize);
+    ctxRedCrosshair.lineWidth = 4;
     ctxRedCrosshair.stroke();
 
-    // Línea vertical (parte inferior)
+    // --- CÍRCULO INTERIOR ---
     ctxRedCrosshair.beginPath();
-    ctxRedCrosshair.moveTo(centerX, centerY + gapSize);
-    ctxRedCrosshair.lineTo(centerX, centerY + gapSize + lineLength);
+    ctxRedCrosshair.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+    ctxRedCrosshair.strokeStyle = '#FF0000';
+    ctxRedCrosshair.lineWidth = 2;
     ctxRedCrosshair.stroke();
 
-    // Línea horizontal (izquierda)
-    ctxRedCrosshair.beginPath();
-    ctxRedCrosshair.moveTo(centerX - gapSize - lineLength, centerY);
-    ctxRedCrosshair.lineTo(centerX - gapSize, centerY);
-    ctxRedCrosshair.stroke();
-
-    // Línea horizontal (derecha)
-    ctxRedCrosshair.beginPath();
-    ctxRedCrosshair.moveTo(centerX + gapSize, centerY);
-    ctxRedCrosshair.lineTo(centerX + gapSize + lineLength, centerY);
-    ctxRedCrosshair.stroke();
-
-    // Agregar la textura
+    // Agregar la textura a Phaser
     scene.textures.addCanvas('scope-red-texture', canvasRedCrosshair);
 
     // Textura de mina
@@ -495,7 +486,7 @@ export class Bullet extends GameObject {
     unitsToSetVisible: 1.5,
     unitsToDestroy: 16,
     afterVisible: (that) => {
-     const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
+      const impactParticles = that.scene.add.particles(that.x, that.y, 'bullet-texture', {
         speed: { min: 10 * that.scene.unitSize, max: 15 * that.scene.unitSize },
         angle: { min: 0, max: 360 },
         lifespan: 50,
@@ -504,7 +495,7 @@ export class Bullet extends GameObject {
         blendMode: 'ADD'
       });
       impactParticles.explode(3);
-      that.scene.time.delayedCall(300, () => impactParticles.destroy());    
+      that.scene.time.delayedCall(300, () => impactParticles.destroy());
     },
 
     afterHit: (that, enemy) => {
@@ -777,7 +768,7 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 15,
+        frequency: 60,
         quantity: 2,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
@@ -898,12 +889,12 @@ export class Bullet extends GameObject {
       if (!that.lastAngleChange) {
         that.lastAngleChange = delta;
         that.destroyCounter = delta;
-        that.bomb_child_angle = Utils.getRandomNumber(0,360);
+        that.bomb_child_angle = Utils.getRandomNumber(0, 360);
       } else {
         that.lastAngleChange += delta;
         that.destroyCounter += delta
         if (that.lastAngleChange > 10) {
-          that.bomb_child_angle+=20;
+          that.bomb_child_angle += 20;
           that.setDirection(Phaser.Math.DegToRad(that.bomb_child_angle));
           that.lastAngleChange = 1;
         }
@@ -921,7 +912,7 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 15,
+        frequency: 60,
         quantity: 2,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
@@ -982,7 +973,7 @@ export class Bullet extends GameObject {
 
     afterVisible: (that) => {
       that.setAngularVelocity(150);
-      that.setVelocity(Utils.getRandomNumber(300,500)/100);
+      that.setVelocity(Utils.getRandomNumber(300, 500) / 100);
       const muzzleFlash = that.scene.add.particles(that.x, that.y, 'slow-bullet-texture', {
         speed: { min: 20 * that.scene.unitSize, max: 40 * that.scene.unitSize },
         lifespan: 100,
@@ -1003,14 +994,15 @@ export class Bullet extends GameObject {
       });
 
       if (enemy.active) {
-        if(!enemy.originalSpeed) {
+        if (!enemy.originalSpeed) {
           enemy.originalSpeed = enemy.speed;
         }
         enemy.speed = enemy.speed * 0.8;
         that.scene.time.delayedCall(300, () => {
           if (enemy && enemy.body) {
             enemy.speed = enemy.originalSpeed;
-        }});
+          }
+        });
       }
 
       that.scene.time.delayedCall(350, () => impactParticles.destroy());
@@ -1056,40 +1048,43 @@ export class Bullet extends GameObject {
   };
 
   static teleport = {
-    damage: 1,
-    heightUnits: 1,
-    widthUnits: 1,
+    damage: 0,
+    heightUnits: 4,
+    widthUnits: 4,
     texture: 'scope-red-texture',
     velocity: 20,
-    follow: true,
+    follow: false,
     destroyAfterHit: false,
     unitsToSetVisible: 1,
-    unitsToDestroy: 16,
+    unitsToDestroy: 1000,
+    destroyIfHasNoTarget: true,
 
-    afterVisible: (that) => {
-      if (that.target.active) {
-        that.x = that.target.x
-        that.y = that.target.y
-      }
-
+    afterVisible: (that)=>{
+      that.target.teleporting = false;
     },
 
-    afterHit: (that, enemy) => {
-      if (that.alreadyHit) return;
-      that.alreadyHit = true;
-      enemy.setTintFill(0xFFFFFF);
-      that.scene.time.delayedCall(800, () => {
-        enemy.clearTint();
-      });
-      that.scene.time.delayedCall(500, () => {
-        that.destroy();
-        enemy.currentPointIndex = Utils.getRandomNumber(0, enemy.currentPointIndex);
-        if (enemy.active && enemy.path[enemy.currentPointIndex]) {
-          enemy.x = enemy.path[enemy.currentPointIndex].x;
-          enemy.y = enemy.path[enemy.currentPointIndex].y;
-          enemy.startMoving();
-        }
-      });
+    afterUpdate(that, delta) {
+      if (that.target.active) {
+        that.x = that.target.getCenter().x;
+        that.y = that.target.getCenter().y;
+      }
+
+      if (that.target != null && !that.target.teleporting ) {
+        that.target.teleporting = true;
+        that.target.setTintFill(0x0088FF);
+        that.scene.time.delayedCall(1100, () => that.destroy());
+        that.scene.time.delayedCall(1000, () => {
+          that.target.active && that.target.clearTint();
+        });
+        that.scene.time.delayedCall(500, () => {
+          that.target.currentPointIndex = Utils.getRandomNumber(0, that.target.currentPointIndex);
+          if (that.target.active && that.target.path[that.target.currentPointIndex]) {
+            that.target.x = that.target.path[that.target.currentPointIndex].x;
+            that.target.y = that.target.path[that.target.currentPointIndex].y;
+            that.target.startMoving();
+          }
+        });
+      }
     }
   };
 
@@ -1173,9 +1168,9 @@ export class Bullet extends GameObject {
       if (enemy) {
         enemy.increasedDamagePercent += 10;
         that.scene.time.delayedCall(1000, () => {
-            enemy.increasedDamagePercent -= 10;
-            that.destroy();
-            enemy.clearTint();
+          enemy.increasedDamagePercent -= 10;
+          that.destroy();
+          enemy.clearTint();
         });
       }
     },
@@ -1228,7 +1223,7 @@ export class Bullet extends GameObject {
         that.destroyCounter = 1
       } else {
         that.lastAngleChange += delta;
-        that.destroyCounter ++;
+        that.destroyCounter++;
         if (that.lastAngleChange > 100) {
           that.setDirection(Utils.getRandomAngle());
           that.lastAngleChange = 1;

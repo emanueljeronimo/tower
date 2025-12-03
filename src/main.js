@@ -7,6 +7,8 @@
 -torre de oro
 -destruir los bullets de damage y de teleport cuando se destruye el target quedan feos
 -y del teleport cambiar el color blanco a azul o algo
+-agregar una variable si va a ir recto o zigzageando
+-hacer mas fino el borde del teleport
 
 */
 import { config } from './core/config.js';
