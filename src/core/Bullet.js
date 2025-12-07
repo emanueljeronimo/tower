@@ -327,14 +327,14 @@ export class Bullet extends GameObject {
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = 4;
+    ctxRedCrosshair.lineWidth = scene.unitSize/20;
     ctxRedCrosshair.stroke();
 
     // --- CÍRCULO INTERIOR ---
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = 2;
+    ctxRedCrosshair.lineWidth = scene.unitSize/25;
     ctxRedCrosshair.stroke();
 
     // Agregar la textura a Phaser
@@ -880,7 +880,7 @@ export class Bullet extends GameObject {
     widthUnits: 1,
     texture: 'void-sphere-texture',
     velocity: 60,
-    follow: true,
+    follow: false,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
@@ -912,8 +912,8 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 60,
-        quantity: 2,
+        frequency: 100,
+        quantity: 1,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
         lifespan: 400,
@@ -1065,17 +1065,21 @@ export class Bullet extends GameObject {
 
     afterUpdate(that, delta) {
       if (that.target.active) {
-        that.x = that.target.getCenter().x;
-        that.y = that.target.getCenter().y;
+        that.x = that.target.x;
+        that.y = that.target.y;
       }
 
       if (that.target != null && !that.target.teleporting ) {
         that.target.teleporting = true;
+
         that.target.setTintFill(0x0088FF);
+        that.scene.time.delayedCall(100, () => that.target.active && that.target.clearTint());
+        that.scene.time.delayedCall(150, () => that.target.setTintFill(0x0088FF));
+        that.scene.time.delayedCall(200, () => that.target.active && that.target.clearTint());
+        that.scene.time.delayedCall(250, () => that.target.setTintFill(0x0088FF));       
+        that.scene.time.delayedCall(1000, () => that.target.active && that.target.clearTint());
+
         that.scene.time.delayedCall(1100, () => that.destroy());
-        that.scene.time.delayedCall(1000, () => {
-          that.target.active && that.target.clearTint();
-        });
         that.scene.time.delayedCall(500, () => {
           that.target.currentPointIndex = Utils.getRandomNumber(0, that.target.currentPointIndex);
           if (that.target.active && that.target.path[that.target.currentPointIndex]) {
@@ -1137,7 +1141,7 @@ export class Bullet extends GameObject {
     destroyAfterHit: false,
     unitsToSetVisible: 1,
     unitsToDestroy: 25,
-
+    destroyIfHasNoTarget: true,
 
     afterVisible: (that) => {
 
