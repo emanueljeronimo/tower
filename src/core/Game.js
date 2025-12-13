@@ -131,14 +131,14 @@ export class Game extends Phaser.Scene {
       tower.update(time);
     });
 
-    this.bullets.getChildren().forEach(function (bullet) {
-      bullet.update(delta);
-    });
-
     this.enemies.getChildren().forEach(function (enemy) {
       enemy.update();
     });
 
+    this.bullets.getChildren().forEach(function (bullet) {
+      bullet.update(delta);
+    });
+    
     this.enemyGenerator.update(time);
     this.towerMenuContainer.update(time, delta);
 

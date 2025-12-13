@@ -59,7 +59,7 @@ export class Bullet extends GameObject {
       this.setDirection(angle);
     }
 
-    if((!this.target || !this.target.active) && this.destroyIfHasNoTarget) {
+    if ((!this.target || !this.target.active) && this.destroyIfHasNoTarget) {
       this.destroy();
     }
 
@@ -327,14 +327,14 @@ export class Bullet extends GameObject {
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = scene.unitSize/20;
+    ctxRedCrosshair.lineWidth = scene.unitSize / 20;
     ctxRedCrosshair.stroke();
 
     // --- CÍRCULO INTERIOR ---
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = scene.unitSize/25;
+    ctxRedCrosshair.lineWidth = scene.unitSize / 25;
     ctxRedCrosshair.stroke();
 
     // Agregar la textura a Phaser
@@ -1059,37 +1059,61 @@ export class Bullet extends GameObject {
     unitsToDestroy: 1000,
     destroyIfHasNoTarget: true,
 
-    afterVisible: (that)=>{
+    afterVisible: (that) => {
       that.target.teleporting = false;
     },
 
     afterUpdate(that, delta) {
-      if (that.target.active) {
-        that.x = that.target.x;
-        that.y = that.target.y;
+
+      if (that.target && that.target.active) {
+        that.body.x = that.target.getCenter().x - that.body.width / 2;
+        that.body.y = that.target.getCenter().y - that.body.height / 2;
       }
 
-      if (that.target != null && !that.target.teleporting ) {
+      if (that.target && !that.target.teleporting) {
         that.target.teleporting = true;
 
-        that.target.setTintFill(0x0088FF);
-        that.scene.time.delayedCall(100, () => that.target.active && that.target.clearTint());
-        that.scene.time.delayedCall(150, () => that.target.setTintFill(0x0088FF));
-        that.scene.time.delayedCall(200, () => that.target.active && that.target.clearTint());
-        that.scene.time.delayedCall(250, () => that.target.setTintFill(0x0088FF));       
-        that.scene.time.delayedCall(1000, () => that.target.active && that.target.clearTint());
+        const target = that.target;
+        const scene = that.scene;
 
-        that.scene.time.delayedCall(1100, () => that.destroy());
-        that.scene.time.delayedCall(500, () => {
-          that.target.currentPointIndex = Utils.getRandomNumber(0, that.target.currentPointIndex);
-          if (that.target.active && that.target.path[that.target.currentPointIndex]) {
-            that.target.x = that.target.path[that.target.currentPointIndex].x;
-            that.target.y = that.target.path[that.target.currentPointIndex].y;
-            that.target.startMoving();
+        const originalAlpha = target.alpha;
+        const originalScale = target.scale;
+
+        scene.tweens.add({
+          targets: target,
+          alpha: 0,
+          scale: originalScale * 0.8,
+          duration: 500,
+          ease: 'Quad.easeIn',
+
+          onComplete: () => {
+            target.currentPointIndex = Utils.getRandomNumber(
+              0,
+              target.currentPointIndex
+            );
+
+            if (target.path[target.currentPointIndex]) {
+              target.x = target.path[target.currentPointIndex].x;
+              target.y = target.path[target.currentPointIndex].y;
+              target.startMoving();
+            }
+
+            scene.tweens.add({
+              targets: target,
+              alpha: originalAlpha,
+              scale: originalScale,
+              duration: 160,
+              ease: 'Quad.easeOut',
+              onComplete: () => {
+                target.teleporting = false;
+                that.destroy();
+              }
+            });
           }
         });
       }
     }
+
   };
 
   static mine = {
