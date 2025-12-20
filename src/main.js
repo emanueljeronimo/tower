@@ -5,8 +5,8 @@
 
 -(aplicar algun filtro de color por los niveles o estrellas tipo dune) y el daño de las naves o no, no lo se
 -torre de oro
--agregar una variable si va a ir recto o zigzageando
 -agregar un flag para setear si la torre sigue o no al target
+las torres de oro , minas y electricidad que giren
 
 
 */
