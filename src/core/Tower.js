@@ -100,6 +100,7 @@ export class Tower extends GameObject {
     scene.load.svg('towerTeleport', 'assets/tower-19.svg', getSVGSize(scene, Tower.teleportTower));
     scene.load.svg('towerElectricity', 'assets/tower-18.svg', getSVGSize(scene, Tower.electricityTower));
     scene.load.svg('towerDamage', 'assets/tower-17-b.svg', getSVGSize(scene, Tower.damageTower));
+    scene.load.svg('towerMine', 'assets/tower-20.svg', getSVGSize(scene, Tower.mineTower));
   }
 
   static commonTower = {
@@ -242,7 +243,7 @@ export class Tower extends GameObject {
     price: 250,
     rangeUnits: 15,
     attackInterval: 100,
-    texture: 'towerTexture',
+    texture: 'towerMine',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {

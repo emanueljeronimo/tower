@@ -1065,7 +1065,9 @@ export class Bullet extends GameObject {
 
     afterUpdate(that, delta) {
 
-      if (that.target && that.target.active) {
+      if(!that.target.active) return;
+
+      if (that.target) {
         that.body.x = that.target.getCenter().x - that.body.width / 2;
         that.body.y = that.target.getCenter().y - that.body.height / 2;
       }
@@ -1087,6 +1089,7 @@ export class Bullet extends GameObject {
           ease: 'Quad.easeIn',
 
           onComplete: () => {
+            if(!target.active) return;
             target.currentPointIndex = Utils.getRandomNumber(
               0,
               target.currentPointIndex
