@@ -324,7 +324,7 @@ export class Tower extends GameObject {
                 targets: bullet,
                 alpha: originalAlpha,
                 scale: originalScale,
-                duration: 160,
+                duration: 500,
                 ease: 'Quad.easeOut',
               });
             }
