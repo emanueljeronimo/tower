@@ -242,7 +242,7 @@ export class Tower extends GameObject {
     widthRatio: 3.7,
     price: 250,
     rangeUnits: 15,
-    attackInterval: 100,
+    attackInterval: 1000,
     texture: 'towerMine',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
@@ -305,9 +305,31 @@ export class Tower extends GameObject {
         if (targetPoint) {
           const halfUnitSize = scene.unitSize / 2;
           targetPoint = { x: Utils.getRandomNumber(targetPoint.x - halfUnitSize, targetPoint.x + halfUnitSize), y: Utils.getRandomNumber(targetPoint.y - halfUnitSize, targetPoint.y + halfUnitSize) };
-          new Bullet(scene, groupBullets, targetPoint.x, targetPoint.y, Bullet.mine, null, range);
-        }
+          let bullet = new Bullet(scene, groupBullets, x, y, Bullet.mine, null, range);
 
+          const originalAlpha = bullet.alpha;
+          const originalScale = bullet.scale;
+
+          scene.tweens.add({
+            targets: bullet,
+            alpha: 0,
+            scale: originalScale * 0.8,
+            duration: 500,
+            ease: 'Quad.easeIn',
+
+            onComplete: () => {
+              bullet.x = targetPoint.x;
+              bullet.y = targetPoint.y;
+              scene.tweens.add({
+                targets: bullet,
+                alpha: originalAlpha,
+                scale: originalScale,
+                duration: 160,
+                ease: 'Quad.easeOut',
+              });
+            }
+          });
+        }
       });
     }
   }
