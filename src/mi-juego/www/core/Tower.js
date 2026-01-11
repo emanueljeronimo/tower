@@ -52,7 +52,7 @@ export class Tower extends GameObject {
   shotWhenTargetIsClose(time, shotFn) {
     if (this.target && time > this.lastTimeFired + this.attackInterval) {
       if (this.isInRange(this.target)) {
-        AudioManager.instance.play(this.sound.key, { volume: this.sound.volume});
+        AudioManager.instance.play(this.sound.key, { volume: this.sound.volume });
         shotFn(this.scene, this.groupBullets, this.getCenter().x, this.getCenter().y, this.target, this.rangeUnits * this.scene.unitSize);
       }
       this.lastTimeFired = time;
@@ -82,17 +82,25 @@ export class Tower extends GameObject {
   }
 
   static initTextures(scene) {
-    scene.load.svg('towerTexture', 'assets/tower-10.svg', {height: Tower.commonTower.heightRatio * scene.unitSize, width: Tower.commonTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerTriple', 'assets/tower-12-b.svg', {height: Tower.tripleShotTower.heightRatio * scene.unitSize, width: Tower.tripleShotTower.widthRatio * scene.unitSize});   
-    scene.load.svg('towerPlasma', 'assets/tower-13-b.svg', {height: Tower.energyOrbTower.heightRatio * scene.unitSize, width: Tower.energyOrbTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerBouncer', 'assets/tower-11.svg', {height: Tower.bouncerTower.heightRatio * scene.unitSize, width: Tower.bouncerTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerExplosion', 'assets/tower-14.svg', {height: Tower.bombTower.heightRatio * scene.unitSize, width: Tower.bombTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerIce', 'assets/tower-15.svg', {height: Tower.slowerTower.heightRatio * scene.unitSize, width: Tower.slowerTower.widthRatio * scene.unitSize});
-    scene.load.svg('towerTeleport', 'assets/tower-19.svg', {height: Tower.teleportTower.heightRatio * scene.unitSize, width: Tower.teleportTower.widthRatio * scene.unitSize});
 
-    scene.load.image('towerCircle', 'assets/tower-16.png');
-    scene.load.image('towerDamage', 'assets/tower-17.png');
-    scene.load.image('towerElectricity', 'assets/tower-18.png');
+    let getSVGSize = (scene, towerConfig) => {
+      return {
+        width: towerConfig.widthRatio * scene.unitSize,
+        height: towerConfig.heightRatio * scene.unitSize
+      };
+    }
+
+    scene.load.svg('towerTexture', 'assets/tower-10.svg', getSVGSize(scene, Tower.commonTower));
+    scene.load.svg('towerTriple', 'assets/tower-12-b.svg', getSVGSize(scene, Tower.tripleShotTower));
+    scene.load.svg('towerPlasma', 'assets/tower-13-b.svg', getSVGSize(scene, Tower.energyOrbTower));
+    scene.load.svg('towerBouncer', 'assets/tower-11.svg', getSVGSize(scene, Tower.bouncerTower));
+    scene.load.svg('towerExplosion', 'assets/tower-14.svg', getSVGSize(scene, Tower.bombTower));
+    scene.load.svg('towerIce', 'assets/tower-15.svg', getSVGSize(scene, Tower.slowerTower));
+    scene.load.svg('towerCircle', 'assets/tower-16.svg', getSVGSize(scene, Tower.circleTower));
+    scene.load.svg('towerTeleport', 'assets/tower-19.svg', getSVGSize(scene, Tower.teleportTower));
+    scene.load.svg('towerElectricity', 'assets/tower-18.svg', getSVGSize(scene, Tower.electricityTower));
+    scene.load.svg('towerDamage', 'assets/tower-17-b.svg', getSVGSize(scene, Tower.damageTower));
+    scene.load.svg('towerMine', 'assets/tower-20.svg', getSVGSize(scene, Tower.mineTower));
   }
 
   static commonTower = {
@@ -191,7 +199,7 @@ export class Tower extends GameObject {
       that.shotWhenTargetIsClose(time, (scene, groupBullets, x, y, target, range) => {
         const angle = Phaser.Math.Angle.Between(that.getCenter().x, that.getCenter().y, target.getCenter().x, target.getCenter().y);
         for (let i = 0; i < 15; i++) {
-          new Bullet(scene, groupBullets, x, y, Bullet.slower, null, range, angle + Utils.getRandomNumber(-300,300)/1000);
+          new Bullet(scene, groupBullets, x, y, Bullet.slower, null, range, angle + Utils.getRandomNumber(-300, 300) / 1000);
         }
       });
     }
@@ -218,7 +226,7 @@ export class Tower extends GameObject {
     widthRatio: 3.7,
     price: 250,
     rangeUnits: 8,
-    attackInterval: 3000,
+    attackInterval: 1000,
     texture: 'towerTeleport',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
@@ -234,8 +242,8 @@ export class Tower extends GameObject {
     widthRatio: 3.7,
     price: 250,
     rangeUnits: 15,
-    attackInterval: 100,
-    texture: 'towerTexture',
+    attackInterval: 1000,
+    texture: 'towerMine',
     description: 'Common Tower',
     sound: { key: AudioManager.sounds.shoot, volume: 1 },
     executeOnUpdate: (that, time) => {
@@ -297,16 +305,38 @@ export class Tower extends GameObject {
         if (targetPoint) {
           const halfUnitSize = scene.unitSize / 2;
           targetPoint = { x: Utils.getRandomNumber(targetPoint.x - halfUnitSize, targetPoint.x + halfUnitSize), y: Utils.getRandomNumber(targetPoint.y - halfUnitSize, targetPoint.y + halfUnitSize) };
-          new Bullet(scene, groupBullets, targetPoint.x, targetPoint.y, Bullet.mine, null, range);
-        }
+          let bullet = new Bullet(scene, groupBullets, x, y, Bullet.mine, null, range);
 
+          const originalAlpha = bullet.alpha;
+          const originalScale = bullet.scale;
+
+          scene.tweens.add({
+            targets: bullet,
+            alpha: 0,
+            scale: originalScale * 0.8,
+            duration: 500,
+            ease: 'Quad.easeIn',
+
+            onComplete: () => {
+              bullet.x = targetPoint.x;
+              bullet.y = targetPoint.y;
+              scene.tweens.add({
+                targets: bullet,
+                alpha: originalAlpha,
+                scale: originalScale,
+                duration: 500,
+                ease: 'Quad.easeOut',
+              });
+            }
+          });
+        }
       });
     }
   }
 
   static damageTower = {
     heightRatio: 2.3,
-    widthRatio: 3,
+    widthRatio: 2.7,
     price: 250,
     rangeUnits: 8,
     attackInterval: 1000,

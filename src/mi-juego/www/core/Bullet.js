@@ -59,7 +59,7 @@ export class Bullet extends GameObject {
       this.setDirection(angle);
     }
 
-    if((!this.target || !this.target.active) && this.destroyIfHasNoTarget) {
+    if ((!this.target || !this.target.active) && this.destroyIfHasNoTarget) {
       this.destroy();
     }
 
@@ -327,14 +327,14 @@ export class Bullet extends GameObject {
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = 4;
+    ctxRedCrosshair.lineWidth = scene.unitSize / 20;
     ctxRedCrosshair.stroke();
 
     // --- CÍRCULO INTERIOR ---
     ctxRedCrosshair.beginPath();
     ctxRedCrosshair.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
     ctxRedCrosshair.strokeStyle = '#FF0000';
-    ctxRedCrosshair.lineWidth = 2;
+    ctxRedCrosshair.lineWidth = scene.unitSize / 25;
     ctxRedCrosshair.stroke();
 
     // Agregar la textura a Phaser
@@ -880,7 +880,7 @@ export class Bullet extends GameObject {
     widthUnits: 1,
     texture: 'void-sphere-texture',
     velocity: 60,
-    follow: true,
+    follow: false,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
     unitsToDestroy: 16,
@@ -912,8 +912,8 @@ export class Bullet extends GameObject {
       that.trailEmitter = that.scene.add.particles(0, 0, 'void-sphere-texture', {
         follow: that,
         followOffset: { x: 0, y: 0 },
-        frequency: 60,
-        quantity: 2,
+        frequency: 100,
+        quantity: 1,
         scale: { start: 0.8, end: 0.2 },
         alpha: { start: 0.8, end: 0 },
         lifespan: 400,
@@ -1059,33 +1059,64 @@ export class Bullet extends GameObject {
     unitsToDestroy: 1000,
     destroyIfHasNoTarget: true,
 
-    afterVisible: (that)=>{
+    afterVisible: (that) => {
       that.target.teleporting = false;
     },
 
     afterUpdate(that, delta) {
-      if (that.target.active) {
-        that.x = that.target.getCenter().x;
-        that.y = that.target.getCenter().y;
+
+      if(!that.target.active) return;
+
+      if (that.target) {
+        that.body.x = that.target.getCenter().x - that.body.width / 2;
+        that.body.y = that.target.getCenter().y - that.body.height / 2;
       }
 
-      if (that.target != null && !that.target.teleporting ) {
+      if (that.target && !that.target.teleporting) {
         that.target.teleporting = true;
-        that.target.setTintFill(0x0088FF);
-        that.scene.time.delayedCall(1100, () => that.destroy());
-        that.scene.time.delayedCall(1000, () => {
-          that.target.active && that.target.clearTint();
-        });
-        that.scene.time.delayedCall(500, () => {
-          that.target.currentPointIndex = Utils.getRandomNumber(0, that.target.currentPointIndex);
-          if (that.target.active && that.target.path[that.target.currentPointIndex]) {
-            that.target.x = that.target.path[that.target.currentPointIndex].x;
-            that.target.y = that.target.path[that.target.currentPointIndex].y;
-            that.target.startMoving();
+
+        const target = that.target;
+        const scene = that.scene;
+
+        const originalAlpha = target.alpha;
+        const originalScale = target.scale;
+
+        scene.tweens.add({
+          targets: target,
+          alpha: 0,
+          scale: originalScale * 0.8,
+          duration: 500,
+          ease: 'Quad.easeIn',
+
+          onComplete: () => {
+            if(!target.active) return;
+            target.currentPointIndex = Utils.getRandomNumber(
+              0,
+              target.currentPointIndex
+            );
+
+            if (target.path[target.currentPointIndex]) {
+              target.x = target.path[target.currentPointIndex].x;
+              target.y = target.path[target.currentPointIndex].y;
+              target.startMoving();
+            }
+
+            scene.tweens.add({
+              targets: target,
+              alpha: originalAlpha,
+              scale: originalScale,
+              duration: 160,
+              ease: 'Quad.easeOut',
+              onComplete: () => {
+                target.teleporting = false;
+                that.destroy();
+              }
+            });
           }
         });
       }
     }
+
   };
 
   static mine = {
@@ -1137,7 +1168,7 @@ export class Bullet extends GameObject {
     destroyAfterHit: false,
     unitsToSetVisible: 1,
     unitsToDestroy: 25,
-
+    destroyIfHasNoTarget: true,
 
     afterVisible: (that) => {
 

@@ -33,10 +33,16 @@ export class Enemy extends GameObject {
 
   setPath(path) {
     const halfUnitSize = this.scene.unitSize / 2;
-    this.path = path.map(point => ({
-      x: point.x + Utils.getRandomNumber(-halfUnitSize, halfUnitSize),
-      y: point.y + Utils.getRandomNumber(-halfUnitSize, halfUnitSize)
-    }));
+    if (this.goStraight)
+      this.path = path.map(point => ({
+        x: point.x,
+        y: point.y
+      }));
+    else
+      this.path = path.map(point => ({
+        x: point.x + Utils.getRandomNumber(-halfUnitSize, halfUnitSize),
+        y: point.y + Utils.getRandomNumber(-halfUnitSize, halfUnitSize)
+      }));
     this.startMoving();
   }
 
@@ -81,7 +87,6 @@ export class Enemy extends GameObject {
         this.clearTint();
         if (lastTint) {
           this.setTint(lastTint);
-          console.log(lastTint);
           this.isFlashing = false;
         }
       });
@@ -91,26 +96,26 @@ export class Enemy extends GameObject {
   hitWithMainTower(mainTower) {
     this.scene.audioManager.play(`explosion${Utils.getRandomNumber(1, 2)}`, { volume: 0.3 });
     const angleToTower = Phaser.Math.RadToDeg(
-        Phaser.Math.Angle.Between(mainTower.x, mainTower.y, this.x, this.y)
+      Phaser.Math.Angle.Between(mainTower.x, mainTower.y, this.x, this.y)
     );
 
     let maxAngleSpread = 30;
 
     const explosion = this.scene.add.particles(this.x, this.y, 'explosion-texture', {
-        speed: { min: 150, max: 350 },
-        angle: { min: angleToTower - maxAngleSpread, max: angleToTower + maxAngleSpread },
-        lifespan: { min: 400, max: 800 },
-        scale: { start: 0.6, end: 0 },
-        alpha: { start: 1, end: 0 },
-        quantity: 15,
-        blendMode: 'ADD',
-        tint: [...this.fuselageColors]
+      speed: { min: 150, max: 350 },
+      angle: { min: angleToTower - maxAngleSpread, max: angleToTower + maxAngleSpread },
+      lifespan: { min: 400, max: 800 },
+      scale: { start: 0.6, end: 0 },
+      alpha: { start: 1, end: 0 },
+      quantity: 15,
+      blendMode: 'ADD',
+      tint: [...this.fuselageColors]
     });
 
     explosion.explode(25);
     this.scene.time.delayedCall(600, () => explosion.destroy());
     this.destroy();
-}
+  }
 
   destroy() {
     if (!this.scene) return;
@@ -165,7 +170,7 @@ export class Enemy extends GameObject {
   }
 
   static initTextures(scene) {
-    scene.load.svg('enemy', 'assets/enemy-7.svg', {height: Enemy.commonEnemy.height * scene.unitSize, width: Enemy.commonEnemy.width * scene.unitSize });
+    scene.load.svg('enemy', 'assets/enemy-7.svg', { height: Enemy.commonEnemy.height * scene.unitSize, width: Enemy.commonEnemy.width * scene.unitSize });
     //scene.load.image('enemy', 'assets/enemy-7.png');
 
     // === Textura de explosión ===
@@ -197,16 +202,18 @@ export class Enemy extends GameObject {
     health: 100,
     speed: 8,
     gold: 15,
-    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
+    goStraight: false,
+    fuselageColors: [0x182134, 0xAB372C, 0xE9AB32]
   };
 
   static dummyEnemy = {
     texture: 'enemy',
     height: 1,
-    width:1,
+    width: 1,
     health: 100,
     speed: 10,
     gold: 0,
-    fuselageColors: [0x182134,0xAB372C, 0xE9AB32]
+    goStraight: true,
+    fuselageColors: [0x182134, 0xAB372C, 0xE9AB32]
   };
 }
