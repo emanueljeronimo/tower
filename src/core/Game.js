@@ -37,7 +37,13 @@ export class Game extends Phaser.Scene {
     // Parallax
     this.starLayers = [];
     this.parallaxOffsetY = 0;
-    this.parallaxMax = 40; // tope visual
+    this.parallaxMax = 40;
+    
+    // Límites del mundo para las estrellas
+    this.worldBounds = {
+      width: 0,
+      height: 0
+    };
 
     // Gyroscope
     this.gyroBaseOrientation = null;
@@ -146,6 +152,10 @@ export class Game extends Phaser.Scene {
 
     const w = this.grid.cols * this.buttonTowerSize;
     const h = this.grid.rows * this.buttonTowerSize;
+    
+    // Guardar límites del mundo
+    this.worldBounds.width = w;
+    this.worldBounds.height = h;
 
     layers.forEach((cfg, idx) => {
       const stars = [];
@@ -169,22 +179,25 @@ export class Game extends Phaser.Scene {
     this.addGyroLog('Iniciando DeviceMotionEvent');
 
     this.motionEnabled = false;
-    this.motionBaseY = null;
+    this.motionBaseZ = null;
 
     const handler = (event) => {
       if (!this.motionEnabled) return;
 
       if (!event.accelerationIncludingGravity) return;
 
-      const raw = -event.accelerationIncludingGravity.x;
+      const raw = event.accelerationIncludingGravity.z;
 
-      if (this.motionBaseY === null) {
-        this.motionBaseY = raw;
+      if (this.motionBaseZ === null) {
+        this.motionBaseZ = raw;
+        this.addGyroLog(`Base Z: ${raw.toFixed(2)}`);
         return;
       }
 
-      let diff = raw - this.motionBaseY;
+      let diff = raw - this.motionBaseZ;
       if (Math.abs(diff) < 0.2) diff = 0;
+
+      this.addGyroLog(`Z: ${raw.toFixed(2)}, Diff: ${diff.toFixed(2)}`);
 
       diff *= 6;
 
@@ -201,7 +214,7 @@ export class Game extends Phaser.Scene {
 
     this.input.once('pointerdown', () => {
       this.motionEnabled = true;
-      this.addGyroLog('DeviceMotion: Enabled');
+      this.addGyroLog('DeviceMotion: Enabled - Usa Z');
     });
   }
 
@@ -209,6 +222,13 @@ export class Game extends Phaser.Scene {
     this.starLayers.forEach(layer => {
       layer.stars.forEach(star => {
         star.x += deltaX * layer.speed;
+        
+        // Wrap horizontal: si la estrella sale por la derecha, aparece por la izquierda
+        if (star.x > this.worldBounds.width) {
+          star.x = 0;
+        } else if (star.x < 0) {
+          star.x = this.worldBounds.width;
+        }
       });
     });
   }
@@ -217,6 +237,13 @@ export class Game extends Phaser.Scene {
     this.starLayers.forEach(layer => {
       layer.stars.forEach(star => {
         star.y += deltaY * layer.speed * 0.5;
+        
+        // Wrap vertical: si la estrella sale por abajo, aparece por arriba
+        if (star.y > this.worldBounds.height) {
+          star.y = 0;
+        } else if (star.y < 0) {
+          star.y = this.worldBounds.height;
+        }
       });
     });
   }
