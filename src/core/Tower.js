@@ -81,26 +81,19 @@ export class Tower extends GameObject {
     this.lastTimeUpdated += time;
   }
 
-  static initTextures(scene) {
-
-    let getSVGSize = (scene, towerConfig) => {
-      return {
-        width: towerConfig.widthRatio * scene.unitSize,
-        height: towerConfig.heightRatio * scene.unitSize
-      };
-    }
-
-    scene.load.svg('towerTexture', 'assets/tower-10.svg', getSVGSize(scene, Tower.commonTower));
-    scene.load.svg('towerTriple', 'assets/tower-12-b.svg', getSVGSize(scene, Tower.tripleShotTower));
-    scene.load.svg('towerPlasma', 'assets/tower-13-b.svg', getSVGSize(scene, Tower.energyOrbTower));
-    scene.load.svg('towerBouncer', 'assets/tower-11.svg', getSVGSize(scene, Tower.bouncerTower));
-    scene.load.svg('towerExplosion', 'assets/tower-14.svg', getSVGSize(scene, Tower.bombTower));
-    scene.load.svg('towerIce', 'assets/tower-15.svg', getSVGSize(scene, Tower.slowerTower));
-    scene.load.svg('towerCircle', 'assets/tower-16.svg', getSVGSize(scene, Tower.circleTower));
-    scene.load.svg('towerTeleport', 'assets/tower-19.svg', getSVGSize(scene, Tower.teleportTower));
-    scene.load.svg('towerElectricity', 'assets/tower-18.svg', getSVGSize(scene, Tower.electricityTower));
-    scene.load.svg('towerDamage', 'assets/tower-17-b.svg', getSVGSize(scene, Tower.damageTower));
-    scene.load.svg('towerMine', 'assets/tower-20.svg', getSVGSize(scene, Tower.mineTower));
+  static initTextures(scene) {  
+    scene.load.svg('towerTexture', 'assets/tower-10.svg');
+    scene.load.svg('towerTriple', 'assets/tower-12-b.svg');
+    scene.load.svg('towerPlasma', 'assets/tower-13-b.svg');
+    scene.load.svg('towerBouncer', 'assets/tower-11.svg');
+    scene.load.svg('towerExplosion', 'assets/tower-14.svg');
+    scene.load.svg('towerIce', 'assets/tower-15.svg');
+    scene.load.svg('towerCircle', 'assets/tower-16.svg');
+    scene.load.svg('towerTeleport', 'assets/tower-19.svg');
+    scene.load.svg('towerElectricity', 'assets/tower-18.svg');
+    scene.load.svg('towerDamage', 'assets/tower-17-b.svg');
+    scene.load.svg('towerMine', 'assets/tower-20.svg');
+    scene.load.svg('towerGold', 'assets/tower-21.svg');
   }
 
   static commonTower = {
@@ -139,7 +132,7 @@ export class Tower extends GameObject {
   }
 
   static energyOrbTower = {
-    heightRatio: 2.8,
+    heightRatio: 2.5,
     widthRatio: 2.8,
     price: 250,
     rangeUnits: 18,
@@ -155,8 +148,8 @@ export class Tower extends GameObject {
   }
 
   static bouncerTower = {
-    heightRatio: 2.6,
-    widthRatio: 3.8,
+    heightRatio: 2.5,
+    widthRatio: 2.8,
     price: 250,
     rangeUnits: 18,
     attackInterval: 500,
@@ -171,8 +164,8 @@ export class Tower extends GameObject {
   }
 
   static bombTower = {
-    heightRatio: 2.5,
-    widthRatio: 3.1,
+    heightRatio: 2.0,
+    widthRatio: 3.0,
     price: 250,
     rangeUnits: 8,
     attackInterval: 100,
@@ -381,5 +374,22 @@ export class Tower extends GameObject {
     }
   }
 
-
+  static goldTower = {
+    heightRatio: 1.5,
+    widthRatio: 3.5,
+    price: 250,
+    rangeUnits: 15,
+    attackInterval: 3000,
+    texture: 'towerGold',
+    description: 'Common Tower',
+    sound: { key: AudioManager.sounds.shoot, volume: 1 },
+    executeOnUpdate: (that, time) => {
+      that.shotWhenIsTime(time, (scene, groupBullets, x, y, range) => {
+        new Bullet(scene, groupBullets, that.getCenter().x, that.getCenter().y, Bullet.goldCoin, null, range);
+      });
+    }
+  }
+  
 }
+
+

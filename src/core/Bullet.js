@@ -473,6 +473,89 @@ export class Bullet extends GameObject {
     }
 
     scene.textures.addCanvas('bullet-electric', canvasBulletElectricity);
+
+
+
+
+// Textura de moneda de oro (REEMPLAZA la anterior)
+const canvasCoin = document.createElement('canvas');
+const radiusCoin = scene.unitSize * 0.8;
+canvasCoin.width = radiusCoin * 2;
+canvasCoin.height = radiusCoin * 2;
+const ctxCoin = canvasCoin.getContext('2d');
+
+// Círculo exterior dorado
+const gradientCoin = ctxCoin.createRadialGradient(
+  radiusCoin, radiusCoin, radiusCoin * 0.3,
+  radiusCoin, radiusCoin, radiusCoin
+);
+gradientCoin.addColorStop(0, '#FFE55C');  // oro muy brillante
+gradientCoin.addColorStop(0.4, '#FFD700'); // oro brillante
+gradientCoin.addColorStop(0.7, '#FFA500'); // naranja dorado
+gradientCoin.addColorStop(1, '#B8860B');   // oro oscuro
+
+ctxCoin.fillStyle = gradientCoin;
+ctxCoin.beginPath();
+ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin, 0, Math.PI * 2);
+ctxCoin.fill();
+
+// Borde de la moneda más grueso
+ctxCoin.strokeStyle = '#DAA520';
+ctxCoin.lineWidth = 4;
+ctxCoin.stroke();
+
+// Círculo interior más claro (efecto de relieve brillante)
+const innerGradient = ctxCoin.createRadialGradient(
+  radiusCoin * 0.85, radiusCoin * 0.85, 0,
+  radiusCoin, radiusCoin, radiusCoin * 0.5
+);
+innerGradient.addColorStop(0, 'rgba(255, 255, 230, 0.9)');
+innerGradient.addColorStop(0.5, 'rgba(255, 230, 100, 0.5)');
+innerGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+
+ctxCoin.fillStyle = innerGradient;
+ctxCoin.beginPath();
+ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin * 0.7, 0, Math.PI * 2);
+ctxCoin.fill();
+
+// Pequeños detalles decorativos (puntos brillantes)
+ctxCoin.fillStyle = 'rgba(255, 255, 200, 0.6)';
+for (let i = 0; i < 8; i++) {
+  const angle = (Math.PI * 2 / 8) * i;
+  const x = radiusCoin + Math.cos(angle) * (radiusCoin * 0.6);
+  const y = radiusCoin + Math.sin(angle) * (radiusCoin * 0.6);
+  ctxCoin.beginPath();
+  ctxCoin.arc(x, y, radiusCoin * 0.08, 0, Math.PI * 2);
+  ctxCoin.fill();
+}
+
+scene.textures.addCanvas('coin-texture', canvasCoin);
+
+
+
+
+
+    // Textura para partículas de brillo dorado
+    const canvasGoldSparkle = document.createElement('canvas');
+    const goldenSparkleSize = scene.unitSize * 0.5;
+    canvasGoldSparkle.width = goldenSparkleSize;
+    canvasGoldSparkle.height = goldenSparkleSize;
+    const ctxGoldSparkle = canvasGoldSparkle.getContext('2d');
+
+    const gradientGoldSparkle = ctxGoldSparkle.createRadialGradient(
+      goldenSparkleSize / 2, goldenSparkleSize / 2, 0,
+      goldenSparkleSize / 2, goldenSparkleSize / 2, goldenSparkleSize / 2
+    );
+    gradientGoldSparkle.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradientGoldSparkle.addColorStop(0.3, 'rgba(255, 215, 0, 0.9)');
+    gradientGoldSparkle.addColorStop(1, 'rgba(255, 165, 0, 0)');
+
+    ctxGoldSparkle.fillStyle = gradientGoldSparkle;
+    ctxGoldSparkle.beginPath();
+    ctxGoldSparkle.arc(goldenSparkleSize / 2, goldenSparkleSize / 2, goldenSparkleSize / 2, 0, Math.PI * 2);
+    ctxGoldSparkle.fill();
+
+    scene.textures.addCanvas('gold-sparkle-texture', canvasGoldSparkle);
   }
 
   static common = {
@@ -1065,7 +1148,7 @@ export class Bullet extends GameObject {
 
     afterUpdate(that, delta) {
 
-      if(!that.target.active) return;
+      if (!that.target.active) return;
 
       if (that.target) {
         that.body.x = that.target.getCenter().x - that.body.width / 2;
@@ -1089,7 +1172,7 @@ export class Bullet extends GameObject {
           ease: 'Quad.easeIn',
 
           onComplete: () => {
-            if(!target.active) return;
+            if (!target.active) return;
             target.currentPointIndex = Utils.getRandomNumber(
               0,
               target.currentPointIndex
@@ -1266,6 +1349,139 @@ export class Bullet extends GameObject {
       }
     },
   };
+
+static goldCoin = {
+  damage: 0,
+  heightUnits: 0.8,
+  widthUnits: 0.8,
+  texture: 'coin-texture',
+  velocity: 0,
+  follow: false,
+  destroyAfterHit: false,
+  unitsToSetVisible: 0,
+  unitsToDestroy: 1000,
+  goldValue: 50,
+
+  afterVisible: (that) => {
+    that.setVelocityX(0);
+    that.setVelocityY(0);
+    
+    // Empieza invisible y pequeña
+    that.setScale(0);
+    that.setAlpha(0);
+    
+    // Animación de entrada suave: aparece y crece
+    that.scene.tweens.add({
+      targets: that,
+      scale: 1,
+      alpha: 1,
+      duration: 300,
+      ease: 'Sine.easeOut'
+    });
+
+    // Rotación suave y continua
+    that.scene.tweens.add({
+      targets: that,
+      angle: 360,
+      duration: 1200,
+      ease: 'Linear'
+    });
+
+    // Pulsación suave (escala que crece y decrece ligeramente)
+    that.scene.tweens.add({
+      targets: that,
+      scale: 1.15,
+      duration: 600,
+      yoyo: true,
+      ease: 'Sine.easeInOut'
+    });
+
+    // Partículas de brillo dorado suaves
+    that.goldSparkles = that.scene.add.particles(0, 0, 'gold-sparkle-texture', {
+      follow: that,
+      frequency: 80,
+      quantity: 2,
+      scale: { start: 0.4, end: 0 },
+      alpha: { start: 0.8, end: 0 },
+      lifespan: 600,
+      speed: { min: 20, max: 50 },
+      angle: { min: 0, max: 360 },
+      blendMode: 'ADD',
+      tint: [0xFFD700, 0xFFA500, 0xFFFF00]
+    });
+
+    // Anillo de luz dorada expandiéndose suavemente
+    const ring = that.scene.add.circle(that.x, that.y, that.scene.unitSize * 0.3, 0xFFD700, 0.4);
+    ring.setDepth(that.depth - 1);
+    
+    that.scene.tweens.add({
+      targets: ring,
+      radius: that.scene.unitSize * 2.5,
+      alpha: 0,
+      duration: 1000,
+      ease: 'Sine.easeOut',
+      onComplete: () => ring.destroy()
+    });
+
+    // Recoger la moneda automáticamente después de 1.2 segundos
+    that.scene.time.delayedCall(1200, () => {
+      that.collectCoin();
+    });
+
+    that.on('destroy', () => {
+      if (that.goldSparkles) that.goldSparkles.destroy();
+    });
+  },
+
+  collectCoin: function() {
+    const that = this;
+    
+    // Explosión suave de partículas doradas
+    const collectBurst = that.scene.add.particles(that.x, that.y, 'gold-sparkle-texture', {
+      speed: { min: 100, max: 250 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.7, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 500,
+      blendMode: 'ADD',
+      tint: [0xFFD700, 0xFFA500, 0xFFFF00, 0xFFFFFF],
+      quantity: 15,
+      emitting: false
+    });
+
+    collectBurst.explode();
+
+    // Flash de luz dorada suave
+    const flash = that.scene.add.circle(that.x, that.y, that.scene.unitSize, 0xFFFFFF, 0.6);
+    that.scene.tweens.add({
+      targets: flash,
+      radius: that.scene.unitSize * 3,
+      alpha: 0,
+      duration: 400,
+      ease: 'Sine.easeOut',
+      onComplete: () => flash.destroy()
+    });
+
+    // Sumar oro al jugador
+    that.scene.changeGold(that.goldValue);
+
+    // Animación de desaparición suave
+    that.scene.tweens.add({
+      targets: that,
+      scale: 0,
+      alpha: 0,
+      duration: 300,
+      ease: 'Sine.easeIn',
+      onComplete: () => {
+        if (that.goldSparkles) that.goldSparkles.destroy();
+        that.destroy();
+      }
+    });
+
+    // Limpiar partículas
+    that.scene.time.delayedCall(500, () => collectBurst.destroy());
+  }
+};
 
 
 }

@@ -8,6 +8,7 @@ import { config } from './config.js'
 import { Enemy } from './Enemy.js'
 import { Tower } from './Tower.js'
 import { AudioManager } from './AudioManager.js'
+import { Utils } from './Utils.js'
 
 export class Game extends Phaser.Scene {
   constructor() {
@@ -38,7 +39,7 @@ export class Game extends Phaser.Scene {
     this.starLayers = [];
     this.parallaxOffsetY = 0;
     this.parallaxMax = 40;
-    
+
     // Límites del mundo para las estrellas
     this.worldBounds = {
       width: 0,
@@ -66,30 +67,6 @@ export class Game extends Phaser.Scene {
 
     this.audioManager = new AudioManager(this);
     this.createStarTexture();
-  }
-
-  createStarTexture() {
-    const g = this.add.graphics();
-    const size = this.unitSize * 0.3;
-    const points = 8;
-    const outer = size;
-    const inner = size * 0.4;
-
-    g.fillStyle(0xFFFFFF, 1);
-    g.beginPath();
-
-    for (let i = 0; i < points * 2; i++) {
-      const angle = (i * Math.PI) / points - Math.PI / 2;
-      const radius = i % 2 === 0 ? outer : inner;
-      const x = size + Math.cos(angle) * radius;
-      const y = size + Math.sin(angle) * radius;
-      i === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
-    }
-
-    g.closePath();
-    g.fillPath();
-    g.generateTexture('whiteStar', size * 2, size * 2);
-    g.destroy();
   }
 
   create() {
@@ -143,17 +120,57 @@ export class Game extends Phaser.Scene {
     this.input.on('pointerup', this.pointerUp, this);
   }
 
+  createStarTexture() {
+    const g = this.add.graphics();
+    const size = this.unitSize * 0.3;
+    const points = 8;
+    const outer = size;
+    const inner = size * 0.4;
+
+    // Calcular el centro (más espacio para el glow)
+    const padding = size * 2.5;
+    const centerX = padding;
+    const centerY = padding;
+    const textureSize = padding * 2;
+
+    // Efecto de glow/blur (círculos concéntricos para simular blur)
+    for (let r = 0; r < 4; r++) {
+      g.fillStyle(0xFFFFFF, 0.15 * (1 - r * 0.25));
+      g.fillCircle(centerX, centerY, size * (1.5 + r * 0.4));
+    }
+
+    // Estrella principal
+    g.fillStyle(0xFFFFFF, 1);
+    g.beginPath();
+
+    for (let i = 0; i < points * 2; i++) {
+      const angle = (i * Math.PI) / points - Math.PI / 2;
+      const radius = i % 2 === 0 ? outer : inner;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+      i === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+    }
+
+    g.closePath();
+    g.fillPath();
+
+    g.generateTexture('whiteStar', textureSize, textureSize);
+    g.destroy();
+  }
+
+
   createStarLayers() {
+    const color = [0x4444FF, 0x8844FF, 0xFF4488];
+
     const layers = [
-      { count: 50, scale: 0.4, color: 0x4444FF, speed: 0.15, alpha: 0.6 },
-      { count: 30, scale: 0.6, color: 0x8844FF, speed: 0.35, alpha: 0.8 },
-      { count: 20, scale: 1.0, color: 0xFF4488, speed: 0.6, alpha: 1 }
+      { count: 50, scale: 0.5, speed: 0.15, alpha: 0.6, texture: 'whiteStar' },
+      { count: 30, scale: 0.8, speed: 0.35, alpha: 0.8, texture: 'whiteStar' },
+      { count: 20, scale: 1.0, speed: 0.6, alpha: 1, texture: 'whiteStar' }
     ];
 
-    const w = this.grid.cols * this.buttonTowerSize;
-    const h = this.grid.rows * this.buttonTowerSize;
-    
-    // Guardar límites del mundo
+    const w = this.grid.cols * 1.3 * this.buttonTowerSize;
+    const h = this.grid.rows * 1.3 * this.buttonTowerSize;
+
     this.worldBounds.width = w;
     this.worldBounds.height = h;
 
@@ -163,10 +180,10 @@ export class Game extends Phaser.Scene {
         const star = this.add.image(
           Phaser.Math.Between(0, w),
           Phaser.Math.Between(0, h),
-          'whiteStar'
+          cfg.texture // Usar textura pre-borreada
         );
         star.setScale(cfg.scale);
-        star.setTint(cfg.color);
+        star.setTint(color[Utils.getRandomNumber(0, 2)]);
         star.setAlpha(cfg.alpha);
         star.setDepth(-3 + idx);
         stars.push(star);
@@ -176,45 +193,54 @@ export class Game extends Phaser.Scene {
   }
 
   initDeviceMotion() {
-    this.addGyroLog('Iniciando DeviceMotionEvent');
-
     this.motionEnabled = false;
     this.motionBaseZ = null;
 
+    // Umbral mínimo para detectar inclinación
+    this.motionThreshold = 0.3;
+
+    // Velocidad fija de movimiento (ajusta este valor para controlar la velocidad)
+    this.parallaxSpeed = 0.15; // Valor muy bajo para movimiento mínimo
+
     const handler = (event) => {
       if (!this.motionEnabled) return;
-
       if (!event.accelerationIncludingGravity) return;
 
       const raw = event.accelerationIncludingGravity.z;
 
       if (this.motionBaseZ === null) {
         this.motionBaseZ = raw;
-        this.addGyroLog(`Base Z: ${raw.toFixed(2)}`);
         return;
       }
 
       let diff = raw - this.motionBaseZ;
-      if (Math.abs(diff) < 0.2) diff = 0;
 
-      this.addGyroLog(`Z: ${raw.toFixed(2)}, Diff: ${diff.toFixed(2)}`);
+      // En lugar de usar la diferencia directamente, 
+      // solo detectamos la DIRECCIÓN y aplicamos velocidad fija
+      let movement = 0;
 
-      diff *= 6;
+      if (diff > this.motionThreshold) {
+        // Inclinado hacia una dirección
+        movement = this.parallaxSpeed;
+      } else if (diff < -this.motionThreshold) {
+        // Inclinado hacia la otra dirección
+        movement = -this.parallaxSpeed;
+      }
+      // Si está entre -threshold y +threshold, movement queda en 0
 
       this.parallaxOffsetY = Phaser.Math.Clamp(
-        diff,
+        this.parallaxOffsetY + movement,
         -this.parallaxMax,
         this.parallaxMax
       );
 
-      this.applyParallaxY(this.parallaxOffsetY);
+      this.applyParallaxY(movement);
     };
 
     window.addEventListener('devicemotion', handler, true);
 
     this.input.once('pointerdown', () => {
       this.motionEnabled = true;
-      this.addGyroLog('DeviceMotion: Enabled - Usa Z');
     });
   }
 
@@ -222,7 +248,7 @@ export class Game extends Phaser.Scene {
     this.starLayers.forEach(layer => {
       layer.stars.forEach(star => {
         star.x += deltaX * layer.speed;
-        
+
         // Wrap horizontal: si la estrella sale por la derecha, aparece por la izquierda
         if (star.x > this.worldBounds.width) {
           star.x = 0;
@@ -237,7 +263,7 @@ export class Game extends Phaser.Scene {
     this.starLayers.forEach(layer => {
       layer.stars.forEach(star => {
         star.y += deltaY * layer.speed * 0.5;
-        
+
         // Wrap vertical: si la estrella sale por abajo, aparece por arriba
         if (star.y > this.worldBounds.height) {
           star.y = 0;
