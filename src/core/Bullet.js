@@ -1352,8 +1352,8 @@ scene.textures.addCanvas('coin-texture', canvasCoin);
 
 static goldCoin = {
   damage: 0,
-  heightUnits: 0.8,
-  widthUnits: 0.8,
+  heightUnits: 0.3,
+  widthUnits: 0.3,
   texture: 'coin-texture',
   velocity: 0,
   follow: false,
@@ -1365,121 +1365,140 @@ static goldCoin = {
   afterVisible: (that) => {
     that.setVelocityX(0);
     that.setVelocityY(0);
-    
-    // Empieza invisible y pequeña
-    that.setScale(0);
-    that.setAlpha(0);
-    
-    // Animación de entrada suave: aparece y crece
-    that.scene.tweens.add({
-      targets: that,
-      scale: 1,
-      alpha: 1,
-      duration: 300,
-      ease: 'Sine.easeOut'
-    });
-
-    // Rotación suave y continua
-    that.scene.tweens.add({
+       
+    // Rotación suave inicial
+    that.rotationTween = that.scene.tweens.add({
       targets: that,
       angle: 360,
-      duration: 1200,
+      duration: 800,
+      repeat: -1,
       ease: 'Linear'
     });
 
-    // Pulsación suave (escala que crece y decrece ligeramente)
+    // Pequeño rebote vertical
     that.scene.tweens.add({
       targets: that,
-      scale: 1.15,
-      duration: 600,
+      y: that.y - that.scene.unitSize * 0.3,
+      duration: 150,
       yoyo: true,
-      ease: 'Sine.easeInOut'
+      repeat: -1,
+      ease: 'Quad.easeInOut'
     });
 
-    // Partículas de brillo dorado suaves
+    // Partículas ambient simples
     that.goldSparkles = that.scene.add.particles(0, 0, 'gold-sparkle-texture', {
       follow: that,
-      frequency: 80,
-      quantity: 2,
-      scale: { start: 0.4, end: 0 },
-      alpha: { start: 0.8, end: 0 },
-      lifespan: 600,
-      speed: { min: 20, max: 50 },
+      frequency: 150,
+      quantity: 1,
+      scale: { start: 0.3, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 300,
+      speed: { min: 30, max: 60 },
       angle: { min: 0, max: 360 },
       blendMode: 'ADD',
-      tint: [0xFFD700, 0xFFA500, 0xFFFF00]
+      tint: 0xFFFF00
     });
 
-    // Anillo de luz dorada expandiéndose suavemente
-    const ring = that.scene.add.circle(that.x, that.y, that.scene.unitSize * 0.3, 0xFFD700, 0.4);
-    ring.setDepth(that.depth - 1);
-    
-    that.scene.tweens.add({
-      targets: ring,
-      radius: that.scene.unitSize * 2.5,
-      alpha: 0,
-      duration: 1000,
-      ease: 'Sine.easeOut',
-      onComplete: () => ring.destroy()
-    });
-
-    // Recoger la moneda automáticamente después de 1.2 segundos
-    that.scene.time.delayedCall(1200, () => {
+    // Recoger después de 1 segundo
+    that.scene.time.delayedCall(1000, () => {
       that.collectCoin();
     });
 
     that.on('destroy', () => {
       if (that.goldSparkles) that.goldSparkles.destroy();
+      if (that.rotationTween) that.rotationTween.remove();
     });
   },
 
   collectCoin: function() {
     const that = this;
     
-    // Explosión suave de partículas doradas
-    const collectBurst = that.scene.add.particles(that.x, that.y, 'gold-sparkle-texture', {
-      speed: { min: 100, max: 250 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 0.7, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 500,
-      blendMode: 'ADD',
-      tint: [0xFFD700, 0xFFA500, 0xFFFF00, 0xFFFFFF],
-      quantity: 15,
-      emitting: false
-    });
+    if (that.goldSparkles) that.goldSparkles.destroy();
 
-    collectBurst.explode();
+    // PASO 1: Partículas convergiendo hacia la moneda (300ms)
+    for (let i = 0; i < 12; i++) {
+      const angle = (360 / 12) * i;
+      const distance = that.scene.unitSize * 2;
+      const rad = Phaser.Math.DegToRad(angle);
+      const x = that.x + Math.cos(rad) * distance;
+      const y = that.y + Math.sin(rad) * distance;
+      
+      const particle = that.scene.add.image(x, y, 'gold-sparkle-texture');
+      particle.setScale(0.4);
+      particle.setBlendMode(Phaser.BlendModes.ADD);
+      particle.setTint(0xFFFF00);
+      particle.setAlpha(0.8);
+      
+      // Convergen hacia la moneda
+      that.scene.tweens.add({
+        targets: particle,
+        x: that.x,
+        y: that.y,
+        scale: 0.1,
+        duration: 300,
+        ease: 'Quad.easeIn',
+        onComplete: () => particle.destroy()
+      });
+    }
 
-    // Flash de luz dorada suave
-    const flash = that.scene.add.circle(that.x, that.y, that.scene.unitSize, 0xFFFFFF, 0.6);
-    that.scene.tweens.add({
-      targets: flash,
-      radius: that.scene.unitSize * 3,
-      alpha: 0,
-      duration: 400,
-      ease: 'Sine.easeOut',
-      onComplete: () => flash.destroy()
-    });
-
-    // Sumar oro al jugador
-    that.scene.changeGold(that.goldValue);
-
-    // Animación de desaparición suave
+    // PASO 2: Mientras convergen, la moneda empieza a girar más rápido
+    if (that.rotationTween) that.rotationTween.remove();
+    
     that.scene.tweens.add({
       targets: that,
-      scale: 0,
-      alpha: 0,
+      angle: that.angle + 720, // dos vueltas rápidas
       duration: 300,
-      ease: 'Sine.easeIn',
-      onComplete: () => {
-        if (that.goldSparkles) that.goldSparkles.destroy();
-        that.destroy();
-      }
+      ease: 'Quad.easeIn'
     });
 
-    // Limpiar partículas
-    that.scene.time.delayedCall(500, () => collectBurst.destroy());
+    // También crece un poco
+    that.scene.tweens.add({
+      targets: that,
+      scale: 1.3,
+      duration: 300,
+      ease: 'Quad.easeIn'
+    });
+
+    // PASO 3: Explosión al final (después de 300ms)
+    that.scene.time.delayedCall(300, () => {
+      
+      // Explosión radiante
+      const explosion = that.scene.add.particles(that.x, that.y, 'gold-sparkle-texture', {
+        speed: { min: 200, max: 400 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.6, end: 0 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 300,
+        blendMode: 'ADD',
+        tint: [0xFFFFFF, 0xFFFF00, 0xFFD700],
+        quantity: 16,
+        emitting: false
+      });
+
+      explosion.explode();
+
+      // Flash blanco intenso
+      const flash = that.scene.add.circle(that.x, that.y, that.scene.unitSize * 0.5, 0xFFFFFF, 1);
+      that.scene.tweens.add({
+        targets: flash,
+        radius: that.scene.unitSize * 3,
+        alpha: 0,
+        duration: 200,
+        ease: 'Quad.easeOut',
+        onComplete: () => flash.destroy()
+      });
+
+      // La moneda desaparece
+      that.setAlpha(0);
+
+      that.scene.time.delayedCall(300, () => {
+        explosion.destroy();
+        that.destroy();
+      });
+    });
+
+    // Sumar oro
+    that.scene.changeGold(that.goldValue);
   }
 };
 

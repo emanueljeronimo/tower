@@ -164,7 +164,7 @@ export class Tower extends GameObject {
   }
 
   static bombTower = {
-    heightRatio: 2.0,
+    heightRatio: 2.3,
     widthRatio: 3.0,
     price: 250,
     rangeUnits: 8,
@@ -181,7 +181,7 @@ export class Tower extends GameObject {
 
   static slowerTower = {
     heightRatio: 2.5,
-    widthRatio: 3,
+    widthRatio: 3.3,
     price: 250,
     rangeUnits: 17,
     attackInterval: 3500,
@@ -231,8 +231,8 @@ export class Tower extends GameObject {
   }
 
   static mineTower = {
-    heightRatio: 2.3,
-    widthRatio: 3.7,
+    heightRatio: 2.4,
+    widthRatio: 2.4,
     price: 250,
     rangeUnits: 15,
     attackInterval: 1000,
@@ -344,8 +344,8 @@ export class Tower extends GameObject {
   }
 
   static electricityTower = {
-    heightRatio: 2.3,
-    widthRatio: 2.3,
+    heightRatio: 2.4,
+    widthRatio: 2.4,
     price: 250,
     damage: 50,
     rangeUnits: 15,
@@ -375,8 +375,8 @@ export class Tower extends GameObject {
   }
 
   static goldTower = {
-    heightRatio: 1.5,
-    widthRatio: 3.5,
+    heightRatio: 2.4,
+    widthRatio: 2.4,
     price: 250,
     rangeUnits: 15,
     attackInterval: 3000,
