@@ -55,7 +55,6 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.load.image('buttonTower', 'assets/buttonTower11-2.png');
-    this.load.image('backgroundDemo', 'assets/backgroundDemo.png');
     this.load.image('buy', 'assets/buy.png');
     this.load.image('sell', 'assets/sell.png');
     this.load.image('mainFrame', 'assets/mainFrame.png');
@@ -99,9 +98,11 @@ export class Game extends Phaser.Scene {
     this.cameras.main.setPosition(0, this.unitSize * 20);
     this.cameras.main.setSize(config.width, this.unitSize * 22);
     this.horizontalCamera = this.cameras.add(0, 0, config.width, this.unitSize * 20);
-    this.demoCamera = this.cameras.add(0, 0, this.unitSize * 10, this.unitSize * 6);
+
+    this.demoCamera = this.cameras.add(0, 0, this.unitSize * 15, this.unitSize * 7.8);
     this.demoCamera.setScroll(0, this.unitSize * 80);
-    this.demoCamera.setPosition(this.unitSize * 31, this.unitSize * 21);
+    this.demoCamera.setPosition(this.unitSize * 27, this.unitSize * 21.5);
+
 
     this.sellPopUp = new SellPopUp(this);
     this.enemyGenerator = new EnemyGenerator(this, this.paths, this.enemies);

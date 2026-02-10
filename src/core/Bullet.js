@@ -11,7 +11,7 @@ export class Bullet extends GameObject {
     if (this.target) {
       this.initAngle = Phaser.Math.Angle.Between(this.getCenter().x, this.getCenter().y, this.target.getCenter().x, this.target.getCenter().y);
       this.setDirection(this.initAngle);
-    } else if (angle) {
+    } else if (angle || angle === 0) {
       this.initAngle = angle;
       this.setDirection(angle);
     }
@@ -477,59 +477,59 @@ export class Bullet extends GameObject {
 
 
 
-// Textura de moneda de oro (REEMPLAZA la anterior)
-const canvasCoin = document.createElement('canvas');
-const radiusCoin = scene.unitSize * 0.8;
-canvasCoin.width = radiusCoin * 2;
-canvasCoin.height = radiusCoin * 2;
-const ctxCoin = canvasCoin.getContext('2d');
+    // Textura de moneda de oro (REEMPLAZA la anterior)
+    const canvasCoin = document.createElement('canvas');
+    const radiusCoin = scene.unitSize * 0.8;
+    canvasCoin.width = radiusCoin * 2;
+    canvasCoin.height = radiusCoin * 2;
+    const ctxCoin = canvasCoin.getContext('2d');
 
-// Círculo exterior dorado
-const gradientCoin = ctxCoin.createRadialGradient(
-  radiusCoin, radiusCoin, radiusCoin * 0.3,
-  radiusCoin, radiusCoin, radiusCoin
-);
-gradientCoin.addColorStop(0, '#FFE55C');  // oro muy brillante
-gradientCoin.addColorStop(0.4, '#FFD700'); // oro brillante
-gradientCoin.addColorStop(0.7, '#FFA500'); // naranja dorado
-gradientCoin.addColorStop(1, '#B8860B');   // oro oscuro
+    // Círculo exterior dorado
+    const gradientCoin = ctxCoin.createRadialGradient(
+      radiusCoin, radiusCoin, radiusCoin * 0.3,
+      radiusCoin, radiusCoin, radiusCoin
+    );
+    gradientCoin.addColorStop(0, '#FFE55C');  // oro muy brillante
+    gradientCoin.addColorStop(0.4, '#FFD700'); // oro brillante
+    gradientCoin.addColorStop(0.7, '#FFA500'); // naranja dorado
+    gradientCoin.addColorStop(1, '#B8860B');   // oro oscuro
 
-ctxCoin.fillStyle = gradientCoin;
-ctxCoin.beginPath();
-ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin, 0, Math.PI * 2);
-ctxCoin.fill();
+    ctxCoin.fillStyle = gradientCoin;
+    ctxCoin.beginPath();
+    ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin, 0, Math.PI * 2);
+    ctxCoin.fill();
 
-// Borde de la moneda más grueso
-ctxCoin.strokeStyle = '#DAA520';
-ctxCoin.lineWidth = 4;
-ctxCoin.stroke();
+    // Borde de la moneda más grueso
+    ctxCoin.strokeStyle = '#DAA520';
+    ctxCoin.lineWidth = 4;
+    ctxCoin.stroke();
 
-// Círculo interior más claro (efecto de relieve brillante)
-const innerGradient = ctxCoin.createRadialGradient(
-  radiusCoin * 0.85, radiusCoin * 0.85, 0,
-  radiusCoin, radiusCoin, radiusCoin * 0.5
-);
-innerGradient.addColorStop(0, 'rgba(255, 255, 230, 0.9)');
-innerGradient.addColorStop(0.5, 'rgba(255, 230, 100, 0.5)');
-innerGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    // Círculo interior más claro (efecto de relieve brillante)
+    const innerGradient = ctxCoin.createRadialGradient(
+      radiusCoin * 0.85, radiusCoin * 0.85, 0,
+      radiusCoin, radiusCoin, radiusCoin * 0.5
+    );
+    innerGradient.addColorStop(0, 'rgba(255, 255, 230, 0.9)');
+    innerGradient.addColorStop(0.5, 'rgba(255, 230, 100, 0.5)');
+    innerGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
 
-ctxCoin.fillStyle = innerGradient;
-ctxCoin.beginPath();
-ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin * 0.7, 0, Math.PI * 2);
-ctxCoin.fill();
+    ctxCoin.fillStyle = innerGradient;
+    ctxCoin.beginPath();
+    ctxCoin.arc(radiusCoin, radiusCoin, radiusCoin * 0.7, 0, Math.PI * 2);
+    ctxCoin.fill();
 
-// Pequeños detalles decorativos (puntos brillantes)
-ctxCoin.fillStyle = 'rgba(255, 255, 200, 0.6)';
-for (let i = 0; i < 8; i++) {
-  const angle = (Math.PI * 2 / 8) * i;
-  const x = radiusCoin + Math.cos(angle) * (radiusCoin * 0.6);
-  const y = radiusCoin + Math.sin(angle) * (radiusCoin * 0.6);
-  ctxCoin.beginPath();
-  ctxCoin.arc(x, y, radiusCoin * 0.08, 0, Math.PI * 2);
-  ctxCoin.fill();
-}
+    // Pequeños detalles decorativos (puntos brillantes)
+    ctxCoin.fillStyle = 'rgba(255, 255, 200, 0.6)';
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i;
+      const x = radiusCoin + Math.cos(angle) * (radiusCoin * 0.6);
+      const y = radiusCoin + Math.sin(angle) * (radiusCoin * 0.6);
+      ctxCoin.beginPath();
+      ctxCoin.arc(x, y, radiusCoin * 0.08, 0, Math.PI * 2);
+      ctxCoin.fill();
+    }
 
-scene.textures.addCanvas('coin-texture', canvasCoin);
+    scene.textures.addCanvas('coin-texture', canvasCoin);
 
 
 
@@ -951,7 +951,7 @@ scene.textures.addCanvas('coin-texture', canvasCoin);
       });
 
       for (let i = 0; i < 6; i++) {
-        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, 0);
+        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, 1);
       }
       that.destroy();
     }
@@ -1048,7 +1048,7 @@ scene.textures.addCanvas('coin-texture', canvasCoin);
     heightUnits: 1,
     widthUnits: 1,
     texture: 'slow-bullet-texture',
-    velocity: 100,
+    velocity: 150,
     follow: false,
     destroyAfterHit: true,
     unitsToSetVisible: 1,
@@ -1350,157 +1350,157 @@ scene.textures.addCanvas('coin-texture', canvasCoin);
     },
   };
 
-static goldCoin = {
-  damage: 0,
-  heightUnits: 0.3,
-  widthUnits: 0.3,
-  texture: 'coin-texture',
-  velocity: 0,
-  follow: false,
-  destroyAfterHit: false,
-  unitsToSetVisible: 0,
-  unitsToDestroy: 1000,
-  goldValue: 50,
+  static goldCoin = {
+    damage: 0,
+    heightUnits: 0.3,
+    widthUnits: 0.3,
+    texture: 'coin-texture',
+    velocity: 0,
+    follow: false,
+    destroyAfterHit: false,
+    unitsToSetVisible: 0,
+    unitsToDestroy: 1000,
+    goldValue: 50,
 
-  afterVisible: (that) => {
-    that.setVelocityX(0);
-    that.setVelocityY(0);
-       
-    // Rotación suave inicial
-    that.rotationTween = that.scene.tweens.add({
-      targets: that,
-      angle: 360,
-      duration: 800,
-      repeat: -1,
-      ease: 'Linear'
-    });
+    afterVisible: (that) => {
+      that.setVelocityX(0);
+      that.setVelocityY(0);
 
-    // Pequeño rebote vertical
-    that.scene.tweens.add({
-      targets: that,
-      y: that.y - that.scene.unitSize * 0.3,
-      duration: 150,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Quad.easeInOut'
-    });
-
-    // Partículas ambient simples
-    that.goldSparkles = that.scene.add.particles(0, 0, 'gold-sparkle-texture', {
-      follow: that,
-      frequency: 150,
-      quantity: 1,
-      scale: { start: 0.3, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 300,
-      speed: { min: 30, max: 60 },
-      angle: { min: 0, max: 360 },
-      blendMode: 'ADD',
-      tint: 0xFFFF00
-    });
-
-    // Recoger después de 1 segundo
-    that.scene.time.delayedCall(1000, () => {
-      that.collectCoin();
-    });
-
-    that.on('destroy', () => {
-      if (that.goldSparkles) that.goldSparkles.destroy();
-      if (that.rotationTween) that.rotationTween.remove();
-    });
-  },
-
-  collectCoin: function() {
-    const that = this;
-    
-    if (that.goldSparkles) that.goldSparkles.destroy();
-
-    // PASO 1: Partículas convergiendo hacia la moneda (300ms)
-    for (let i = 0; i < 12; i++) {
-      const angle = (360 / 12) * i;
-      const distance = that.scene.unitSize * 2;
-      const rad = Phaser.Math.DegToRad(angle);
-      const x = that.x + Math.cos(rad) * distance;
-      const y = that.y + Math.sin(rad) * distance;
-      
-      const particle = that.scene.add.image(x, y, 'gold-sparkle-texture');
-      particle.setScale(0.4);
-      particle.setBlendMode(Phaser.BlendModes.ADD);
-      particle.setTint(0xFFFF00);
-      particle.setAlpha(0.8);
-      
-      // Convergen hacia la moneda
-      that.scene.tweens.add({
-        targets: particle,
-        x: that.x,
-        y: that.y,
-        scale: 0.1,
-        duration: 300,
-        ease: 'Quad.easeIn',
-        onComplete: () => particle.destroy()
+      // Rotación suave inicial
+      that.rotationTween = that.scene.tweens.add({
+        targets: that,
+        angle: 360,
+        duration: 800,
+        repeat: -1,
+        ease: 'Linear'
       });
-    }
 
-    // PASO 2: Mientras convergen, la moneda empieza a girar más rápido
-    if (that.rotationTween) that.rotationTween.remove();
-    
-    that.scene.tweens.add({
-      targets: that,
-      angle: that.angle + 720, // dos vueltas rápidas
-      duration: 300,
-      ease: 'Quad.easeIn'
-    });
+      // Pequeño rebote vertical
+      that.scene.tweens.add({
+        targets: that,
+        y: that.y - that.scene.unitSize * 0.3,
+        duration: 150,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Quad.easeInOut'
+      });
 
-    // También crece un poco
-    that.scene.tweens.add({
-      targets: that,
-      scale: 1.3,
-      duration: 300,
-      ease: 'Quad.easeIn'
-    });
-
-    // PASO 3: Explosión al final (después de 300ms)
-    that.scene.time.delayedCall(300, () => {
-      
-      // Explosión radiante
-      const explosion = that.scene.add.particles(that.x, that.y, 'gold-sparkle-texture', {
-        speed: { min: 200, max: 400 },
-        angle: { min: 0, max: 360 },
-        scale: { start: 0.6, end: 0 },
+      // Partículas ambient simples
+      that.goldSparkles = that.scene.add.particles(0, 0, 'gold-sparkle-texture', {
+        follow: that,
+        frequency: 150,
+        quantity: 1,
+        scale: { start: 0.3, end: 0 },
         alpha: { start: 1, end: 0 },
         lifespan: 300,
+        speed: { min: 30, max: 60 },
+        angle: { min: 0, max: 360 },
         blendMode: 'ADD',
-        tint: [0xFFFFFF, 0xFFFF00, 0xFFD700],
-        quantity: 16,
-        emitting: false
+        tint: 0xFFFF00
       });
 
-      explosion.explode();
+      // Recoger después de 1 segundo
+      that.scene.time.delayedCall(1000, () => {
+        that.collectCoin();
+      });
 
-      // Flash blanco intenso
-      const flash = that.scene.add.circle(that.x, that.y, that.scene.unitSize * 0.5, 0xFFFFFF, 1);
+      that.on('destroy', () => {
+        if (that.goldSparkles) that.goldSparkles.destroy();
+        if (that.rotationTween) that.rotationTween.remove();
+      });
+    },
+
+    collectCoin: function () {
+      const that = this;
+
+      if (that.goldSparkles) that.goldSparkles.destroy();
+
+      // PASO 1: Partículas convergiendo hacia la moneda (300ms)
+      for (let i = 0; i < 12; i++) {
+        const angle = (360 / 12) * i;
+        const distance = that.scene.unitSize * 2;
+        const rad = Phaser.Math.DegToRad(angle);
+        const x = that.x + Math.cos(rad) * distance;
+        const y = that.y + Math.sin(rad) * distance;
+
+        const particle = that.scene.add.image(x, y, 'gold-sparkle-texture');
+        particle.setScale(0.4);
+        particle.setBlendMode(Phaser.BlendModes.ADD);
+        particle.setTint(0xFFFF00);
+        particle.setAlpha(0.8);
+
+        // Convergen hacia la moneda
+        that.scene.tweens.add({
+          targets: particle,
+          x: that.x,
+          y: that.y,
+          scale: 0.1,
+          duration: 300,
+          ease: 'Quad.easeIn',
+          onComplete: () => particle.destroy()
+        });
+      }
+
+      // PASO 2: Mientras convergen, la moneda empieza a girar más rápido
+      if (that.rotationTween) that.rotationTween.remove();
+
       that.scene.tweens.add({
-        targets: flash,
-        radius: that.scene.unitSize * 3,
-        alpha: 0,
-        duration: 200,
-        ease: 'Quad.easeOut',
-        onComplete: () => flash.destroy()
+        targets: that,
+        angle: that.angle + 720, // dos vueltas rápidas
+        duration: 300,
+        ease: 'Quad.easeIn'
       });
 
-      // La moneda desaparece
-      that.setAlpha(0);
+      // También crece un poco
+      that.scene.tweens.add({
+        targets: that,
+        scale: 1.3,
+        duration: 300,
+        ease: 'Quad.easeIn'
+      });
 
+      // PASO 3: Explosión al final (después de 300ms)
       that.scene.time.delayedCall(300, () => {
-        explosion.destroy();
-        that.destroy();
-      });
-    });
 
-    // Sumar oro
-    that.scene.changeGold(that.goldValue);
-  }
-};
+        // Explosión radiante
+        const explosion = that.scene.add.particles(that.x, that.y, 'gold-sparkle-texture', {
+          speed: { min: 200, max: 400 },
+          angle: { min: 0, max: 360 },
+          scale: { start: 0.6, end: 0 },
+          alpha: { start: 1, end: 0 },
+          lifespan: 300,
+          blendMode: 'ADD',
+          tint: [0xFFFFFF, 0xFFFF00, 0xFFD700],
+          quantity: 16,
+          emitting: false
+        });
+
+        explosion.explode();
+
+        // Flash blanco intenso
+        const flash = that.scene.add.circle(that.x, that.y, that.scene.unitSize * 0.5, 0xFFFFFF, 1);
+        that.scene.tweens.add({
+          targets: flash,
+          radius: that.scene.unitSize * 3,
+          alpha: 0,
+          duration: 200,
+          ease: 'Quad.easeOut',
+          onComplete: () => flash.destroy()
+        });
+
+        // La moneda desaparece
+        that.setAlpha(0);
+
+        that.scene.time.delayedCall(300, () => {
+          explosion.destroy();
+          that.destroy();
+        });
+      });
+
+      // Sumar oro
+      that.scene.changeGold(that.goldValue);
+    }
+  };
 
 
 }

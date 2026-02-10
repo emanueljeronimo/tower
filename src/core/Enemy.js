@@ -211,7 +211,7 @@ export class Enemy extends GameObject {
     height: 1,
     width: 1,
     health: 100,
-    speed: 10,
+    speed: 5,
     gold: 0,
     goStraight: true,
     fuselageColors: [0x182134, 0xAB372C, 0xE9AB32]
