@@ -951,7 +951,8 @@ export class Bullet extends GameObject {
       });
 
       for (let i = 0; i < 6; i++) {
-        new Bullet(that.scene, that.group, that.getCenter().x, that.getCenter().y, Bullet.bomb_child, null, that.range, 1);
+        let halfUnitSize = that.scene.unitSize;
+        new Bullet(that.scene, that.group, that.getCenter().x + Utils.getRandomNumber(-halfUnitSize, halfUnitSize), that.getCenter().y + Utils.getRandomNumber(-halfUnitSize, halfUnitSize), Bullet.bomb_child, null, that.range, 0);
       }
       that.destroy();
     }

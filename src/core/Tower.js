@@ -2,6 +2,7 @@ import { Utils } from './Utils.js'
 import { GameObject } from './GameObject.js'
 import { Bullet } from './Bullet.js'
 import { AudioManager } from './AudioManager.js';
+import { TowerMenuContainer } from './TowerMenuContainer.js';
 
 export class Tower extends GameObject {
   target = null;
@@ -292,7 +293,13 @@ export class Tower extends GameObject {
           return { x, y };
         }
 
-        const path = scene.paths[Math.floor(Math.random() * scene.paths.length)];
+
+        let path = null;
+        if(that.canSellIt)
+          path = scene.paths[Math.floor(Math.random() * scene.paths.length)];
+        else
+          path = TowerMenuContainer.demoPath
+
         let targetPoint = findRandomPointAlongPathInRange(path, x, y, that.rangeUnits * scene.unitSize);
         //lo reescribo con numeros mas randoms
         if (targetPoint) {
